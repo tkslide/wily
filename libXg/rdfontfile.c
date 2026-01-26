@@ -29,7 +29,7 @@ rdfontfile(char *name, int ldepth)
 		return 0;
 	if (fstat(fd, &sbuf) < 0)
 	{
-    Err0:
+Err0:
 		close(fd);
 		return 0;
 	}
@@ -41,7 +41,7 @@ rdfontfile(char *name, int ldepth)
 	close(fd);
 	if (i != sbuf.st_size)
 	{
-    Err1:
+Err1:
 		free(buf);
 		return 0;
 	}
@@ -54,7 +54,7 @@ rdfontfile(char *name, int ldepth)
 	fnt->name = (char *)malloc(strlen(name)+1);
 	if (fnt->name==0)
 	{
-    Err2:
+Err2:
 		free(fnt->name);
 		free(fnt);
 		goto Err1;
@@ -80,7 +80,7 @@ rdfontfile(char *name, int ldepth)
 		s = skip(s);
 		if(*s==0 || min>=65536 || max>=65536 || min>max)
 		{
-    Err3:
+Err3:
 			ffree(fnt);
 			return 0;
 		}

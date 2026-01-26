@@ -117,14 +117,14 @@ int
 eqrect(Rectangle r, Rectangle s)
 {
 	return r.min.x==s.min.x && r.max.x==s.max.x &&
-	       r.min.y==s.min.y && r.max.y==s.max.y;
+	    r.min.y==s.min.y && r.max.y==s.max.y;
 }
 
 int
 rectXrect(Rectangle r, Rectangle s)
 {
 	return r.min.x<s.max.x && s.min.x<r.max.x &&
-	       r.min.y<s.max.y && s.min.y<r.max.y;
+	    r.min.y<s.max.y && s.min.y<r.max.y;
 }
 
 int
@@ -132,8 +132,8 @@ rectinrect(Rectangle r, Rectangle s)
 {
 	/* !ptinrect(r.min, s) in line for speed */
 	if(!(r.min.x>=s.min.x && r.min.x<s.max.x &&
-		r.min.y>=s.min.y && r.min.y<s.max.y))
-			return 0;
+	    r.min.y>=s.min.y && r.min.y<s.max.y))
+		return 0;
 	return r.max.x<=s.max.x && r.max.y<=s.max.y;
 }
 
@@ -141,7 +141,7 @@ int
 ptinrect(Point p, Rectangle r)
 {
 	return p.x>=r.min.x && p.x<r.max.x &&
-	       p.y>=r.min.y && p.y<r.max.y;
+	    p.y>=r.min.y && p.y<r.max.y;
 }
 
 Rectangle

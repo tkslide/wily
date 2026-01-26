@@ -7,7 +7,8 @@ long
 strwidth(Font *f, char *s)
 {
 	int wid, twid;
-	enum { Max = 128 };
+	enum { 
+		Max = 128 	};
 	Rune cbuf[Max];
 	unsigned short fbuf[Max];
 	Rune r;

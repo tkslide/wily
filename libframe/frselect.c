@@ -14,7 +14,7 @@ frselect(Frame *f, Mouse *m)	/* when called, button 1 is down */
 	b = m->buttons;
 	mp = m->xy;
 
-    Again:
+Again:
 	f->modified = 0;
 	frselectp(f, F&~D);
 	p0 = p1 = frcharofpt(f, mp);
@@ -73,15 +73,15 @@ frselectf(Frame *f, Point p0, Point p1, Fcode c)
 			else
 				p0.x--;
 		bitblt(f->b, p0, f->b, Rpt(p0, q1), c);
-	}else{
+	} else{
 		if(p0.x >= f->r.max.x)
 			p0.x = f->r.max.x-1;
 		bitblt(f->b, p0, f->b, Rect(p0.x, p0.y, f->r.max.x, q0.y), c);
 		if(n > 1)
 			bitblt(f->b, Pt(f->r.min.x, q0.y),
-				f->b, Rect(f->r.min.x, q0.y, f->r.max.x, p1.y), c);
+			    f->b, Rect(f->r.min.x, q0.y, f->r.max.x, p1.y), c);
 		bitblt(f->b, Pt(f->r.min.x, p1.y),
-				f->b, Rect(f->r.min.x, p1.y, q1.x, q1.y), c);
+		    f->b, Rect(f->r.min.x, p1.y, q1.x, q1.y), c);
 	}
 }
 

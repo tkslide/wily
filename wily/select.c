@@ -84,8 +84,8 @@ move(View *v, SelFn fn, Point pt, ulong p0, ulong p1) {
 	 * appropriate context, however.
 	 */
 	if (v->scroll && ((pt.y >= r.min.y && pt.y <= r.max.y) ||
-				(pt.y < r.min.y && v->visible.p0 == 0) ||
-				(pt.y > r.max.y && v->visible.p1 == view_text(v)->length)))
+	    (pt.y < r.min.y && v->visible.p0 == 0) ||
+	    (pt.y > r.max.y && v->visible.p1 == view_text(v)->length)))
 		return;
 
 	toggle(v,fn,p0,p1);
@@ -118,18 +118,18 @@ follow(View *v, ulong oldq, ulong p0, ulong p1, bool selecting, Mouse *m)
 	Event	e;
 	ulong	type, timer=0;
 	SelFn 	fn;
-	
+
 	fn = selecting? frselectf : frselectf2;
 	toggle(v, fn, p0, p1);
 	v->selecting = true;
-	
+
 	*m= emouse();
 	type = 0;
 	while(m->buttons == buttons){
 		q = frcharofpt(f, m->xy) +v->visible.p0;
 
 		/* We only autoscroll while affecting the selection, not for b2 or b3 */
-		if (selecting) {	
+		if (selecting) {
 			/* We want the timer going iff we're outside the rectangle */
 			if (ptinrect(m->xy, f->r)) {
 				if (timer){
@@ -153,7 +153,7 @@ follow(View *v, ulong oldq, ulong p0, ulong p1, bool selecting, Mouse *m)
 	}
 	v->selecting = false;
 	if(timer)
-		estoptimer(timer);	
+		estoptimer(timer);
 
 	return maybereverserange(p0,p1);
 }
@@ -201,7 +201,7 @@ frselectf2(Frame *f, Point p0, Point p1, Fcode c)
 {
 	int n;
 	int ht;
-	
+
 	if(p0.x == f->left)
 		p0.x = f->r.min.x;
 	if(p1.x == f->left)
@@ -227,7 +227,7 @@ frselectf2(Frame *f, Point p0, Point p1, Fcode c)
 				p0.x--;
 		bitblt(f->b, p0, f->b, Rpt(p0, p1), c);
 		/* bitblt(f->b, p0, f->d, Rpt(p0, p1), c); */
-	}else{
+	} else{
 		if(p0.x >= f->r.max.x)
 			p0.x = f->r.max.x-1;
 		bitblt(f->b, p0, f->b, Rect(p0.x, p0.y, f->r.max.x, p1.y), c);
@@ -235,12 +235,12 @@ frselectf2(Frame *f, Point p0, Point p1, Fcode c)
 			p0.y += ht;
 			p1.y += ht;
 			bitblt(f->b, Pt(f->r.min.x, p0.y),
-				f->b, Rect(f->r.min.x, p0.y, f->r.max.x, p1.y), c);
+			    f->b, Rect(f->r.min.x, p0.y, f->r.max.x, p1.y), c);
 		}
 		p0.y += ht;
 		p1.y += ht;
 		bitblt(f->b, Pt(f->r.min.x, p0.y),
-				f->b, Rect(f->r.min.x, p0.y, p1.x, p1.y), c);
+		    f->b, Rect(f->r.min.x, p0.y, p1.x, p1.y), c);
 	}
 }
 

@@ -15,19 +15,19 @@ typedef enum Keytype {
 	Klisten, 	/* connection requests */
 	Kout, 	/* output to stderr or a window */
 	Kmsg	/* from external connections */
-} Keytype; 
+} Keytype;
 
 /* Info about a libXg event key */
 struct Key {
 	Keytype 	t;
 	int		fd;		/* file descriptor*/
 	ulong	key;		/* libXg event key */
-	
+
 	/* 
 	 * Buffer for incomplete messages.
 	 * Only in use if k->t == Kmsg.
 	 */
-	Mbuf	buf;		
+	Mbuf	buf;
 
 	/*
 	 * Info about the program sending us output.
@@ -100,7 +100,7 @@ int
 event_outputstart(int fd, int pid, char*cmd, char*label, View *v){
 	ulong key;
 	Key	*k;
-	
+
 	if (!(key = estart(0, fd, 0))) {
 		diag(0, "estart");
 		return -1;
@@ -129,7 +129,7 @@ event_outputstart(int fd, int pid, char*cmd, char*label, View *v){
 void
 event_wellknown(int fd){
 	ulong key;
-	
+
 	if(!(key = estart(0, fd, 0)))
 		error("estart");
 	key_new(key,fd, Klisten);
@@ -149,10 +149,18 @@ dofd(ulong key, int n, char*s) {
 	}
 
 	switch(k->t){
-	case Klisten:	ex_accept(n,s);	break;
-	case Kout:	output_fullutfs(k, n, s);	break;
-	case Kmsg:	outmsg(k, n, s);	break;
-	default:		error("bad key type %d", k->t);		break;
+	case Klisten:	
+		ex_accept(n,s);	
+		break;
+	case Kout:	
+		output_fullutfs(k, n, s);	
+		break;
+	case Kmsg:	
+		outmsg(k, n, s);	
+		break;
+	default:		
+		error("bad key type %d", k->t);		
+		break;
 	}
 }
 
@@ -168,7 +176,7 @@ kill_all(char*s) {
 	for (s = strtok(s, sep); s; s = strtok(NULL, sep)) {
 		if ((k = key_findcmd(s))) {
 			/* only output keys have a prog attached */
-			assert(k->t == Kout); 
+			assert(k->t == Kout);
 			if(kill(- k->pid, SIGKILL))
 				diag(0, "kill %s", s);
 		}
@@ -179,7 +187,7 @@ kill_all(char*s) {
 void
 kill_list(void){
 	Key	*k;
-	
+
 	errno = 0;
 	for(k = keytab; k < keytab + MAXKEYS; k++)
 		if(k->t == Kout && !k->v)
@@ -204,12 +212,17 @@ key_del(Key *k) {
 	estop(k->key);
 
 	switch(k->t) {
-	case Kout: 	if (k->nobuf > 0)	output(k, k->nobuf, k->obuf);
-				if (!k->v)			rmrunning(k->cmd);
-				break;
-	case Kmsg:	data_fdstop(k->fd); break;
-	case Klisten:	error("Klisten closed");
-	default:		error("bad key type %d", k->t);
+	case Kout: 	
+		if (k->nobuf > 0)	output(k, k->nobuf, k->obuf);
+		if (!k->v)			rmrunning(k->cmd);
+		break;
+	case Kmsg:	
+		data_fdstop(k->fd); 
+		break;
+	case Klisten:	
+		error("Klisten closed");
+	default:		
+		error("bad key type %d", k->t);
 	}
 	k->t = Kfree;
 }
@@ -303,7 +316,7 @@ ex_accept(int n, char*s) {
 		diag(0, "failed connection attempt");
 		return;
 	}
-	
+
 	if (!(key= estart(0,fd,0))){
 		diag(0, "couldn't estart to accept connection");
 		close(fd);
@@ -325,9 +338,9 @@ key_find(ulong key) {
 	for(k = keytab; k < keytab + MAXKEYS; k++)
 		if(k->key == key)
 			return k;
-	
+
 	/* We assume key_find will always work */
-	assert(false);	
+	assert(false);
 	return 0;
 }
 

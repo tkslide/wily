@@ -60,7 +60,7 @@ dirnames (DIR *dirp, char *path) {
 		}
 
 		if (CHECKDIR(direntp) ||
-				(stat(name, &statbuf) >= 0 && S_ISDIR(statbuf.st_mode))) {
+		    (stat(name, &statbuf) >= 0 && S_ISDIR(statbuf.st_mode))) {
 			Path	buf;
 
 			sprintf(buf, "%s/", name);

@@ -4,7 +4,7 @@
 
 #include "wily.h"
 #include "tile.h"
- 
+
 static int	ncolumns = 2;
 int	tagheight;
 Tile	*wily=0;			/* encloses the whole application */
@@ -41,7 +41,7 @@ rmrunning(char *cmd){
 static void
 tools_init(void){
 	char*s, t[200];
-	
+
 	if ((s = getenv("WILYTOOLS")))
 		tag_init(s);
 	else {
@@ -49,7 +49,7 @@ tools_init(void){
 		sprintf(p, "%s/%s", getenv("HOME"), ".wilytools");
 		tag_init(p);
 	}
-	
+
 	if ((s=getenv("WCOLTAG")))
 		columntools = strdup(s);
 	if ((s=getenv("WMAINTAG"))) {
@@ -85,10 +85,18 @@ args(int argc,char **argv, char **envp)
 
 	while ((c = getopt(argc, argv, "c:a:e:")) != EOF) {
 		switch (c) {
-		case 'c':	ncolumns = atoi(optarg); break;
-		case 'a':	tabsize = atoi(optarg); break;
-		case 'e':   cmd = optarg; break;
-		default:	usage(); break;
+		case 'c':	
+			ncolumns = atoi(optarg); 
+			break;
+		case 'a':	
+			tabsize = atoi(optarg); 
+			break;
+		case 'e':   
+			cmd = optarg; 
+			break;
+		default:	
+			usage(); 
+			break;
 		}
 	}
 	scroll_init();
@@ -101,14 +109,14 @@ args(int argc,char **argv, char **envp)
 	if (optind<argc) {
 		for ( ; optind < argc; optind++) {
 			Path	label;
-			
+
 			data_addcontext(0, label, argv[optind]);
 			data_open(label, true);
 		}
 	} else if (cmd == 0) {
 		data_open(wilydir, false);
 	}
-	
+
 	if (cmd != 0)
 		run(wily->tag, cmd, 0);
 }
@@ -119,7 +127,7 @@ wily_init(void)
 {
 	Text	*t;
 	int	j;
-	
+
 	t = text_alloc(0, false);
 	text_replaceutf(t, nr, wilytools);
 	wily = tile_new(V, 0, screen.r.max.y, 0, 0, t, 0);
@@ -148,7 +156,8 @@ mainloop(void)
 	ulong	type;
 	Event	e;
 	bool	mouseaction=true;
-	Point	lastp={0,0};
+	Point	lastp={
+		0,0	};
 
 	while ((type = eread(~0, &e))) {
 		switch(type){
@@ -165,7 +174,7 @@ mainloop(void)
 			lastp = e.mouse.xy;
 			mouseaction=true;
 			if(e.mouse.buttons && (last_focus = point2view(e.mouse.xy)))
-				domouse(last_focus, &e.mouse);	
+				domouse(last_focus, &e.mouse);
 			break;
 
 		default:

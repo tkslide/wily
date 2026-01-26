@@ -17,7 +17,7 @@ expand(char*dest, char*orig, char*(*expansion)(const char*)){
 	Path	key;
 	char	*val;
 	char	*slash;
-	
+
 	assert(orig[0]=='$' || orig[0]=='~');
 	strcpy(key,orig+1);
 	if( (slash=strchr(key,'/')) ) {
@@ -41,10 +41,18 @@ label2path(char*path, char*label) {
 		return;
 	}
 	switch(label[0]) {
-	case '$':	expand(path, label, getenv); break;
-	case '~':	expand(path, label, gettilde); break;
-	case '/':	strcpy(path, label); break;
-	default:	sprintf(path, "%s%s", wilydir, label); break;
+	case '$':	
+		expand(path, label, getenv); 
+		break;
+	case '~':	
+		expand(path, label, gettilde); 
+		break;
+	case '/':	
+		strcpy(path, label); 
+		break;
+	default:	
+		sprintf(path, "%s%s", wilydir, label); 
+		break;
 	}
 	labelclean(path);
 }
@@ -58,14 +66,14 @@ void
 labelclean(char*label) {
 	char	*slash, *from, *to, c;
 	char	*back;
-	
+
 	slash = strchr(label,'/');
 	if(slash) {
 		from = to = slash+1;
 	} else {
 		return;
 	}
-	
+
 	while (from[0] != '\0') {
 		assert(to[-1] == '/');
 		switch(from[0]){

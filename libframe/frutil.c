@@ -54,7 +54,7 @@ _fradvance(Frame *f, Point *p, Frbox *b)
 	if(b->nrune<0 && b->a.b.bc=='\n'){
 		p->x = f->left;
 		p->y += f->font->height;
-	}else
+	} else
 		p->x += b->wid;
 }
 

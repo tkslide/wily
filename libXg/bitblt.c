@@ -28,17 +28,17 @@ bitblt(Bitmap *d, Point p, Bitmap *s, Rectangle r, Fcode f)
 	g = _getcopygc(f, d, s, &bfunc);
 	if(bfunc == UseCopyArea)
 		XCopyArea(_dpy, (Drawable)s->id, (Drawable)d->id, g,
-			sx, sy, Dx(r), Dy(r), dx, dy);
+		    sx, sy, Dx(r), Dy(r), dx, dy);
 	else if(bfunc == UseFillRectangle){
 		XFillRectangle(_dpy, (Drawable)d->id, g,
-			dx, dy, Dx(r), Dy(r));
-	}else{
+		    dx, dy, Dx(r), Dy(r));
+	} else{
 		/* bfunc == UseCopyPlane */
 		plane = _ld2dmask[s->ldepth];
 		plane &= ~(plane>>1);
 		if(0/*f == S*/)
 			XCopyPlane(_dpy, (Drawable)s->id, (Drawable)d->id, g,
-				sx, sy, Dx(r), Dy(r), dx, dy, plane);
+			    sx, sy, Dx(r), Dy(r), dx, dy, plane);
 		else {
 			/*
 			 * CopyPlane can only do func code S,
@@ -49,7 +49,7 @@ bitblt(Bitmap *d, Point p, Bitmap *s, Rectangle r, Fcode f)
 			 */
 			btmp = _balloc(Rect(0,0,Dx(r),Dy(r)), d->ldepth);
 			XCopyPlane(_dpy, (Drawable)s->id, (Drawable)btmp->id, g,
-				sx, sy, Dx(r), Dy(r), 0, 0, plane);
+			    sx, sy, Dx(r), Dy(r), 0, 0, plane);
 			bitblt(d, p, btmp, btmp->r, f);
 			bfree(btmp);
 		}

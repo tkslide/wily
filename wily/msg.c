@@ -175,7 +175,7 @@ data_changelabel(Data *d,char*label) {
 static char*
 data_getname(Data*d){
 	static Path buf;
-	
+
 	label2path(buf, d->label);
 	return buf;
 }
@@ -197,12 +197,12 @@ data_list(void) {
 		label2path(path, d->label);
 		size += strlen(path) + 15;
 	}
-	
+
 	if(size > alloced) {
 		alloced = size;
 		buf = srealloc(buf, alloced);
 	}
-	
+
 	ptr = buf;
 	for(d=dataroot; d; d=d->next) {
 		label2path(path, d->label);
@@ -228,13 +228,13 @@ static void
 msg_new(Msg*m) {
 	View	*v;
 	Data	*d;
-	
+
 	if(!(v = data_find(m->s)))
 		v = data_open(m->s, true);
 	d = view_data(v);
 
 	if(!m->flag)
-		data_setbackup(d,0);	
+		data_setbackup(d,0);
 	m->w = d->id;
 }
 
@@ -267,7 +267,7 @@ static void
 handlegoto(Msg*m, View*v) {
 	bool	show;
 	Range	r;
-	
+
 	show = (m->t == WEgoto) || m->flag;
 
 	/* We get the search start position 
@@ -276,7 +276,7 @@ handlegoto(Msg*m, View*v) {
 	r = m->r;
 	if(r.p0>r.p1)
 		r = view_getsel(v);
-	
+
 	if(view_goto(&v, &r, m->s)){
 		if (show) {
 			view_show(v, r);
@@ -307,32 +307,58 @@ msg_fillfd(Msg*m, int fd) {
 	/* WMlist or WMnew don't need to be associated with a valid window.
 	 */
 	switch(m->t) {
-	case WMlist:	m->s = data_list();	return;
-	case	WMnew:	msg_new(m); return;
-	default:	break;
+	case WMlist:	
+		m->s = data_list();	
+		return;
+	case	WMnew:	
+		msg_new(m); 
+		return;
+	default:	
+		break;
 	}
 
 	if(!(d=data_findid(m->w))) {
 		msg_error(m, "No window with this id");
 		return;
 	}
-	
+
 	v = text_view(d->t);
 
 	switch(m->t) {
-	case	WMattach:	handleattach(m,d,fd); 		break;
-	case	WMsetname:	data_changelabel(d, m->s);	break;
-	case WMgetname:	m->s = data_getname(d);	break;
-	case	WMsettools:	tag_settools(d->tag, m->s);	break;
-	case	WMgettools:	m->s=tag_gettools(d->tag);	break;
-	case	WMread:		handleread(m, d->t); 		break;
-	case WEreplace:							break;
-	case	WMreplace:	handlereplace(m,d->t);		break;
+	case	WMattach:	
+		handleattach(m,d,fd); 		
+		break;
+	case	WMsetname:	
+		data_changelabel(d, m->s);	
+		break;
+	case WMgetname:	
+		m->s = data_getname(d);	
+		break;
+	case	WMsettools:	
+		tag_settools(d->tag, m->s);	
+		break;
+	case	WMgettools:	
+		m->s=tag_gettools(d->tag);	
+		break;
+	case	WMread:		
+		handleread(m, d->t); 		
+		break;
+	case WEreplace:							
+		break;
+	case	WMreplace:	
+		handlereplace(m,d->t);		
+		break;
 	case	WMexec:							/* fall through */
-	case	WEexec:		run(v, m->s, 0);			break;
+	case	WEexec:		
+		run(v, m->s, 0);			
+		break;
 	case	WMgoto:							/* fall through */
-	case	WEgoto:		handlegoto(m,v);			break;
-	default:			msg_error(m, unknown); 	break;
+	case	WEgoto:		
+		handlegoto(m,v);			
+		break;
+	default:			
+		msg_error(m, unknown); 	
+		break;
 	}
 }
 
@@ -356,7 +382,7 @@ msg_process(Msg*m, int fd) {
 	bool	isbounce;
 
 	isbounce = m->t < WEfencepost;
-	
+
 	msg_fillfd(m, fd);
 
 	if(!isbounce){

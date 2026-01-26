@@ -48,8 +48,8 @@ view_set(View*v, ulong n) {
 		return;
 
 	ndelete = RCONTAINS(v->visible, n) ? 
-			n - v->visible.p0 : 
-			v->f.nchars;
+	    n - v->visible.p0 : 
+	    v->f.nchars;
 	v->visible.p0 = n;
 	if (ISVISIBLE(v)) {
 		frdelete(&v->f, 0, ndelete);
@@ -119,7 +119,7 @@ view_show(View *v, Range r) {
 	assert(r.p1 <= text_length(v->t));
 
 	if (v->scroll) {
-		tile_show(v->tile);	
+		tile_show(v->tile);
 	}
 	assert(ISVISIBLE(v));
 	if(!v->scroll) {
@@ -160,7 +160,7 @@ view_scroll(View *v, Mouse *m) {
 	ulong	runepos;
 
 	assert(m->buttons);
-	
+
 	if (m->xy.y < v->f.r.min.y)
 		m->xy.y = v->f.r.min.y;
 	y = clip(m->xy.y - v->f.r.min.y, 0, Dy(v->f.r));
@@ -201,9 +201,9 @@ view_hscroll(View*v, bool left) {
 	assert(!v->scroll);
 
 	assert(ISTAG(v));
-	
+
 	if(left){
-		if(v->visible.p0) 
+		if(v->visible.p0)
 			v->visible.p0--;
 	} else {
 		if(v->visible.p1 < text_length(v->t))

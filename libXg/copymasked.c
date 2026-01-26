@@ -36,12 +36,12 @@ copymasked(Bitmap *d, Point p, Bitmap *s, Bitmap *m, Rectangle r)
 	gcv.ts_y_origin = dy;
 	gcv.fill_style = FillStippled;
 	g = _getgc(d, GCFunction|GCStipple|GCTileStipXOrigin
-		|GCTileStipYOrigin|GCFillStyle, &gcv);
+	    |GCTileStipYOrigin|GCFillStyle, &gcv);
 	XFillRectangle(_dpy, (Drawable)d->id, g,
-			dx, dy, Dx(r), Dy(r));
+	    dx, dy, Dx(r), Dy(r));
 	gcv.function = GXor;
 	gcv.fill_style = FillSolid;
 	g = _getgc(d, GCFunction|GCFillStyle, &gcv);
 	XCopyArea(_dpy, (Drawable)s->id, (Drawable)d->id, g,
-			sx, sy, Dx(r), Dy(r), dx, dy);
+	    sx, sy, Dx(r), Dy(r), dx, dy);
 }

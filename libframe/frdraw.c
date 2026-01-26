@@ -39,7 +39,7 @@ _frdraw(Frame *f, Point pt)
 				b = &f->box[nb];
 			}
 			pt.x += b->wid;
-		}else{
+		} else{
 			if(b->a.b.bc == '\n')
 				pt.x = f->left, pt.y+=f->font->height;
 			else

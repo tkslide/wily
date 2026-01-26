@@ -43,7 +43,7 @@ builtin_font(View *v, char *arg) {
 static void
 builtin_autoindent(View *v, char *arg) {
 	View *body;
-	
+
 	if ((body = view_body(v))) {
 		body->autoindent = ! body->autoindent;
 	} else {
@@ -69,8 +69,12 @@ undo_ops(View *v, char*arg, Range (*undofn)(Text*, bool))
 	}
 }
 
-static void undo(View *v, char *arg){undo_ops(v, arg, undo_undo);}
-static void redo(View *v, char *arg) {undo_ops(v, arg, undo_redo);}
+static void undo(View *v, char *arg){
+	undo_ops(v, arg, undo_undo);
+}
+static void redo(View *v, char *arg) {
+	undo_ops(v, arg, undo_redo);
+}
 
 /*****************************************************
 	Get, Put.  If called with an argument, they
@@ -95,8 +99,12 @@ getorput(View*v, char*arg, int(*fn)(Data*,char*)) {
 	(*fn)(d, s);
 }
 
-static void	put(View *v, char *arg)	{getorput(v, arg, data_put);}
-static void	get(View *v, char *arg)	{getorput(v, arg, data_get);}
+static void	put(View *v, char *arg)	{
+	getorput(v, arg, data_put);
+}
+static void	get(View *v, char *arg)	{
+	getorput(v, arg, data_get);
+}
 
 /*****************************************************
 	Quit/Putall ignore the context.
@@ -179,7 +187,7 @@ static void
 clear(View *v, char *arg) {
 	View	*body;
 
-	if ((body = view_body(v))) 
+	if ((body = view_body(v)))
 		text_replace(body->t, text_all(body->t), rstring(0,0));
 }
 
@@ -202,7 +210,7 @@ new(View *v, char *arg) {
 
 	if(!arg)
 		arg = "New";
-		
+
 	/* If 'v' isn't part of a window, maybe last_selection is */
 	if(!view_win(v))
 		v = last_selection;
@@ -262,10 +270,10 @@ builtin(View *v, char *cmd, char *arg)
 
 	key.name = cmd;
 	c = bsearch( &key, builtins, sizeof(builtins)/sizeof(Cmd),
-				 sizeof(Cmd), 
-			(int	(*)(const void *,const void*))cmd_compare);
+	    sizeof(Cmd), 
+	    (int	(*)(const void *,const void*))cmd_compare);
 
-	if (c) 
+	if (c)
 		(*c->cmd)(v, arg);
 	return (bool) c;
 }

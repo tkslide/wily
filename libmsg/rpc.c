@@ -54,7 +54,8 @@ static char* 	rpc		(Handle*, Msg*);
 static int		getbytes	(Handle*);
 static char*	simple(Handle*h, Mtype t, Id w, Range r, char *s,ushort);
 
-Range nr = {0,0};
+Range nr = {
+	0,0};
 
 /* PRE: fd an open connection to wily
  * POST: return a handle ready for RPCs
@@ -72,7 +73,7 @@ rpc_init(int fd)
 	h->n = 0;
 	h->id = 0;
 	msgset_init(&h->reply);
-	msgq_init(&h->event);	
+	msgq_init(&h->event);
 
 	return h;
 }
@@ -127,7 +128,7 @@ rpc_bounce(Handle*h, Msg *m)
 		fprintf(stderr,"can only bounce events\n");
 		return -1;
 	}
-	
+
 	/* send the request */
 	size = msg_size(m);
 	if (h->n + size > h->alloced) {
@@ -364,7 +365,7 @@ getbytes	(Handle*h)
 		/* put it somewhere */
 		if (m.t < WEfencepost) {
 			MsgQ	*q = &h->event;
-			
+
 			if (msgq_full(q)) {
 				fprintf(stderr, "rpc event queue overflow\n");
 				free(m.s);

@@ -12,9 +12,9 @@ ladjust(ulong val, Range r, int len)
 {
 	assert(ROK(r));
 	if( val>r.p1)
-		 return val + len - RLEN(r);
+		return val + len - RLEN(r);
 	else if ( val>r.p0)
-		 return r.p0;
+		return r.p0;
 	else
 		return val;
 }
@@ -24,7 +24,7 @@ radjust(ulong val, Range r, int len)
 {
 	assert(ROK(r));
 	if( val >r.p1)
-		 return val + len - RLEN(r);
+		return val + len - RLEN(r);
 	else if ( val>=r.p0)
 		return r.p0 + len;
 	else
@@ -108,7 +108,7 @@ salloc(int size)
 
 	assert(size>=0);
 	/* make sure we'll have something to free */
-	size = size? size : sizeof(int);	
+	size = size? size : sizeof(int);
 	p = malloc(size);
 	if (!p)
 		abort();	/* todo */

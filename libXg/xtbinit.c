@@ -39,8 +39,10 @@ Display		*_dpy;
 Widget		_toplevel;
 unsigned long	_fgpixel, _bgpixel;
 XColor		_fgcolor, _bgcolor;
-int		_ld2d[6] = { 1, 2, 4, 8, 16, 24 };
-unsigned long	_ld2dmask[6] = { 0x1, 0x3, 0xF, 0xFF, 0xFFFF, 0x00FFFFFF };
+int		_ld2d[6] = { 
+	1, 2, 4, 8, 16, 24 };
+unsigned long	_ld2dmask[6] = { 
+	0x1, 0x3, 0xF, 0xFF, 0xFFFF, 0x00FFFFFF };
 Colormap	_libg_cmap;
 int		_cmap_installed;
 
@@ -98,19 +100,20 @@ static Errfunc	onerr;
 
 String _fallbacks[] = {
 	"*gwin.width: 800",
-	"*gwin.height: 600",
-	NULL
+	    "*gwin.height: 600",
+	    NULL
 };
 
 #ifndef R3
 static char *shelltrans = 
-	"<ClientMessage> WM_PROTOCOLS : WMProtocolAction()";
+"<ClientMessage> WM_PROTOCOLS : WMProtocolAction()";
 static XtActionsRec wmpactions[] = {
 	{"WMProtocolAction", wmproto}
 };
+
 #endif
 
-	/* too many X options */
+/* too many X options */
 static XrmOptionDescRec optable[] = {
 	{"-p9fn",	"*p9font",	XrmoptionSepArg,        (caddr_t)NULL},
 	{"-p9font",	"*p9font",	XrmoptionSepArg,        (caddr_t)NULL},
@@ -123,7 +126,7 @@ ioerr(Display *d)
 	if(onerr)
 		(*onerr)("ioerr");
 	else
-		exit(1); 
+		exit(1);
 	return 0;
 }
 
@@ -153,32 +156,44 @@ xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
 	if (!fallbacks)
 		fallbacks = _fallbacks;
 	n = 0;
-	XtSetArg(args[n], XtNinput, TRUE);		n++;
+	XtSetArg(args[n], XtNinput, TRUE);		
+	n++;
 	_toplevel = XtAppInitialize(&app, class,
-			optable, sizeof(optable)/sizeof(optable[0]),
-			pargc, argv, fallbacks, args, n);
+	    optable, sizeof(optable)/sizeof(optable[0]),
+	    pargc, argv, fallbacks, args, n);
 
 	n = 0;
-	XtSetArg(args[n], XtNreshaped, reshaped);	n++;
-	XtSetArg(args[n], XtNgotchar, gotchar);		n++;
-	XtSetArg(args[n], XtNgotmouse, gotmouse);	n++;
+	XtSetArg(args[n], XtNreshaped, reshaped);	
+	n++;
+	XtSetArg(args[n], XtNgotchar, gotchar);		
+	n++;
+	XtSetArg(args[n], XtNgotmouse, gotmouse);	
+	n++;
 	widg = XtCreateManagedWidget("gwin", gwinWidgetClass, _toplevel, args, n);
 
 	n = 0;
-	XtSetArg(args[n], XtNforeground, &_fgpixel);	n++;
-	XtSetArg(args[n], XtNbackground, &_bgpixel);	n++;
-	XtSetArg(args[n], XtNdepth, &depth);		n++;
-	XtSetArg(args[n], XtNfont, &xf);		n++;
-	XtSetArg(args[n], XtNp9font, &fontname);	n++;
-	XtSetArg(args[n], XtNp9fixed, &fixedname);	n++;
-	XtSetArg(args[n], XtNcomposeMod, &compose);	n++;
+	XtSetArg(args[n], XtNforeground, &_fgpixel);	
+	n++;
+	XtSetArg(args[n], XtNbackground, &_bgpixel);	
+	n++;
+	XtSetArg(args[n], XtNdepth, &depth);		
+	n++;
+	XtSetArg(args[n], XtNfont, &xf);		
+	n++;
+	XtSetArg(args[n], XtNp9font, &fontname);	
+	n++;
+	XtSetArg(args[n], XtNp9fixed, &fixedname);	
+	n++;
+	XtSetArg(args[n], XtNcomposeMod, &compose);	
+	n++;
 	XtGetValues(widg, args, n);
 	XSetIOErrorHandler(ioerr);
 	XSetErrorHandler(ioerr);
 
 	if (compose < 0 || compose > 5) {
 		n = 0;
-		XtSetArg(args[n], XtNcomposeMod, 0);	n++;
+		XtSetArg(args[n], XtNcomposeMod, 0);	
+		n++;
 		XtSetValues(widg, args, n);
 	}
 
@@ -249,7 +264,7 @@ wmproto(Widget w, XEvent *e , String *p, Cardinal *np)
 	Time t;
 
 	if(e->type == ClientMessage &&
-          (Atom)(e->xclient.data.l[0]) == wm_take_focus) {
+	    (Atom)(e->xclient.data.l[0]) == wm_take_focus) {
 		t = (Time) e->xclient.data.l[1];
 		XtCallAcceptFocus(widg, &t);
 	}
@@ -383,7 +398,8 @@ pixtocolor(Pixel p, XColor *pc)
 	int n;
 
 	n = 0;
-	XtSetArg(args[n], XtNcolormap, &cmap);	n++;
+	XtSetArg(args[n], XtNcolormap, &cmap);	
+	n++;
 	XtGetValues(_toplevel, args, n);
 	pc->pixel = p;
 	XQueryColor(_dpy, cmap, pc);
@@ -411,7 +427,8 @@ rgbpix(Bitmap *b, RGB col)
 
 	if (!_cmap_installed) {
 		n = 0;
-		XtSetArg(args[n], XtNcolormap, &cmap);	n++;
+		XtSetArg(args[n], XtNcolormap, &cmap);	
+		n++;
 		XtGetValues(_toplevel, args, n);
 		c.red = col.red>>16;
 		c.green = col.green>>16;
@@ -450,7 +467,8 @@ rdcolmap(Bitmap *b, RGB *map)
 		cmap = _libg_cmap;
 	} else {
 		i = 0;
-		XtSetArg(args[i], XtNcolormap, &cmap);	i++;
+		XtSetArg(args[i], XtNcolormap, &cmap);	
+		i++;
 		XtGetValues(_toplevel, args, i);
 	}
 
@@ -501,7 +519,7 @@ wrcolmap(Bitmap *b, RGB *map)
 			cols[i].flags = DoRed|DoGreen|DoBlue;
 		}
 		if (!XMatchVisualInfo(_dpy, XScreenNumberOfScreen(scr),
-					depth, PseudoColor, &vi)) {
+		    depth, PseudoColor, &vi)) {
 			berror("wrcolmap can't get visual");
 			return;
 		}
@@ -510,7 +528,8 @@ wrcolmap(Bitmap *b, RGB *map)
 		XStoreColors(_dpy, _libg_cmap, cols, n);
 
 		i = 0;
-		XtSetArg(args[i], XtNcolormap, _libg_cmap);	i++;
+		XtSetArg(args[i], XtNcolormap, _libg_cmap);	
+		i++;
 		XtSetValues(_toplevel, args, i);
 		_cmap_installed = 1;
 	}
@@ -542,8 +561,8 @@ XFontStructtoSubfont(XFontStruct *fp)
 	f = (Subfont *)malloc(sizeof(Subfont));
 	if(!f)
 		berror("XFontStructtoSubfont malloc");
-        min = fp->min_byte1;
-        max = fp->max_byte1;
+	min = fp->min_byte1;
+	max = fp->max_byte1;
 	f->minrow = min;
 	f->mincol = fp->min_char_or_byte2;
 	f->width = fp->max_char_or_byte2-fp->min_char_or_byte2+1;
@@ -630,7 +649,7 @@ estart(unsigned long key, int fd, int n)
 			esrc[i].size = n;
 			esrc[i].count = 0;
 			esrc[i].id =  XtAppAddInput(app, fd, (XtPointer)XtInputReadMask,
-				gotinput, (XtPointer) &esrc[i]);
+			    gotinput, (XtPointer) &esrc[i]);
 			return 1<<i;
 		}
 	return 0;
@@ -696,7 +715,7 @@ etimer(unsigned long key, long n)
 			esrc[i].head = 0;	/* bugfix by gary */
 			/* Assume an XtInputId can hold an XtIntervalId */
 			esrc[i].id = (XtInputId) XtAppAddTimeOut(
-						app, n, gottimeout, (XtPointer)n);
+			    app, n, gottimeout, (XtPointer)n);
 			Stimer = i;
 			return 1<<i;
 		}
@@ -717,7 +736,7 @@ eread(unsigned long keys, Event *e)
 
 	if(keys == 0)
 		return 0;
-		/* Give Priority to X events */
+	/* Give Priority to X events */
 	if (XtAppPending(app) & XtIMXEvent)
 		XtAppProcessEvent(app, XtIMXEvent);
 
@@ -873,7 +892,7 @@ ebadd(Esrc *s)
 		if(s->tail){
 			s->tail->next = eb;
 			s->tail = eb;
-		}else
+		} else
 			s->head = s->tail = eb;
 	}
 	return eb;
@@ -911,7 +930,7 @@ waitevent(void)
 	else
 		XtAppProcessEvent(app, XtIMAll);
 }
-		
+
 int
 snarfswap(char *s, int n, char **t)
 {
@@ -949,11 +968,11 @@ printgc(char *msg, GC g)
 	XGCValues v;
 
 	XGetGCValues(_dpy, g, GCFunction|GCForeground|GCBackground|GCFont|
-			GCTile|GCFillStyle|GCStipple, &v);
+	    GCTile|GCFillStyle|GCStipple, &v);
 	fprintf(stderr, "%s: gc %x\n", msg, g);
 	fprintf(stderr, "  fg %d bg %d func %d fillstyle %d font %x tile %x stipple %x\n",
-		v.foreground, v.background, v.function, v.fill_style,
-		v.font, v.tile, v.stipple);
+	    v.foreground, v.background, v.function, v.fill_style,
+	    v.font, v.tile, v.stipple);
 }
 #endif
 

@@ -14,9 +14,9 @@ View*
 openlabel(char*label, bool create) {
 	View*v;
 	Path	contracted;
-	
+
 	pathcontract(contracted,label);
-	
+
 	if ( (v=data_find(contracted)) ) {
 		tile_show(v->tile);
 		return v;
@@ -83,7 +83,7 @@ b3(View *v, Range r) {
 	Range expanded;
 	Data	*d;
 	View*found;
-	
+
 	/* Try to send simply expanded version to remote process */
 	expanded = view_expand(v, r, notaddress);
 	if (!RLEN(expanded))
@@ -91,12 +91,12 @@ b3(View *v, Range r) {
 	s = text_duputf(v->t, expanded);
 	d = view_data(v);
 	oldv = v;
-	
+
 	/* Send to remote process? */
 	if(data_sendgoto(d,expanded, s))
 		goto cleanup;
-	
-	
+
+
 	if (view_gotofile(&v, &expanded, s)) { /* Simple file? */
 		r = expanded;
 	} else if ( (found = openinclude(v,r)) ) {
@@ -107,7 +107,7 @@ b3(View *v, Range r) {
 	} else {	/* found nothing */
 		goto cleanup;
 	}
-	
+
 	view_show(v,r);
 	view_select(v,r);
 	view_setlastselection(v);
@@ -115,7 +115,7 @@ b3(View *v, Range r) {
 	/* warp unless b3 in the tag jumps to the body. */
 	if (oldv != tile_tag(view_win(v)))
 		view_warp(v,r);
-	
+
 cleanup:
 	free(s);
 }
@@ -129,7 +129,7 @@ view_literal(View**vp, Range*r, char*s) {
 	View*v;
 	Text	*t;
 	Range	tmp;
-	
+
 	v = *vp;
 	tmp = *r;
 	/* Only makes sense if 'v' is a body or we can find a useful body */
@@ -141,7 +141,7 @@ view_literal(View**vp, Range*r, char*s) {
 		}
 	}
 	assert(ISBODY(v));
-	
+
 	t = v->t;
 	if(text_findliteralutf(t, &tmp, s)) {
 		*vp = v;
@@ -185,7 +185,7 @@ view_gotofile(View**vp, Range *r, char *a) {
 		if( (v2=openlabel(label, false))){
 			if(colon) {
 				Range oldr = v2->sel;
-				
+
 				if(!text_search(v2->t, r, colon+1, v2->sel)) {
 					*r = oldr;
 				}
@@ -207,8 +207,8 @@ view_gotofile(View**vp, Range *r, char *a) {
 	*r = v->sel;
 	if (text_search(v->t, r, colon+1, v->sel)) {
 		*vp = v;
- 		return true;
-	} 
+		return true;
+	}
 	return false;
 }
 

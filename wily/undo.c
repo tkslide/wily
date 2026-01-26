@@ -13,7 +13,7 @@
  * For now, it doesn't seem to be a problem, and simpler
  * is better.
  */
- 
+
 struct Undo {
 	Undo	*next;
 	Range	r;			/* where to replace */
@@ -22,7 +22,8 @@ struct Undo {
 };
 
 static bool undoing = false;	/* prevent recording undo ops */
-static Range illegal_range = {10,1};
+static Range illegal_range = {
+	10,1};
 
 static Undo *	reverse	(Text*, Range, Rstring);
 static bool 	append	(Text*, Range r, Rstring s);
@@ -81,16 +82,16 @@ Range
 undo_undo(Text *t, bool all)
 {
 	Range r;
-	
+
 	if (!t->did)
 		return illegal_range;
 
 	save_state(t);
-	
+
 	do {
 		r = shift(t, &t->did, &t->undone, true);
 	} while (all && t->did && t->did != t->mark);
-	
+
 	update_state(t);
 	return (all ? illegal_range : r);
 }
@@ -101,19 +102,19 @@ undo_redo(Text *t, bool all)
 {
 	Range r;
 	Undo *tmp;
-	
+
 	save_state(t);
-	
+
 	tmp = t->did;
 	t->did = t->undone;
 	t->undone = tmp;
-	
+
 	r = undo_undo(t, all);
-	
+
 	tmp = t->did;
 	t->did = t->undone;
 	t->undone = tmp;
-	
+
 	update_state(t);
 	return r;
 }
@@ -199,7 +200,7 @@ append(Text *t, Range r, Rstring s)
 		save_state(t);
 		shift(t, &t->did, &t->undone, false);
 		update_state(t);
-		
+
 		return true;
 	}
 	if (!(t->did && t->undoing==MoreUndo && t->did != t->mark))
@@ -213,7 +214,7 @@ append(Text *t, Range r, Rstring s)
 	}
 	if (RLEN(u->r)==0 && RSLEN(s)==0 && u->r.p0 == r.p1) {
 		slen = RSLEN(u->s);
-		rlen = RLEN(r); 
+		rlen = RLEN(r);
 		buf = salloc ( (slen + rlen) * sizeof(Rune) );
 		text_copy( t, r, buf);
 		memcpy(buf + rlen, u->s.r0, slen*sizeof(Rune));
@@ -332,8 +333,8 @@ static bool
 undo_eq(Undo*u, Range r, Rstring s)
 {
 	return u && 
-		r.p0 == u->r.p0 && r.p1 == u->r.p1 &&
-		 !rstrcmp(u->s, s);
+	    r.p0 == u->r.p0 && r.p1 == u->r.p1 &&
+	    !rstrcmp(u->s, s);
 }
 
 /* Return undo entry to undo the replacement of 'r' in 't' with 's'

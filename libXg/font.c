@@ -26,7 +26,7 @@ static Cachesubf
 				c = ((c>>8)-sf->minrow)*sf->width+(c&0xff)-sf->mincol;
 				if ((c < 0) || (c >= sf->n))
 					break;
-					/* ignore zero width characters */
+				/* ignore zero width characters */
 				if (sf->info[c].cwidth == 0 && sf->info[c].width == 0)
 					break;
 				*cn = c;

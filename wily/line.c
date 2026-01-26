@@ -80,7 +80,7 @@ text_nl(Text *t, ulong pos, int delta) {
 	ulong	retval;
 
 	assert(pos <= t->length);
-	
+
 	if(delta > 0) {
 		Tgetcset(t, pos);
 		while ( (c=Tgetc(t)) != -1 )
@@ -103,7 +103,7 @@ text_nl(Text *t, ulong pos, int delta) {
 ulong
 text_startOfLine(Text *t, ulong p) {
 	int c;
-	
+
 	Tbgetcset(t,p);
 	do {
 		c=Tbgetc(t);

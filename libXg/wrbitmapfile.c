@@ -15,7 +15,7 @@ wrbitmapfile(int fd, Bitmap *b)
 	long miny, maxy;
 
 	sprint(hdr, "%11d %11d %11d %11d %11d ",
-		b->ldepth, b->r.min.x, b->r.min.y, b->r.max.x, b->r.max.y);
+	    b->ldepth, b->r.min.x, b->r.min.y, b->r.max.x, b->r.max.y);
 	if(write(fd, hdr, 5*12) != 5*12)
 		berror("wrbitmapfile write");
 

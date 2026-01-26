@@ -43,7 +43,7 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 				nl++;
 			frame.nchars++;
 			sp++;
-		}else{
+		} else{
 			s = tmp;
 			nr = 0;
 			w = 0;
@@ -137,7 +137,7 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	 * If pt1 goes off the rectangle, we can toss everything from there on
 	 */
 	for(b = &f->box[n0],npts=0;
-	     pt1.x!=pt0.x && pt1.y!=f->r.max.y && n0<f->nbox; b++,n0++,npts++){
+	    pt1.x!=pt0.x && pt1.y!=f->r.max.y && n0<f->nbox; b++,n0++,npts++){
 		_frcklinewrap(f, &pt0, b);
 		_frcklinewrap0(f, &pt1, b);
 		if(b->nrune > 0){
@@ -212,7 +212,7 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 				bitblt(f->b, r.min, f->b, r, 0);
 			}
 			y = pt.y;
-		}else{
+		} else{
 			r.min = pt;
 			r.max = pt;
 			r.max.x += b->wid;

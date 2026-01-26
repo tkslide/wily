@@ -16,7 +16,8 @@ polysegment(Bitmap *d, int n, Point *pp, int v, Fcode f)
 		if(d->flag&SHIFT){
 			xp[i].x = pp->x - d->r.min.x;
 			xp[i].y = pp->y - d->r.min.y;
-		} else {
+		} 
+		else {
 			xp[i].x = pp->x;
 			xp[i].y = pp->y;
 		}

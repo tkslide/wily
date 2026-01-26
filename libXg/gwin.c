@@ -31,26 +31,27 @@ static String SelectSwap(Widget, String);
 
 static XtResource resources[] = {
 	{XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
-		Offset(foreground), XtRString, (XtPointer)XtDefaultForeground},
+	Offset(foreground), XtRString, (XtPointer)XtDefaultForeground},
 	{XtNfont,  XtCFont, XtRFontStruct, sizeof(XFontStruct *),
-		Offset(font),XtRString, (XtPointer)XtDefaultFont},
+	Offset(font),XtRString, (XtPointer)XtDefaultFont},
 	{XtNscrollForwardR, XtCScrollForwardR, XtRboolean, sizeof(boolean),
-		Offset(forwardr), XtRImmediate, (XtPointer)TRUE},
+	Offset(forwardr), XtRImmediate, (XtPointer)TRUE},
 	{XtNreshaped, XtCReshaped, XtRFunction, sizeof(Reshapefunc),
-		Offset(reshaped), XtRFunction, (XtPointer) NULL},
+	Offset(reshaped), XtRFunction, (XtPointer) NULL},
 	{XtNgotchar, XtCGotchar, XtRFunction, sizeof(Charfunc),
-		Offset(gotchar), XtRFunction, (XtPointer) NULL},
+	Offset(gotchar), XtRFunction, (XtPointer) NULL},
 	{XtNgotmouse, XtCGotmouse, XtRFunction, sizeof(Mousefunc),
-		Offset(gotmouse), XtRFunction, (XtPointer) NULL},
+	Offset(gotmouse), XtRFunction, (XtPointer) NULL},
 	{XtNselection, XtCSelection, XtRString, sizeof(String),
-		Offset(selection), XtRString, (XtPointer) NULL},
+	Offset(selection), XtRString, (XtPointer) NULL},
 	{XtNp9font, XtCP9font, XtRString, sizeof(String),
-		Offset(p9font), XtRString, (XtPointer) NULL},
+	Offset(p9font), XtRString, (XtPointer) NULL},
 	{XtNp9fixed, XtCP9fixed, XtRString, sizeof(String),
-		Offset(p9fixed), XtRString, (XtPointer) NULL},
+	Offset(p9fixed), XtRString, (XtPointer) NULL},
 	{XtNcomposeMod, XtCComposeMod, XtRInt, sizeof(int),
-		Offset(compose), XtRImmediate, (XtPointer) 0}
+	Offset(compose), XtRImmediate, (XtPointer) 0}
 };
+
 #undef Offset
 
 static XtActionsRec actions[] = {
@@ -59,8 +60,9 @@ static XtActionsRec actions[] = {
 	{"mapping", Mappingaction}
 };
 
+
 static char tms[] =
-	"<Key> : key() \n\
+"<Key> : key() \n\
 	<Motion> : mouse() \n\
 	<BtnDown> : mouse() \n\
 	<BtnUp> : mouse() \n\
@@ -69,46 +71,45 @@ static char tms[] =
 /* Class record declaration */
 
 GwinClassRec gwinClassRec = {
-  /* Core class part */
-   {
-    /* superclass         */    (WidgetClass)&widgetClassRec,
-    /* class_name         */    "Gwin",
-    /* widget_size        */    sizeof(GwinRec),
-    /* class_initialize   */    NULL,
-    /* class_part_initialize*/  NULL,
-    /* class_inited       */    FALSE,
-    /* initialize         */    NULL,
-    /* initialize_hook    */    NULL,
-    /* realize            */    Realize,
-    /* actions            */    actions,
-    /* num_actions        */    XtNumber(actions),
-    /* resources          */    resources,
-    /* num_resources      */    XtNumber(resources),
-    /* xrm_class          */    NULLQUARK,
-    /* compress_motion    */    TRUE,
-    /* compress_exposure  */    XtExposeCompressMultiple,
-    /* compress_enterleave*/    TRUE,
-    /* visible_interest   */    FALSE,
-    /* destroy            */    NULL,
-    /* resize             */    Resize,
-    /* expose             */    Redraw,
-    /* set_values         */    NULL,
-    /* set_values_hook    */    NULL,
-    /* set_values_almost  */    XtInheritSetValuesAlmost,
-    /* get_values_hook    */    NULL,
-    /* accept_focus       */    XtInheritAcceptFocus,
-    /* version            */    XtVersion,
-    /* callback_offsets   */    NULL,
-    /* tm_table           */    tms,
-    /* query_geometry       */  XtInheritQueryGeometry,
-    /* display_accelerator  */  NULL,
-    /* extension            */  NULL
-   },
-  /* Gwin class part */
-   {
-    /* select_swap	  */    SelectSwap,
-   }
+	{
+	/* superclass         */    (WidgetClass)&widgetClassRec,
+	/* class_name         */    "Gwin",
+	/* widget_size        */    sizeof(GwinRec),
+	/* class_initialize   */    NULL,
+	/* class_part_initialize*/  NULL,
+	/* class_inited       */    FALSE,
+	/* initialize         */    NULL,
+	/* initialize_hook    */    NULL,
+	/* realize            */    Realize,
+	/* actions            */    actions,
+	/* num_actions        */    XtNumber(actions),
+	/* resources          */    resources,
+	/* num_resources      */    XtNumber(resources),
+	/* xrm_class          */    NULLQUARK,
+	/* compress_motion    */    TRUE,
+	/* compress_exposure  */    XtExposeCompressMultiple,
+	/* compress_enterleave*/    TRUE,
+	/* visible_interest   */    FALSE,
+	/* destroy            */    NULL,
+	/* resize             */    Resize,
+	/* expose             */    Redraw,
+	/* set_values         */    NULL,
+	/* set_values_hook    */    NULL,
+	/* set_values_almost  */    XtInheritSetValuesAlmost,
+	/* get_values_hook    */    NULL,
+	/* accept_focus       */    XtInheritAcceptFocus,
+	/* version            */    XtVersion,
+	/* callback_offsets   */    NULL,
+	/* tm_table           */    tms,
+	/* query_geometry       */  XtInheritQueryGeometry,
+	/* display_accelerator  */  NULL,
+	/* extension            */  NULL
+	},
+	{
+	/* select_swap	  */    SelectSwap,
+	}
 };
+
 
 /* Class record pointer */
 WidgetClass gwinWidgetClass = (WidgetClass) &gwinClassRec;
@@ -158,7 +159,7 @@ Redraw(Widget w, XEvent *e, Region r)
 	f = ((GwinWidget)w)->gwin.reshaped;
 	if(f)
 		(*f)(w->core.x, w->core.y,
-			w->core.x+w->core.width, w->core.y+w->core.height);
+		    w->core.x+w->core.width, w->core.y+w->core.height);
 }
 
 static void
@@ -196,7 +197,7 @@ Keyaction(Widget w, XEvent *e, String *p, Cardinal *np)
 	if(e->xany.type != KeyPress)
 		return;
 	XtTranslateKeycode(e->xany.display, (KeyCode)e->xkey.keycode,
-		        e->xkey.state, &md, &k);
+	    e->xkey.state, &md, &k);
 	/*
 	 * The following song and dance is so we can have our chosen
 	 * modifier key behave like a compose key, i.e, press and release
@@ -204,12 +205,12 @@ Keyaction(Widget w, XEvent *e, String *p, Cardinal *np)
 	 * to find out which key is the compose key first 'though.
 	 */
 	if (IsModifierKey(k) && ((GwinWidget)w)->gwin.compose
-			&& composing == -2 && modmap) {
+	    && composing == -2 && modmap) {
 		minmod = (((GwinWidget)w)->gwin.compose+2)*keypermod;
 		for (c = minmod; c < minmod+keypermod; c++) {
 			XtTranslateKeycode(e->xany.display,
-					modmap->modifiermap[c],
-	        			e->xkey.state, &md, &mk);
+			    modmap->modifiermap[c],
+			    e->xkey.state, &md, &mk);
 			if (k == mk) {
 				composing = -1;
 				break;
@@ -297,13 +298,13 @@ Keyaction(Widget w, XEvent *e, String *p, Cardinal *np)
 		return;
 	/* Check to see if we are in a composition sequence */
 	if (!((GwinWidget)w)->gwin.compose && (e->xkey.state & Mod1Mask)
-			&& composing == -2)
+	    && composing == -2)
 		composing = -1;
 	if (composing > -2) {
 		compose[++composing] = k;
 		if ((*compose == 'X') && (composing > 0)) {
 			if ((k < '0') || (k > 'f') ||
-					((k > '9') && (k < 'a'))) {
+			    ((k > '9') && (k < 'a'))) {
 				STUFFCOMPOSE();
 				c = (unsigned short)k;
 				composing = -2;
@@ -344,7 +345,7 @@ static void
 LoseSel(Widget w, Atom *sel)
 {
 	GwinWidget gw = (GwinWidget)w;
-	
+
 	if(gw->gwin.selection){
 		XtFree(gw->gwin.selection);
 		gw->gwin.selection = 0;
@@ -368,9 +369,15 @@ Mouseaction(Widget w, XEvent *e, String *p, Cardinal *np)
 		m.msec = be->time;
 		s = be->state;	/* the previous state */
 		switch(be->button){
-		case 1:	s |= Button1Mask; break;
-		case 2:	s |= Button2Mask; break;
-		case 3:	s |= Button3Mask; break;
+		case 1:	
+			s |= Button1Mask; 
+			break;
+		case 2:	
+			s |= Button2Mask; 
+			break;
+		case 3:	
+			s |= Button3Mask; 
+			break;
 		}
 		break;
 	case ButtonRelease:
@@ -380,9 +387,15 @@ Mouseaction(Widget w, XEvent *e, String *p, Cardinal *np)
 		m.msec = be->time;
 		s = be->state;
 		switch(be->button){
-		case 1:	s &= ~Button1Mask; break;
-		case 2:	s &= ~Button2Mask; break;
-		case 3:	s &= ~Button3Mask; break;
+		case 1:	
+			s &= ~Button1Mask; 
+			break;
+		case 2:	
+			s &= ~Button2Mask; 
+			break;
+		case 3:	
+			s &= ~Button3Mask; 
+			break;
 		}
 		break;
 	case MotionNotify:
@@ -406,7 +419,7 @@ Mouseaction(Widget w, XEvent *e, String *p, Cardinal *np)
 
 static void
 SelCallback(Widget w, XtPointer cldata, Atom *sel, Atom *seltype,
-	XtPointer val, unsigned long *len, int *fmt)
+XtPointer val, unsigned long *len, int *fmt)
 {
 	String s;
 	int n;
@@ -428,7 +441,7 @@ SelCallback(Widget w, XtPointer cldata, Atom *sel, Atom *seltype,
 
 static boolean
 SendSel(Widget w, Atom *sel, Atom *target, Atom *rtype, XtPointer *ans,
-		unsigned long *anslen, int *ansfmt)
+unsigned long *anslen, int *ansfmt)
 {
 	GwinWidget gw = (GwinWidget)w;
 	static Atom targets = 0;
@@ -475,14 +488,14 @@ SelectSwap(Widget w, String s)
 
 	if(!gw->gwin.selection){
 #ifdef R3
-	XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
-			CurrentTime);
+		XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
+		    CurrentTime);
 #else
-	XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
-			XtLastTimestampProcessed(XtDisplay(w)));
+		XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
+		    XtLastTimestampProcessed(XtDisplay(w)));
 #endif
-	while(gw->gwin.selection == 0)
-		XtAppProcessEvent(XtWidgetToApplicationContext(w) , XtIMAll);
+		while(gw->gwin.selection == 0)
+			XtAppProcessEvent(XtWidgetToApplicationContext(w) , XtIMAll);
 	}
 	ans = gw->gwin.selection;
 	gw->gwin.selection = XtMalloc(strlen(s)+1);
@@ -491,7 +504,7 @@ SelectSwap(Widget w, String s)
 	XtOwnSelection(w, XA_PRIMARY, CurrentTime, SendSel, LoseSel, NULL);
 #else
 	XtOwnSelection(w, XA_PRIMARY, XtLastTimestampProcessed(XtDisplay(w)),
-			SendSel, LoseSel, NULL);
+	    SendSel, LoseSel, NULL);
 #endif
 	return ans;
 }
@@ -511,7 +524,7 @@ own_selection(Widget w)
 	XtOwnSelection(w, XA_PRIMARY, CurrentTime, SendSel, LoseSel, NULL);
 #else
 	XtOwnSelection(w, XA_PRIMARY, XtLastTimestampProcessed(XtDisplay(w)),
-			SendSel, LoseSel, NULL);
+	    SendSel, LoseSel, NULL);
 #endif
 }
 
@@ -520,10 +533,10 @@ get_selection(Widget w)
 {
 #ifdef R3
 	XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
-			CurrentTime);
+	    CurrentTime);
 #else
 	XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
-			XtLastTimestampProcessed(XtDisplay(w)));
+	    XtLastTimestampProcessed(XtDisplay(w)));
 #endif
 }
 

@@ -8,15 +8,23 @@
 
 /* Matching brackets for double-click
  */
-static Rune	l1[] =		{ '{', '[', '(', '<', 0253, 0};
-static Rune	r1[] =		{'}', ']', ')', '>', 0273, 0};
-static Rune	l2[] =		{ '\n', 0};
-static Rune	r2[] =		{'\n', 0};
-static Rune	l3[] =		{ '\'', '"', '`', '>', 0};
-static Rune	r3[] =		{'\'', '"', '`', '<', 0};
+static Rune	l1[] =		{ 
+	'{', '[', '(', '<', 0253, 0};
+static Rune	r1[] =		{
+	'}', ']', ')', '>', 0273, 0};
+static Rune	l2[] =		{ 
+	'\n', 0};
+static Rune	r2[] =		{
+	'\n', 0};
+static Rune	l3[] =		{ 
+	'\'', '"', '`', '>', 0};
+static Rune	r3[] =		{
+	'\'', '"', '`', '<', 0};
 
-Rune		*left[]=	{ l1, l2, l3, 0};
-Rune		*right[]=	{ r1, r2, r3, 0};
+Rune		*left[]=	{ 
+	l1, l2, l3, 0};
+Rune		*right[]=	{ 
+	r1, r2, r3, 0};
 
 /* Return false if 'c' is obviously not an alphanumeric character,
  * or if it is in the stoplist.
@@ -48,7 +56,7 @@ clickmatch(Text *t, int cl, int cr, int dir) {
 		if(c == cr){
 			if(--nest == 0)
 				return 1;
-		}else if(c == cl)
+		} else if(c == cl)
 			nest++;
 	}
 	return cl=='\n' && nest==1;
@@ -105,7 +113,7 @@ text_doubleclick(Text *t, ulong p0) {
 		if(p0 == 0){
 			Tgetcset(t, p0);
 			c = '\n';
-		}else{
+		} else{
 			Tgetcset(t, p0-1);
 			c = Tgetc(t);
 		}
@@ -121,7 +129,7 @@ text_doubleclick(Text *t, ulong p0) {
 		if(p0 == t->length){
 			Tbgetcset(t, p0);
 			c = '\n';
-		}else{
+		} else{
 			Tbgetcset(t, p0+1);
 			c = Tbgetc(t);
 		}
@@ -129,7 +137,7 @@ text_doubleclick(Text *t, ulong p0) {
 			if(clickmatch(t, c, l[strrune(r, c)-r], -1)){
 				dot.p0 = t->pos;
 				if(c!='\n' || t->pos!=0 ||
-				   (Tgetcset(t, 0),Tgetc(t))=='\n')
+				    (Tgetcset(t, 0),Tgetc(t))=='\n')
 					dot.p0++;
 				dot.p1 = p0+(p0<t->length && c=='\n');
 			}

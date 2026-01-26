@@ -55,7 +55,7 @@ dobutton(View *v, Mouse *orig) {
 
 	/* aborted by pressing a different button? */
 	if(m.buttons)
-		return;	
+		return;
 
 	if (distance(m.xy, orig->xy) < SMALLDISTANCE) {
 		tile_grow(tile, orig->buttons);
@@ -70,7 +70,8 @@ dobutton(View *v, Mouse *orig) {
  *
  * BUG: Doesn't check for leading whitespace which *is* removed in run().
  */
-static char *locals[] = {"Look", "Put", "Get", "Undo", "Redo", 0};
+static char *locals[] = {
+	"Look", "Put", "Get", "Undo", "Redo", 0};
 static bool
 islocal(char *s) {
 	char	**ptr;
@@ -126,7 +127,8 @@ action(View *v, Mouse *m, Range r, ulong oldbuttons) {
 	assert(m->buttons != oldbuttons);
 
 	if (oldbuttons&LEFT) {
-		enum {Cancut = 1, Canpaste = 2} state = Cancut | Canpaste;
+		enum {
+			Cancut = 1, Canpaste = 2		} state = Cancut | Canpaste;
 
 		while(m->buttons) {
 			if(m->buttons&MIDDLE) {
@@ -145,7 +147,7 @@ action(View *v, Mouse *m, Range r, ulong oldbuttons) {
 	} else if (oldbuttons & MIDDLE) {
 		if(m->buttons) {
 			if(m->buttons&LEFT)	/* chord */
-				b2(v,r,true);	
+				b2(v,r,true);
 			while (m->buttons)	/* wait for button up */
 				*m = emouse();
 		} else {
@@ -203,7 +205,7 @@ doscroll(View *v, Mouse	*m ) {
 		}
 		type = eread(Emouse|timer,&e);
 	} while (!(type ==Emouse && m->buttons != buttons));
-	estoptimer(timer);	
+	estoptimer(timer);
 	/* stop the timer */
 
 	/* wait for buttons up */

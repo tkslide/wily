@@ -184,7 +184,7 @@ _getgc(Bitmap *b, unsigned long gcvm, XGCValues *pgcv)
 		}
 		XSetClipRectangles(_dpy, g, 0, 0, &xr, 1, YXBanded);
 		clipset = 1;
-	}else if(clipset){
+	} else if(clipset){
 		pgcv->clip_mask = None;
 		XChangeGC(_dpy, g, GCClipMask, pgcv);
 		clipset = 0;
@@ -212,24 +212,24 @@ _getfillgc(Fcode f, Bitmap *b, unsigned long val)
 	m = b->flag;
 	if(m & DP1){
 		xf = (m&BL1)? gx[f] : d0s1gx[f];
-	}else{
+	} else{
 		fg = _fgpixel;
 		bg = _bgpixel;
 		switch(f){
 		case Zero:
-	    labZero:
+labZero:
 			spix = bg;
 			break;
 		case F:
-	    labF:
+labF:
 			spix = fg;
 			break;
 		case D:
-	    labD:
+labD:
 			xf = GXnoop;
 			break;
 		case notD:
-	    labnotD:
+labnotD:
 			xf = GXxor;
 			spix = fg^bg;
 			break;
@@ -264,21 +264,29 @@ _getfillgc(Fcode f, Bitmap *b, unsigned long val)
 			if(v < vmax-v){
 				/* v is closer to 0 than vmax */
 				switch(f&~S){
-				case D&~S:	goto labD;
-				case notD&~S:	goto labnotD;
-				case Zero&~S:	goto labZero;
-				case F&~S:	goto labF;
+				case D&~S:	
+					goto labD;
+				case notD&~S:	
+					goto labnotD;
+				case Zero&~S:	
+					goto labZero;
+				case F&~S:	
+					goto labF;
 				}
-			}else{
+			} else{
 				/* v is closer to vmax than 0 */
 				switch(f&S){
-				case D&S:	goto labD;
-				case notD&S:	goto labnotD;
-				case Zero&S:	goto labZero;
-				case F&S:	goto labF;
+				case D&S:	
+					goto labD;
+				case notD&S:	
+					goto labnotD;
+				case Zero&S:	
+					goto labZero;
+				case F&S:	
+					goto labF;
 				}
 			}
-			
+
 		}
 	}
 	gcv.foreground = spix;
@@ -309,7 +317,7 @@ _getcopygc(Fcode f, Bitmap *db, Bitmap *sb, int *bltfunc)
 		if(df&SCR || !(df&DP1)){
 			fg = _fgpixel;
 			bg = _bgpixel;
-		}else{
+		} else{
 			/* must be DP1 and BL1 */
 			fg = 1;
 			bg = 0;
@@ -335,7 +343,7 @@ _getcopygc(Fcode f, Bitmap *db, Bitmap *sb, int *bltfunc)
 		gcv.function = xf;
 		gcv.foreground = spix;
 		gcvm = GCFunction|GCForeground;
-	}else{
+	} else{
 		/* src is involved in f */
 
 #define code(f1,f2) ((((f1)&(DP1|BL1))<<2)|((f2)&(DP1|BL1)))
@@ -392,7 +400,7 @@ _getcopygc(Fcode f, Bitmap *db, Bitmap *sb, int *bltfunc)
 		}
 		gcv.function = xf;
 		gcvm |= GCFunction;
-	
+
 #undef code
 	}
 

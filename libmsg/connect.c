@@ -96,76 +96,75 @@ wilyfifotalk(void)
 int
 client_connect(void)
 {
-    int s = -1, fd = -1;
-    struct sockaddr_un addr;
-    char *path = NULL;
-    ssize_t nwritten;
-    socklen_t size;
+	int s = -1, fd = -1;
+	struct sockaddr_un addr;
+	char *path = NULL;
+	ssize_t nwritten;
+	socklen_t size;
 
-    /* 1. Create a template for mkstemp */
-    char template[] = "/tmp/wily.XXXXXX";
-    
-    /* 2. Securely generate a unique filename and create it */
-    int tmp_fd = mkstemp(template);
-    if (tmp_fd < 0) {
-        perror("mkstemp");
-        return -1;
-    }
-    /* mkstemp created a regular file; bind() needs the path to be empty */
-    close(tmp_fd);
-    unlink(template);
+	/* 1. Create a template for mkstemp */
+	char template[] = "/tmp/wily.XXXXXX";
 
-    /* 3. Create the actual Unix socket */
-    if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
-        return -1;
+	/* 2. Securely generate a unique filename and create it */
+	int tmp_fd = mkstemp(template);
+	if (tmp_fd < 0) {
+		perror("mkstemp");
+		return -1;
+	}
+	/* mkstemp created a regular file; bind() needs the path to be empty */
+	close(tmp_fd);
+	unlink(template);
 
-    /* 4. Prepare address structure */
-    memset(&addr, 0, sizeof(addr));
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, template, sizeof(addr.sun_path) - 1);
-    path = strdup(template); // Keep a copy for unlinking later
+	/* 3. Create the actual Unix socket */
+	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+		return -1;
 
-    /* 5. Bind the socket to the name we just reserved */
-    if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        perror("bind");
-        goto fail;
-    }
+	/* 4. Prepare address structure */
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, template, sizeof(addr.sun_path) - 1);
+	path = strdup(template); // Keep a copy for unlinking later
+	/* 5. Bind the socket to the name we just reserved */
+	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		perror("bind");
+		goto fail;
+	}
 
-    listen(s, 1);
+	listen(s, 1);
 
-    /* 6. Handshake with Wily */
-    fd = wilyfifotalk();
-    if (fd < 0)
-        goto fail;
+	/* 6. Handshake with Wily */
+	fd = wilyfifotalk();
+	if (fd < 0)
+		goto fail;
 
-    size_t len = strlen(path);
-    nwritten = write(fd, path, len);
-    close(fd);
+	size_t len = strlen(path);
+	nwritten = write(fd, path, len);
+	close(fd);
 
-    if (nwritten != (ssize_t)len) {
-        fprintf(stderr, "short write to wily fifo\n");
-        goto fail;
-    }
+	if (nwritten != (ssize_t)len) {
+		fprintf(stderr, "short write to wily fifo\n");
+		goto fail;
+	}
 
-    /* 7. Wait for Wily to connect back */
-    size = sizeof(addr);
-    fd = accept(s, (struct sockaddr *)&addr, &size);
-    
-    /* 8. Cleanup: close listening socket and remove file from filesystem */
-    close(s);
-    if (path) {
-        unlink(path);
-        free(path);
-    }
-    return fd;
+	/* 7. Wait for Wily to connect back */
+	size = sizeof(addr);
+	fd = accept(s, (struct sockaddr *)&addr, &size);
+
+	/* 8. Cleanup: close listening socket and remove file from filesystem */
+	close(s);
+	if (path) {
+		unlink(path);
+		free(path);
+	}
+	return fd;
 
 fail:
-    if (s >= 0) close(s);
-    if (path) {
-        unlink(path);
-        free(path);
-    }
-    return -1;
+	if (s >= 0) close(s);
+	if (path) {
+		unlink(path);
+		free(path);
+	}
+	return -1;
 }
 
 

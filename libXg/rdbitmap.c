@@ -22,7 +22,7 @@ rdbitmap(Bitmap *b, int miny, int maxy, unsigned char *data)
 	outld = b->ldepth;
 	inld = (b->ldepth == 0) ? 0 : screen.ldepth;
 	gim = XGetImage(_dpy, (Drawable)b->id, 0, miny - b->r.min.y,
-			w, h, ~0, ZPixmap);
+	    w, h, ~0, ZPixmap);
 	px = 1<<(3-outld);	/* pixels per byte */
 	/* set l to number of bytes of data per scan line */
 	if(b->r.min.x >= 0)
@@ -41,7 +41,7 @@ rdbitmap(Bitmap *b, int miny, int maxy, unsigned char *data)
 	if (tdata == (char *) 0)
 		berror("rdbitmap malloc");
 	eim = XCreateImage(_dpy, 0, 1 << inld, ZPixmap, 0, tdata,
-			w+offset, h, 8, 0);
+	    w+offset, h, 8, 0);
 	eim->bitmap_pad = 8;
 	eim->bitmap_bit_order = MSBFirst;
 	eim->byte_order = MSBFirst;

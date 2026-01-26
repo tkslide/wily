@@ -111,7 +111,7 @@ msg_init (Msg*m, uchar*buf)
 		printf("initialized ");
 		msg_print(m);
 	}
-	
+
 	return 0;
 }
 
@@ -130,36 +130,96 @@ msg_print(Msg *m)
 {
 	printf("(");
 	switch(m->t) {
-	case WRerror : printf("(WRerror"); break;
-	case WMlist : printf("WMlist"); break;
-	case WRlist : printf("WRlist"); break;
-	case WMnew : printf("WMnew"); break;
-	case WRnew : printf("WRnew"); break;
-	case WMattach : printf("WMattach"); break;
-	case WRattach : printf("WRattach"); break;
-	case WMsetname : printf("WMsetname"); break;
-	case WMgetname : printf("WMgetname"); break;
-	case WRsetname : printf("WRsetname"); break;
-	case WRgetname : printf("WRgetname"); break;
-	case WMsettools : printf("WMsettools"); break;
-	case WMgettools : printf("WMgettools"); break;
-	case WRsettools : printf("WRsettools"); break;
-	case WRgettools : printf("WRgettools"); break;
-	case WMread : printf("WMread"); break;
-	case WRread : printf("WRread"); break;
-	case WMreplace : printf("WMreplace"); break;
-	case WRreplace : printf("WRreplace"); break;
-	case WMexec : printf("WMexec"); break;
-	case WRexec : printf("WRexec"); break;
-	case WMgoto : printf("WMgoto"); break;
-	case WRgoto : printf("WRgoto"); break;
-	case WMfencepost : printf("WMfencepost"); break;
-	case WEexec : printf("WEexec"); break;
-	case WEreplace : printf("WEreplace"); break;
-	case WEgoto : printf("WEgoto"); break;
-	case WEdestroy : printf("WEdestroy"); break;
-	case WEfencepost : printf("WEfencepost"); break;
-	default : printf("Unknown"); break;
+	case WRerror : 
+		printf("(WRerror"); 
+		break;
+	case WMlist : 
+		printf("WMlist"); 
+		break;
+	case WRlist : 
+		printf("WRlist"); 
+		break;
+	case WMnew : 
+		printf("WMnew"); 
+		break;
+	case WRnew : 
+		printf("WRnew"); 
+		break;
+	case WMattach : 
+		printf("WMattach"); 
+		break;
+	case WRattach : 
+		printf("WRattach"); 
+		break;
+	case WMsetname : 
+		printf("WMsetname"); 
+		break;
+	case WMgetname : 
+		printf("WMgetname"); 
+		break;
+	case WRsetname : 
+		printf("WRsetname"); 
+		break;
+	case WRgetname : 
+		printf("WRgetname"); 
+		break;
+	case WMsettools : 
+		printf("WMsettools"); 
+		break;
+	case WMgettools : 
+		printf("WMgettools"); 
+		break;
+	case WRsettools : 
+		printf("WRsettools"); 
+		break;
+	case WRgettools : 
+		printf("WRgettools"); 
+		break;
+	case WMread : 
+		printf("WMread"); 
+		break;
+	case WRread : 
+		printf("WRread"); 
+		break;
+	case WMreplace : 
+		printf("WMreplace"); 
+		break;
+	case WRreplace : 
+		printf("WRreplace"); 
+		break;
+	case WMexec : 
+		printf("WMexec"); 
+		break;
+	case WRexec : 
+		printf("WRexec"); 
+		break;
+	case WMgoto : 
+		printf("WMgoto"); 
+		break;
+	case WRgoto : 
+		printf("WRgoto"); 
+		break;
+	case WMfencepost : 
+		printf("WMfencepost"); 
+		break;
+	case WEexec : 
+		printf("WEexec"); 
+		break;
+	case WEreplace : 
+		printf("WEreplace"); 
+		break;
+	case WEgoto : 
+		printf("WEgoto"); 
+		break;
+	case WEdestroy : 
+		printf("WEdestroy"); 
+		break;
+	case WEfencepost : 
+		printf("WEfencepost"); 
+		break;
+	default : 
+		printf("Unknown"); 
+		break;
 	}
 	printf(", %d", m->m);
 	printf(", %d", m->w);

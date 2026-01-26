@@ -3,7 +3,8 @@
 #include <libg.h>
 #include "libgint.h"
 
-enum	{ Max = 128 };
+enum	{ 
+	Max = 128 };
 
 Point
 string(Bitmap *b, Point p, Font *ft, char *s, Fcode f)

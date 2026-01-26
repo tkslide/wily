@@ -136,7 +136,7 @@ struct latin
 	0x03c6,	'*','f',	/* phi */
 	0x03c7,	'*','x',	/* chi */
 	0x03c8,	'*','q',	/* psi */
-	0x03c9,	'*','w',	/* omega */	
+	0x03c9,	'*','w',	/* omega */
 	0x0391,	'*','A',	/* Alpha */
 	0x0392,	'*','B',	/* Beta */
 	0x0393,	'*','G',	/* Gamma */
@@ -208,9 +208,9 @@ struct latin
 	0x22a8,	'T','u',	/* valid */
 	0x22c4,	'l','z',	/* lozenge */
 	0x22ef,	'e','l',	/* ellipses */
- 	0x2639, ':','(',	/* saddy */
- 	0x263a, ':',')',	/* white-face smiley */
- 	0x263b, ';',')',	/* dark-face smiley */
+	0x2639, ':','(',	/* saddy */
+	0x263a, ':',')',	/* white-face smiley */
+	0x263b, ';',')',	/* dark-face smiley */
 	0,	0,
 };
 

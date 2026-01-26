@@ -107,7 +107,7 @@ frcharofpt(Frame *f, Point pt)
 					p++;
 				}
 			}
-		}else{
+		} else{
 			p += NRUNE(b);
 			_fradvance(f, &qt, b);
 		}

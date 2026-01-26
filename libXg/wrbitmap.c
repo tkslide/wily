@@ -35,7 +35,7 @@ wrbitmap(Bitmap *b, int miny, int maxy, unsigned char *data)
 
 	tdata = (char *)malloc(l);
 	if (tdata == (char *) 0)
-			berror("wrbitmap malloc");
+		berror("wrbitmap malloc");
 	if (inld == outld)
 		memcpy((void*)tdata, (void*)data, l);
 	else

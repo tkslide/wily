@@ -95,8 +95,8 @@ menupaint(Menu *menu, Rectangle textr, int off, int nitemdrawn)
 	for(i = 0; i<nitemdrawn; i++, pt.y += font->height+Vspacing){
 		item = menu->item? menu->item[i+off] : (*menu->gen)(i+off);
 		string(&screen,
-			Pt((pt.x-strwidth(font, item))/2, pt.y),
-			font, item, S);
+		    Pt((pt.x-strwidth(font, item))/2, pt.y),
+		    font, item, S);
 	}
 }
 
@@ -157,7 +157,7 @@ menuhit(int but, Mouse *m, Menu *menu)
 		if(off > nitem-nitemdrawn)
 			off = nitem-nitemdrawn;
 		lasti = menu->lasthit-off;
-	}else{
+	} else{
 		scrolling = 0;
 		nitemdrawn = nitem;
 		wid = maxwid;
@@ -184,7 +184,7 @@ menuhit(int but, Mouse *m, Menu *menu)
 	if(scrolling){
 		scrollr = inset(menur, Border);
 		scrollr.max.x = scrollr.min.x+Scrollwid;
-	}else
+	} else
 		scrollr = Rect(0, 0, 0, 0);
 
 	b = balloc(menur, screen.ldepth);

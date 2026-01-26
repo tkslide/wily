@@ -43,13 +43,13 @@ fill(View *v) {
 		frinsert(f, buf, buf+n, f->nchars);
 		p += n;
 	}
-	
+
 	v->visible.p1 = v->visible.p0 + f->nchars;
 
 	if(v->scroll)
 		scroll_set(v->scroll,  v->visible.p0,
-				f->nchars, text_length(v->t)
-				);
+		    f->nchars, text_length(v->t)
+		    );
 	else
 		button_set(v);
 
@@ -67,7 +67,7 @@ snapheight(View*v, int h) {
 	int	lines;
 	int	fh = v->f.font->height;
 	int	brdr = 2*INSET;
-	
+
 	if (v->scroll) {
 		lines = (h - brdr) / fh;
 		if ((lines == 0) || (h < tagheight))
@@ -83,7 +83,7 @@ void
 view_reshaped(View*v, Rectangle r) {
 	Frame	*f;
 	bool	need_refresh = (Dx(r) != Dx(v->r));
-	
+
 	assert(view_invariants(v));
 
 	r = snap(v,r);
@@ -108,7 +108,7 @@ view_reshaped(View*v, Rectangle r) {
 		/* Below last line. */
 		r.min.x = f->r.min.x;
 		r.min.y = r.max.y;
-		r.max.y = v->r.max.y; 
+		r.max.y = v->r.max.y;
 		if (r.min.y != r.max.y)
 			cls(r);
 
@@ -194,7 +194,7 @@ setrects(View*v, Rectangle r) {
 	framer.min.x += SCROLLWIDTH;
 	framer.min.x += INSET;
 
-	/* If 'r' is too small, we're hidden: use null bitmap */ 
+	/* If 'r' is too small, we're hidden: use null bitmap */
 	b = Dy(r) < tagheight ? 0 : &screen;
 
 	v->r = r;

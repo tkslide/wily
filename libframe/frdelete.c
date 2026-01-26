@@ -79,7 +79,7 @@ frdelete(Frame *f, ulong p0, ulong p1)
 			bitblt(f->b, pt0, f->b, Rect(pt1.x, pt1.y, f->r.max.x, q1), S);
 			bitblt(f->b, Pt(f->r.min.x, q0), f->b, Rect(f->r.min.x, q1, f->r.max.x, q2), S);
 			frselectf(f, Pt(pt2.x, pt2.y-(pt1.y-pt0.y)), pt2, 0);
-		}else
+		} else
 			frselectf(f, pt0, pt2, 0);
 	}
 	_frclosebox(f, n0, n1-1);

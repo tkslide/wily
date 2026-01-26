@@ -121,7 +121,7 @@ gsetline(Point *pp0, Point *pp1, Linedesc *l)
 	if(pp0->x > pp1->x){
 		*pp1 = *pp0;
 		*pp0 = p1;
-	}else
+	} else
 		*pp1 = p1;
 }
 /*
@@ -136,7 +136,7 @@ static
 code(Point *p, Rectangle *r)
 {
 	return( (p->x<r->min.x? 1 : p->x>=r->max.x? 2 : 0) |
-		(p->y<r->min.y? 4 : p->y>=r->max.y? 8 : 0));
+	    (p->y<r->min.y? 4 : p->y>=r->max.y? 8 : 0));
 }
 
 int
@@ -191,16 +191,16 @@ _clipline(Rectangle r, Point *p0, Point *p1, Linedesc *l)
 		if(c0 & 1){		/* push towards left edge */
 			p0->x = r.min.x;
 			p0->y = _gminor(p0->x, l);
-		}else if(c0 & 2){	/* push towards right edge */
+		} else if(c0 & 2){	/* push towards right edge */
 			p0->x = r.max.x-1;
 			p0->y = _gminor(p0->x, l);
-		}else if(c0 & 4){	/* push towards top edge */
+		} else if(c0 & 4){	/* push towards top edge */
 			p0->y = r.min.y;
 			if(l->slopeneg)
 				p0->x = _gmajor(p0->y-1, l)-1;
 			else
 				p0->x = _gmajor(p0->y, l);
-		}else if(c0 & 8){	/* push towards bottom edge */
+		} else if(c0 & 8){	/* push towards bottom edge */
 			p0->y = r.max.y-1;
 			if(l->slopeneg)
 				p0->x = _gmajor(p0->y, l);
@@ -210,7 +210,7 @@ _clipline(Rectangle r, Point *p0, Point *p1, Linedesc *l)
 		c0 = code(p0, &r);
 	}
 
-    Return:
+Return:
 	if(l->xmajor == 0){
 		XYswap(p0);
 		XYswap(p1);

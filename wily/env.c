@@ -55,7 +55,7 @@ static bool
 foundmatch(char*dest, char*orig){
 	Stat	buf;
 	Abbrev	*ab;
-	
+
 	if(!stat(orig,&buf) && (ab = findstat(&buf))){
 		sprintf(dest, "$%s", ab->env);
 		return true;
@@ -68,7 +68,7 @@ static bool
 contract(char*dest, char*orig) {
 	char*lastslash;
 	bool	retval;
-	
+
 	if(foundmatch(dest, orig)) {
 		return true;
 	} else {
@@ -111,7 +111,7 @@ newenv(char *env, Stat*buf) {
 static Abbrev*
 findstat(Stat*buf){
 	Abbrev*ab;
-	
+
 	for(ab = abbrev; ab < abbrev + nabbrev; ab++)
 		if( !statcmp( buf, &ab->buf))
 			return ab;

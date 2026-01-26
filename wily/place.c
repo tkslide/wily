@@ -5,7 +5,8 @@
 #include "wily.h"
 #include "tile.h"
 
-enum {TSIZE=401};
+enum {
+	TSIZE=401};
 static Tile* placetable[TSIZE];	/* hashed array of column tiles */
 
 static bool		iserror(char*label);

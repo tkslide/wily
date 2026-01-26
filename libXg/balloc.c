@@ -36,7 +36,7 @@ _balloc(Rectangle r, int ldepth)
 	if (Dy(rx) == 0)
 		rx.max.y++;
 	id = (int) XCreatePixmap(_dpy, (Drawable)screen.id,
-			Dx(rx), Dy(rx), _ld2d[ld]);
+	    Dx(rx), Dy(rx), _ld2d[ld]);
 	b->ldepth = ldepth;
 	b->r = r;
 	b->clipr = r;

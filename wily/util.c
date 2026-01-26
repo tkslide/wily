@@ -28,7 +28,7 @@ addcontext(char*dest, char*context, char*add){
 	if(strchr("/$~", add[0])){
 		strcpy(dest,add);
 		return;
-	} 
+	}
 	strcpy(dest, context);
 	if(!(s = strrchr(dest, '/'))){
 		label2path(dest, context);
@@ -62,7 +62,7 @@ statcmp(Stat*a, Stat*b) {
 bool
 isdir(char*path) {
 	struct stat buf;
-	
+
 	return  !stat(path, &buf) && S_ISDIR(buf.st_mode);
 }
 
@@ -135,74 +135,74 @@ utf2rstring(char*utf)
 int
 backup_name(char *orig, char *back)
 {
-    char    *dir = NULL;
-    char    *guide = NULL;
-    char    *temp_back = NULL;
-    char    *home;
-    DIR     *dirp;
-    struct dirent   *direntp;
-    FILE    *fp;
-    int     max, n;
-    int     init_guide = 0;
+	char    *dir = NULL;
+	char    *guide = NULL;
+	char    *temp_back = NULL;
+	char    *home;
+	DIR     *dirp;
+	struct dirent   *direntp;
+	FILE    *fp;
+	int     max, n;
+	int     init_guide = 0;
 
-    /* 1. Determine backup directory */
-    if (!(home = getenv("WILYBAK"))) {
-        if (!(home = getenv("HOME"))) {
-            return diag(0, "getenv HOME");
-        }
-        if (asprintf(&dir, "%s/.wilybak", home) == -1) return -1;
-    } else {
-        dir = strdup(home);
-    }
+	/* 1. Determine backup directory */
+	if (!(home = getenv("WILYBAK"))) {
+		if (!(home = getenv("HOME"))) {
+			return diag(0, "getenv HOME");
+		}
+		if (asprintf(&dir, "%s/.wilybak", home) == -1) return -1;
+	} else {
+		dir = strdup(home);
+	}
 
-    /* 2. Ensure directory exists */
-    if (access(dir, W_OK) && (mkdir(dir, 0700))) {
-        int ret = diag(0, "couldn't create backup directory %s", dir);
-        free(dir);
-        return ret;
-    }
+	/* 2. Ensure directory exists */
+	if (access(dir, W_OK) && (mkdir(dir, 0700))) {
+		int ret = diag(0, "couldn't create backup directory %s", dir);
+		free(dir);
+		return ret;
+	}
 
-    /* 3. Find highest numbered entry */
-    if (!(dirp = opendir(dir))) {
-        int ret = diag(0, "couldn't opendir %s", dir);
-        free(dir);
-        return ret;
-    }
-    max = 0;
-    while ((direntp = readdir(dirp))) {
-        n = atoi(direntp->d_name);
-        if (n > max) max = n;
-    }
-    closedir(dirp);
-    max++;
+	/* 3. Find highest numbered entry */
+	if (!(dirp = opendir(dir))) {
+		int ret = diag(0, "couldn't opendir %s", dir);
+		free(dir);
+		return ret;
+	}
+	max = 0;
+	while ((direntp = readdir(dirp))) {
+		n = atoi(direntp->d_name);
+		if (n > max) max = n;
+	}
+	closedir(dirp);
+	max++;
 
-    /* 4. Generate backup name and copy to provided 'back' pointer */
-    if (asprintf(&temp_back, "%s/%d", dir, max) == -1) {
-        free(dir);
-        return -1;
-    }
-    strcpy(back, temp_back); // Copying into the user-provided buffer
-    free(temp_back);
+	/* 4. Generate backup name and copy to provided 'back' pointer */
+	if (asprintf(&temp_back, "%s/%d", dir, max) == -1) {
+		free(dir);
+		return -1;
+	}
+	strcpy(back, temp_back); // Copying into the user-provided buffer
+	free(temp_back);
 
-    /* 5. Update guide file */
-    if (asprintf(&guide, "%s/guide", dir) != -1) {
-        if (access(guide, W_OK) < 0)
-            init_guide = 1;
+	/* 5. Update guide file */
+	if (asprintf(&guide, "%s/guide", dir) != -1) {
+		if (access(guide, W_OK) < 0)
+			init_guide = 1;
 
-        fp = fopen(guide, "a+");
-        if (fp) {
-            if (init_guide)
-                fprintf(fp, "diff\tcp\trm *\n");
-            fprintf(fp, "%3d\t%s\n", max, orig);
-            fclose(fp);
-        } else {
-            diag(guide, "couldn't update backup guide file");
-        }
-        free(guide);
-    }
+		fp = fopen(guide, "a+");
+		if (fp) {
+			if (init_guide)
+				fprintf(fp, "diff\tcp\trm *\n");
+			fprintf(fp, "%3d\t%s\n", max, orig);
+			fclose(fp);
+		} else {
+			diag(guide, "couldn't update backup guide file");
+		}
+		free(guide);
+	}
 
-    free(dir);
-    return 0;
+	free(dir);
+	return 0;
 }
 
 
@@ -222,7 +222,7 @@ noutput(char *context, char *base, int n)
 	else
 		s = errwin +strlen(errwin);
 	strcpy(s, "+Errors");
-	
+
 	v = openlabel(errwin, true);
 	n = stripnulls(base, n);
 	base[n] = 0;
@@ -254,7 +254,7 @@ columnate(int totalwidth, int tabwidth, Font *f, char **item)
 	/* count the items */
 	nitems = 0;
 	c= item;
-	while(*c++) 
+	while(*c++)
 		nitems++;
 
 	if(!nitems)
@@ -388,7 +388,7 @@ ulong
 texttoutf(char *s, Rune *r1, Rune *r2) {
 	Rune	*q;
 	char	*t;
-	
+
 	if (r2 <= r1)
 		return 0;
 	for (t = s, q = r1; q < r2; q++)
@@ -432,7 +432,8 @@ fatal(char *fmt, ...)
 /*
  *	dummy mouse driver for the frame library
  */
-void frgetmouse(void) {}
+void frgetmouse(void) {
+}
 
 /* Store runes from 't' into X clipboard as UTF
  */
@@ -441,8 +442,8 @@ snarf(Text *t, Range r)
 {
 	char	*buf;
 
-  	assert(t);
-  	if(RLEN(r)){
+	assert(t);
+	if(RLEN(r)){
 		buf = text_duputf(t, r);
 		select_put(buf);
 		free(buf);
@@ -460,8 +461,8 @@ paste(Text *t, Range r)
 	int	n;
 	Rstring	s;
 
-  	assert(t);
- 	assert(ROK(r));
+	assert(t);
+	assert(ROK(r));
 
 	cbuf = select_get();	/* not to be freed */
 	rbuf = (Rune *)salloc(sizeof(Rune)*(utflen(cbuf)+1));
@@ -520,7 +521,7 @@ utftotext(Rune *r, char *s1, char *s2)
 {
 	Rune	*q;
 	char	*v;
-	
+
 	if (s2 <= s1)
 		return 0;
 	for (v = s1, q = r; v < s2; ) {

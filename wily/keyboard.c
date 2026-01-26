@@ -16,26 +16,45 @@ static void		esc(View*v);
 void
 dokeyboard(View *v, Rune r) {
 	switch(r) {
-	case 0:			addrune(v,Runeerror); break;
+	case 0:			
+		addrune(v,Runeerror); 
+		break;
 
 	case DownArrow:
 	case UpArrow:
 	case Home:
 	case End:
 	case LeftArrow:
-	case RightArrow:	view_cursor(v, r); 	break;
-	
-	case PageDown:	
-	case PageUp:		view_pagedown(v,r==PageDown); break;
-	
+	case RightArrow:	
+		view_cursor(v, r); 	
+		break;
+
+	case PageDown:
+	case PageUp:		
+		view_pagedown(v,r==PageDown); 
+		break;
+
 	case Ctrlh:
-	case Backspace:	backspace(v); break;
-	case Ctrlu:		deleteline(v); break;
-	case Ctrlw:		deleteword(v); break;
-	case Esc:			esc(v); break;
-	
-	case '\n':			if(!v->scroll){tag_cr(v); break; }
-	default:			addrune(v,r);
+	case Backspace:	
+		backspace(v); 
+		break;
+	case Ctrlu:		
+		deleteline(v); 
+		break;
+	case Ctrlw:		
+		deleteword(v); 
+		break;
+	case Esc:			
+		esc(v); 
+		break;
+
+	case '\n':			
+		if(!v->scroll){
+			tag_cr(v); 
+			break; 
+		}
+	default:			
+		addrune(v,r);
 	}
 }
 
@@ -52,7 +71,7 @@ dokeyboard(View *v, Rune r) {
 static void
 tag_cr(View*v) {
 	char*cmd;
-	
+
 	if(!RLEN(v->sel)){
 		view_select(v, maybereverserange(v->anchor, v->sel.p0));
 	}
@@ -70,7 +89,7 @@ tag_cr(View*v) {
 static void
 backspace(View*v){
 	Range del = v->sel;
-	
+
 	if(del.p0)
 		del.p0--;
 	view_cut(v, del);
@@ -80,7 +99,7 @@ backspace(View*v){
 static void
 deleteline(View*v){
 	Range del = v->sel;
-	
+
 	del.p0 = text_startOfLine(v->t, del.p0);
 	view_cut(v, del);
 }
@@ -89,7 +108,7 @@ deleteline(View*v){
 static void
 deleteword(View*v){
 	Range del = v->sel;
-	
+
 	del.p0 = text_startofword(v->t, del.p0);
 	view_cut(v, del);
 }
@@ -97,10 +116,10 @@ deleteword(View*v){
 static void
 esc(View*v) {
 	Range del = v->sel;
-	
+
 	if ((RLEN(del))) {
 		/* delete selected text */
-		view_cut(v, del);	
+		view_cut(v, del);
 	} else {
 		/* Select from v->anchor to v->sel.p0 */
 		view_select(v, maybereverserange(v->anchor, v->sel.p0));

@@ -227,7 +227,7 @@ operator(int v)
 	if(v==RBRA && --nbra<0)
 		regerror(Erightpar);
 	if(v==LBRA){
-/*
+		/*
  *		if(++cursubid >= NSUBEXP)
  *			regerror(Esubexp);
  */
@@ -235,7 +235,7 @@ operator(int v)
 		nbra++;
 		if(lastwasand)
 			operator(CAT);
-	}else
+	} else
 		evaluntil(v);
 	if(v!=RBRA)
 		pushator(v);
@@ -396,7 +396,7 @@ dump(void){
 	l = program;
 	do{
 		dprint("%d:\t0%o\v%d\v%d\n", l-program, l->type,
-			l->left-program, l->right-program);
+		    l->left-program, l->right-program);
 	}while(l++->type);
 }
 #endif
@@ -487,11 +487,11 @@ bldcclass(void)
 		classp[n++] = '\n';	/* don'v match newline in negate case */
 		negateclass = TRUE;
 		exprp++;
-	}else
+	} else
 		negateclass = FALSE;
 	while((c1 = nextrec()) != ']'){
 		if(c1 == '-'){
-    Error:
+Error:
 			free(classp);
 			regerror(Ebadclass);
 		}
@@ -507,7 +507,7 @@ bldcclass(void)
 			classp[n+1] = c1;
 			classp[n+2] = c2;
 			n += 3;
-		}else
+		} else
 			classp[n++] = c1;
 	}
 	classp[n] = 0;
@@ -529,7 +529,7 @@ classmatch(int classno, int c, int negate)
 			if(w[1]<=c && c<=w[2])
 				return !negate;
 			w += 3;
-		}else if(*w++ == c)
+		} else if(*w++ == c)
 			return !negate;
 	}
 	return negate;
@@ -574,7 +574,7 @@ execute(File *f, Posn startp, Posn eof)
 	Fgetcset(f, startp);
 	/* Execute machine once for each character */
 	for(;;w++){
-	doloop:
+doloop:
 		c = Fgetc(f);
 		if(w>=eof || c<0){
 			switch(wrapped++){
@@ -591,7 +591,7 @@ execute(File *f, Posn startp, Posn eof)
 			default:
 				goto Return;
 			}
-		}else if(((wrapped && w>=startp) || sel.w[0].p1>0) && nnl==0)
+		} else if(((wrapped && w>=startp) || sel.w[0].p1>0) && nnl==0)
 			break;
 		/* fast check for first char */
 		if(startchar && nnl==0 && c!=startchar)
@@ -604,18 +604,18 @@ execute(File *f, Posn startp, Posn eof)
 		if(sel.w[0].p1<0 && (!wrapped || w<startp || startp==eof)){
 			/* Add first instruction to this list */
 			if(++ntl >= NLIST)
-	Overflow:
+Overflow:
 				error(Eoverflow);
 			sempty.w[0].p1 = w;
 			addinst(tl, startinst, &sempty);
 		}
 		/* Execute machine until this list is empty */
 		for(tlp = tl; (inst = tlp->inst) ; tlp++){	/* assignment = */
-	Switchstmt:
+Switchstmt:
 			switch(inst->type){
 			default:	/* regular character */
 				if(inst->type==c){
-	Addinst:
+Addinst:
 					if(++nnl >= NLIST)
 						goto Overflow;
 					addinst(nl, inst->next, &tlp->se);
@@ -637,7 +637,7 @@ execute(File *f, Posn startp, Posn eof)
 				break;
 			case BOL:
 				if(w == 0){
-	Step:
+Step:
 					inst = inst->next;
 					goto Switchstmt;
 				}
@@ -674,7 +674,7 @@ execute(File *f, Posn startp, Posn eof)
 			}
 		}
 	}
-    Return:
+Return:
 	return sel.w[0].p1>=0;
 }
 
@@ -684,7 +684,7 @@ newmatch(samRangeset *sp)
 	int i;
 
 	if(sel.w[0].p1<0 || sp->w[0].p1<sel.w[0].p1 ||
-	   (sp->w[0].p1==sel.w[0].p1 && sp->w[0].w2>sel.w[0].w2))
+	    (sp->w[0].p1==sel.w[0].p1 && sp->w[0].w2>sel.w[0].w2))
 		for(i = 0; i<NSUBEXP; i++)
 			sel.w[i] = sp->w[i];
 }
@@ -706,7 +706,7 @@ bexecute(File *f, Posn startp)
 	Fgetcset(f, startp);
 	/* Execute machine once for each character, including terminal NUL */
 	for(;;--w){
-	doloop:
+doloop:
 		if((c = Fbgetc(f))==-1){
 			switch(wrapped++){
 			case 0:		/* let loop run one more click */
@@ -714,7 +714,7 @@ bexecute(File *f, Posn startp)
 				break;
 			case 1:		/* expired; wrap to end */
 				if(sel.w[0].p1>=0)
-			case 3:
+				case 3:
 					goto Return;
 				list[0][0].inst = list[1][0].inst = 0;
 				Fgetcset(f, f->nrunes);
@@ -723,7 +723,7 @@ bexecute(File *f, Posn startp)
 			default:
 				goto Return;
 			}
-		}else if(((wrapped && w<=startp) || sel.w[0].p1>0) && nnl==0)
+		} else if(((wrapped && w<=startp) || sel.w[0].p1>0) && nnl==0)
 			break;
 		/* fast check for first char */
 		if(startchar && nnl==0 && c!=startchar)
@@ -736,7 +736,7 @@ bexecute(File *f, Posn startp)
 		if(sel.w[0].p1<0 && (!wrapped || w>startp)){
 			/* Add first instruction to this list */
 			if(++ntl >= NLIST)
-	Overflow:
+Overflow:
 				error(Eoverflow);
 			/* the minus is so the optimizations in addinst work */
 			sempty.w[0].p1 = -w;
@@ -744,11 +744,11 @@ bexecute(File *f, Posn startp)
 		}
 		/* Execute machine until this list is empty */
 		for(tlp = tl; (inst = tlp->inst); tlp++){	/* assignment = */
-	Switchstmt:
+Switchstmt:
 			switch(inst->type){
 			default:	/* regular character */
 				if(inst->type == c){
-	Addinst:
+Addinst:
 					if(++nnl >= NLIST)
 						goto Overflow;
 					addinst(nl, inst->next, &tlp->se);
@@ -770,7 +770,7 @@ bexecute(File *f, Posn startp)
 				break;
 			case BOL:
 				if(c=='\n' || w==0){
-	Step:
+Step:
 					inst = inst->next;
 					goto Switchstmt;
 				}
@@ -806,17 +806,17 @@ bexecute(File *f, Posn startp)
 			}
 		}
 	}
-    Return:
+Return:
 	return sel.w[0].p1>=0;
 }
 
 void
 bnewmatch(samRangeset *sp)
 {
-        int  i;
-        if(sel.w[0].p1<0 || sp->w[0].p1>sel.w[0].w2 || (sp->w[0].p1==sel.w[0].w2 && sp->w[0].w2<sel.w[0].p1))
-                for(i = 0; i<NSUBEXP; i++){       /* note the reversal; p1<=w2 */
-                        sel.w[i].p1 = sp->w[i].w2;
-                        sel.w[i].w2 = sp->w[i].p1;
-                }
+	int  i;
+	if(sel.w[0].p1<0 || sp->w[0].p1>sel.w[0].w2 || (sp->w[0].p1==sel.w[0].w2 && sp->w[0].w2<sel.w[0].p1))
+		for(i = 0; i<NSUBEXP; i++){       /* note the reversal; p1<=w2 */
+			sel.w[i].p1 = sp->w[i].w2;
+			sel.w[i].w2 = sp->w[i].p1;
+		}
 }

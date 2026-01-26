@@ -99,7 +99,7 @@ text_rmview(Text*t, View *v) {
 
 	if(!t->v) { /* we've deleted the last view */
 		text_free(t);
-		free(t);     
+		free(t);
 	}
 	return 0;
 }
@@ -137,61 +137,62 @@ text_write(Text *t, char *fname) {
 int
 text_fd(Text *t, Range sel)
 {
-    // mkstemp requires a template ending in XXXXXX
-    char template[] = "/tmp/wily.XXXXXX";
-    int fd = mkstemp(template);
-    int input = -1;
+	// mkstemp requires a template ending in XXXXXX
+	char template[] = "/tmp/wily.XXXXXX";
+	int fd = mkstemp(template);
+	int input = -1;
 
-    if (fd < 0) {
-        perror("mkstemp");
-        return -1;
-    }
+	if (fd < 0) {
+		perror("mkstemp");
+		return -1;
+	}
 
-    /* 
+	/* 
      * Unlink immediately. On Unix, the file exists as long as 
      * the FD is open, but no other process can see it in the FS.
      */
-    unlink(template);
+	unlink(template);
 
-    /* 
+	/* 
      * Since we need a separate FD for reading (input), 
      * we can duplicate the one we have and then seek.
      */
-    if ((input = dup(fd)) < 0) {
-        perror("dup");
-        goto fail;
-    }
+	if ((input = dup(fd)) < 0) {
+		perror("dup");
+		goto fail;
+	}
 
-    /* Write the buffer content to the file */
-    if (text_write_range(t, sel, fd)) {
-        perror("write temp file");
-        goto fail;
-    }
+	/* Write the buffer content to the file */
+	if (text_write_range(t, sel, fd)) {
+		perror("write temp file");
+		goto fail;
+	}
 
-    /* 
+	/* 
      * Rewind the 'input' descriptor so the child reads from 
      * the start of the file.
      */
-    if (lseek(input, 0, SEEK_SET) == (off_t)-1) {
-        perror("lseek");
-        goto fail;
-    }
+	if (lseek(input, 0, SEEK_SET) == (off_t)-1) {
+		perror("lseek");
+		goto fail;
+	}
 
-    /* We are done with the writing end */
-    close(fd);
-    return input;
+	/* We are done with the writing end */
+	close(fd);
+	return input;
 
 fail:
-    if (fd >= 0) close(fd);
-    if (input >= 0) close(input);
-    return -1;
+	if (fd >= 0) close(fd);
+	if (input >= 0) close(input);
+	return -1;
 }
 
 
 /****************************************************
 	Auto indent
 ****************************************************/
-enum {MAXAI=128};
+enum {
+	MAXAI=128};
 
 /*
  * Return an Rstring to be inserted after position 'p',
@@ -232,19 +233,26 @@ text_autoindent(Text *t, ulong p)
  * such that the character at 'p' will be offset by
  * 'height', when displayed
  * in a window of width 'w', with Font 'f'
- */ 
+ */
 int
 back_height(Text *t, ulong p, Font *f, int width, int height) {
 	int	c, hpos;
-	
+
 	if (p > 0) --p;
 	for( hpos = 0; p>0 && height>0; p--) {
 		Tgetcset(t,p);
 		c = Tgetc(t);
 		switch(c) {
-		case '\t': hpos += tabsize; break;
-		case '\n': hpos = 0; height -= f->height; break;
-		default: hpos += charwidth(f,c); break;
+		case '\t': 
+			hpos += tabsize; 
+			break;
+		case '\n': 
+			hpos = 0; 
+			height -= f->height; 
+			break;
+		default: 
+			hpos += charwidth(f,c); 
+			break;
 		}
 		if (hpos >= width) {
 			hpos =0;
@@ -257,7 +265,7 @@ back_height(Text *t, ulong p, Font *f, int width, int height) {
 Range
 text_all(Text*t){
 	Range r;
-	
+
 	r.p0 = 0;
 	r.p1 = t->length;
 	return r;
@@ -346,10 +354,10 @@ static void
 text_getdir(Text *t, char**names) {
 	Frame	*f;
 	char	*s;
-	
+
 	f = &t->v->f;
 	s = columnate(Dx(f->r), f->maxtab, f->font, names);
-	
+
 	undo_reset(t);
 	text_replaceutf(t, range(0, t->length), s);
 	undo_start(t);

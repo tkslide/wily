@@ -1,0 +1,9 @@
+**/*.o
+libframe/libframe.a
+libmsg/libmsg.a
+libXg/libXg.a
+libframe/Makefile
+libmsg/Makefile
+libXg/Makefile
+**/*.log
+wily/wily

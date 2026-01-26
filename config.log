@@ -1,0 +1,67 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure: In function 't':
+configure:801:1: error: implicit declaration of function 'XtMalloc' [-Wimplicit-function-declaration]
+  801 | ${x_direct_test_function}()
+      | ^~~~~~~~
+/usr/bin/ld: /usr/lib/gcc/x86_64-linux-gnu/15/../../../x86_64-linux-gnu/Scrt1.o: in function `_start':
+(.text+0x1b): undefined reference to `main'
+collect2: error: ld returned 1 exit status
+configure: In function 't':
+configure:962:1: error: implicit declaration of function 'dnet_ntoa' [-Wimplicit-function-declaration]
+  962 | dnet_ntoa()
+      | ^~~~~~~~~
+configure: In function 't':
+configure:996:1: error: implicit declaration of function 'dnet_ntoa' [-Wimplicit-function-declaration]
+  996 | dnet_ntoa()
+      | ^~~~~~~~~
+configure: In function 't':
+configure:1035:1: error: implicit declaration of function 't_accept' [-Wimplicit-function-declaration]
+ 1035 | t_accept()
+      | ^~~~~~~~
+configure: In function 't':
+configure:1073:1: error: implicit declaration of function 'socket' [-Wimplicit-function-declaration]
+ 1073 | socket()
+      | ^~~~~~
+configure: In function 't':
+configure:1111:1: error: implicit declaration of function 'sin' [-Wimplicit-function-declaration]
+ 1111 | sin()
+      | ^~~
+configure:1108:1: note: include '<math.h>' or provide a declaration of 'sin'
+ 1107 | #include "confdefs.h"
+  +++ |+#include <math.h>
+ 1108 | 
+configure:1111:1: warning: incompatible implicit declaration of built-in function 'sin' [-Wbuiltin-declaration-mismatch]
+ 1111 | sin()
+      | ^~~
+configure:1111:1: note: include '<math.h>' or provide a declaration of 'sin'
+configure:1111:1: error: too few arguments to function 'sin'; expected 1, have 0
+configure: In function 't':
+configure:1270:1: error: implicit declaration of function 'opendir' [-Wimplicit-function-declaration]
+ 1270 | opendir()
+      | ^~~~~~~
+configure:1338:1: error: return type defaults to 'int' [-Wimplicit-int]
+ 1338 | main(){return(0);}
+      | ^~~~
+configure:1842:8: error: conflicting types for 'signal'; have 'void (*(void))(void)'
+ 1842 | void (*signal ()) ();
+      |        ^~~~~~
+In file included from configure:1835:
+/usr/include/signal.h:88:23: note: previous declaration of 'signal' with type 'void (*(int,  void (*)(int)))(int)'
+   88 | extern __sighandler_t signal (int __sig, __sighandler_t __handler)
+      |                       ^~~~~~
+configure:1875:6: warning: conflicting types for built-in function 'vprintf'; expected 'int(const char *, __va_list_tag *)' [-Wbuiltin-declaration-mismatch]
+ 1875 | char vprintf();
+      |      ^~~~~~~
+configure:1874:1: note: 'vprintf' is declared in header '<stdio.h>'
+ 1873 | #include <assert.h>
+  +++ |+#include <stdio.h>
+ 1874 | /* Override any gcc2 internal prototype to avoid an error.  */
+configure:1974:6: warning: conflicting types for built-in function 'memmove'; expected 'void *(void *, const void *, long unsigned int)' [-Wbuiltin-declaration-mismatch]
+ 1974 | char $ac_func();
+      |      ^~~~~~~
+configure:1973:1: note: 'memmove' is declared in header '<string.h>'
+ 1972 | #include <assert.h>
+  +++ |+#include <string.h>
+ 1973 | /* Override any gcc2 internal prototype to avoid an error.  */

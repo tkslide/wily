@@ -7,3 +7,7 @@ libmsg/Makefile
 libXg/Makefile
 **/*.log
 wily/wily
+Makefile
+config.cache
+config.h
+config.status

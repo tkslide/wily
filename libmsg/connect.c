@@ -91,50 +91,84 @@ wilyfifotalk(void)
  * to make sure both client and server are speaking the same
  * language.
  */
+
+/* XXX */
 int
 client_connect(void)
 {
-	int s , fd, size;
-	struct sockaddr_un addr;
-	int	len;
-	int	nwritten;
-	char	*path;
+    int s = -1, fd = -1;
+    struct sockaddr_un addr;
+    char *path = NULL;
+    ssize_t nwritten;
+    socklen_t size;
 
-	/* create a socket */
-	if (! (s= socket(AF_UNIX, SOCK_STREAM, 0)))
-		return -1;
+    /* 1. Create a template for mkstemp */
+    char template[] = "/tmp/wily.XXXXXX";
+    
+    /* 2. Securely generate a unique filename and create it */
+    int tmp_fd = mkstemp(template);
+    if (tmp_fd < 0) {
+        perror("mkstemp");
+        return -1;
+    }
+    /* mkstemp created a regular file; bind() needs the path to be empty */
+    close(tmp_fd);
+    unlink(template);
 
-	/* bind it to a unix-domain at a temporary address */
-	addr.sun_family = AF_UNIX;
-	tmpnam(addr.sun_path);
-	path = strdup(addr.sun_path);
-	len = strlen(addr.sun_path);
+    /* 3. Create the actual Unix socket */
+    if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+        return -1;
 
-	if (bind(s, (struct sockaddr *) &addr, sizeof addr) < 0){
-		perror("bind");
-		return -1;
-	}
+    /* 4. Prepare address structure */
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, template, sizeof(addr.sun_path) - 1);
+    path = strdup(template); // Keep a copy for unlinking later
 
-	listen(s, 1);		/* Get ready  for wily to talk to us */
+    /* 5. Bind the socket to the name we just reserved */
+    if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        perror("bind");
+        goto fail;
+    }
 
-	fd = wilyfifotalk();		/* fifo to wily */
-	if(fd<0)
-		return -1;
-	nwritten = write(fd, addr.sun_path, len);
-	close(fd);
-	if(nwritten !=len){
-		perror("write to wily");
-		return -1;
-	}
+    listen(s, 1);
 
-	size = sizeof(addr);
-	fd = accept(s, (struct sockaddr *) &addr, &size);
-	close(s);
-	if(unlink(path))
-		perror(path);
-	free(path);
-	return fd;
+    /* 6. Handshake with Wily */
+    fd = wilyfifotalk();
+    if (fd < 0)
+        goto fail;
+
+    size_t len = strlen(path);
+    nwritten = write(fd, path, len);
+    close(fd);
+
+    if (nwritten != (ssize_t)len) {
+        fprintf(stderr, "short write to wily fifo\n");
+        goto fail;
+    }
+
+    /* 7. Wait for Wily to connect back */
+    size = sizeof(addr);
+    fd = accept(s, (struct sockaddr *)&addr, &size);
+    
+    /* 8. Cleanup: close listening socket and remove file from filesystem */
+    close(s);
+    if (path) {
+        unlink(path);
+        free(path);
+    }
+    return fd;
+
+fail:
+    if (s >= 0) close(s);
+    if (path) {
+        unlink(path);
+        free(path);
+    }
+    return -1;
 }
+
+
 
 /* Given 'addrname' of length 'n', (from some client), connect to it,
  * and return the file descriptor, or -1

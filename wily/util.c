@@ -7,6 +7,13 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <dirent.h>
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 void
 dirnametrunc(char*s){
@@ -116,63 +123,88 @@ utf2rstring(char*utf)
 
 /* Write into 'back' the name of a file we can write to as a backup
  * for 'orig'.  Return 0 for success. */
+
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
 int
 backup_name(char *orig, char *back)
 {
-	Path	dir, guide;
-	char	*home;
-	DIR		*dirp;
-	struct dirent	*direntp;
-	FILE	*fp;
-	int	max,n;
-	int	init_guide = 0;
+    char    *dir = NULL;
+    char    *guide = NULL;
+    char    *temp_back = NULL;
+    char    *home;
+    DIR     *dirp;
+    struct dirent   *direntp;
+    FILE    *fp;
+    int     max, n;
+    int     init_guide = 0;
 
-	if ( !(home=getenv("WILYBAK")) ) {
-		if ( !(home=getenv("HOME")) ) {
-			return diag(0, "getenv HOME");
-		}
-		sprintf(dir, "%s/.wilybak", home);
-	} else
-		strcpy(dir, home);
+    /* 1. Determine backup directory */
+    if (!(home = getenv("WILYBAK"))) {
+        if (!(home = getenv("HOME"))) {
+            return diag(0, "getenv HOME");
+        }
+        if (asprintf(&dir, "%s/.wilybak", home) == -1) return -1;
+    } else {
+        dir = strdup(home);
+    }
 
-	/* Make sure the directory exists.  Create it if necessary.
-	 */
-	if(access(dir, W_OK) &&  (mkdir(dir, 0700)) )
-		return diag(0, "couldn't create backup directory %s", dir);
+    /* 2. Ensure directory exists */
+    if (access(dir, W_OK) && (mkdir(dir, 0700))) {
+        int ret = diag(0, "couldn't create backup directory %s", dir);
+        free(dir);
+        return ret;
+    }
 
-	/* Find directory entry with largest number.  We will be one
-	 * greater than that.
-	 */
-	max=0;
-	if(!(dirp = opendir(dir))) {
-		return diag(0, "couldn't opendir %s", dir);
-	}
-	rewinddir(dirp);	/* Workaround for FreeBSD. */
-	while ((direntp = readdir(dirp))) {
-		if ( (n=atoi(direntp->d_name)) > max)
-			max = n;
-	}
-	closedir(dirp);
-	max++;
+    /* 3. Find highest numbered entry */
+    if (!(dirp = opendir(dir))) {
+        int ret = diag(0, "couldn't opendir %s", dir);
+        free(dir);
+        return ret;
+    }
+    max = 0;
+    while ((direntp = readdir(dirp))) {
+        n = atoi(direntp->d_name);
+        if (n > max) max = n;
+    }
+    closedir(dirp);
+    max++;
 
-	sprintf(back, "%s/%d", dir, max);
+    /* 4. Generate backup name and copy to provided 'back' pointer */
+    if (asprintf(&temp_back, "%s/%d", dir, max) == -1) {
+        free(dir);
+        return -1;
+    }
+    strcpy(back, temp_back); // Copying into the user-provided buffer
+    free(temp_back);
 
+    /* 5. Update guide file */
+    if (asprintf(&guide, "%s/guide", dir) != -1) {
+        if (access(guide, W_OK) < 0)
+            init_guide = 1;
 
-	/* Record what is going where */
-	sprintf(guide,"%s/guide", dir);
-	if(access(guide, W_OK) < 0)
-		init_guide = 1;
-	fp = fopen(guide, "a+");
-	if(fp) {	/* if this fails, don't care all that much */
-		if(init_guide)
-			fprintf(fp, "diff	cp	rm *\n");
-		fprintf(fp, "%3d\t%s\n", max, orig);
-		fclose(fp);
-	} else {
-		diag(guide, "couldn't update backup guide file");
-	}
-	return 0;
+        fp = fopen(guide, "a+");
+        if (fp) {
+            if (init_guide)
+                fprintf(fp, "diff\tcp\trm *\n");
+            fprintf(fp, "%3d\t%s\n", max, orig);
+            fclose(fp);
+        } else {
+            diag(guide, "couldn't update backup guide file");
+        }
+        free(guide);
+    }
+
+    free(dir);
+    return 0;
 }
+
 
 void
 noutput(char *context, char *base, int n)

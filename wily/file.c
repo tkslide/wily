@@ -5,6 +5,10 @@
 #include "wily.h"
 #include "data.h"
 #include <errno.h>
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+
 
 static int		data_getstat		(Data*, char*, char*, Stat*);
 static void	data_opennew		(Data*, char*, char*path);
@@ -194,19 +198,30 @@ data_getfile(Data*d, char*label, char*path, Stat*buf) {
 
 /* Fill 'buf' with appropriate stuff for d's tag */
 static void
-data_settag(Data*d, char *path) {
-	Path	buf;
-	char*common;
-	char*specific;
-	
-	common = d->names? dirtools : filetools;
-	specific = tag_match(path);
-	
-	sprintf (buf, "%s %s | %s %s ", d->label, 
-		d->names? "Get":"", 
-		common, specific);
-	tag_set(d->tag, buf);
+data_settag(Data *d, char *path) {
+    char *buf = NULL;
+    char *common;
+    char *specific;
+    
+    common = d->names ? dirtools : filetools;
+    specific = tag_match(path);
+    
+    /* 
+     * asprintf handles the formatting and memory allocation.
+     * It returns the number of bytes allocated, or -1 on error.
+     */
+    int result = asprintf(&buf, "%s %s | %s %s ", 
+                          d->label, 
+                          d->names ? "Get" : "", 
+                          common, 
+                          specific);
+
+    if (result != -1) {
+        tag_set(d->tag, buf);
+        free(buf); // Clean up the dynamic buffer after use
+    }
 }
+
 
 static Data *
 data_alloc(void) {

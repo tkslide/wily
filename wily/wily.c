@@ -9,7 +9,7 @@ static int	ncolumns = 2;
 int	tagheight;
 Tile	*wily=0;			/* encloses the whole application */
 
-char *wilytools = 	"Kill | Newcol Quit Putall wily-0.13.42 Dotfiles Font "; /* version */
+char *wilytools = 	"Kill | Newcol Quit Putall Dotfiles Font "; /* version */
 char *filetools = 	"Del Look .";
 char *dirtools = 	"Del Look ..";
 char *columntools = "Delcol New Cut Paste Snarf Anchor Split | ";

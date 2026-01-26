@@ -3,6 +3,10 @@
  *******************************************/
 
 #include "wily.h"
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+
 
 static char *	pathfind (const char *paths, const char *file);
 static bool	is_includebrackets(char left, char right);
@@ -14,33 +18,68 @@ static bool	is_includebrackets(char left, char right);
  *
  * If no include file is appropriate, return 0.
  */
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+
 View*
 openinclude(View *v, Range r) {
-	Range	expanded;
-	Path		buf, pbuf;
-	int		len;
-	Text		*t;
-	char		*s;
-	
-	t = view_text(v);
-	
-	expanded = text_expand(t, r, notinclude);
-	len = RLEN(expanded);
-	if( len > (MAXPATH*UTFmax) || len < 2)
-		return false;
-	len = text_copyutf(t, expanded, buf);
-	
-	if (!is_includebrackets(buf[0], buf[len-1]))
-		return false;
-	
-	buf[len-1] = 0;
-	s = pathfind(getenv("INCLUDES"),  buf+1);
-	if(!s) {
-		sprintf(pbuf, "/usr/include/%s", buf+1);
-		s = pbuf;
-	}
-	return openlabel(s, false);
+    Range    expanded;
+    char     *buf = NULL;
+    char     *s = NULL;
+    View     *result_view = NULL;
+    int      len;
+    Text     *t;
+    
+    t = view_text(v);
+    expanded = text_expand(t, r, notinclude);
+    len = RLEN(expanded);
+    
+    /* Minimum 3 chars: < x > */
+    if (len < 3)
+        return NULL;
+
+    /* Allocate buffer for the raw selection */
+    buf = malloc(len + 1);
+    if (!buf)
+        return NULL;
+
+    len = text_copyutf(t, expanded, buf);
+    buf[len] = '\0';
+
+    /* Check for enclosing brackets <...> or "..." */
+    if (!is_includebrackets(buf[0], buf[len-1])) {
+        free(buf);
+        return NULL;
+    }
+
+    /* Null-terminate before the closing bracket to isolate the filename */
+    buf[len-1] = '\0';
+    char *filename = buf + 1;
+
+    /* 1. Try to find path in $INCLUDES */
+    s = pathfind(getenv("INCLUDES"), filename);
+    
+    /* 2. Fall back to /usr/include if pathfind fails */
+    if (!s) {
+        if (asprintf(&s, "/usr/include/%s", filename) == -1) {
+            free(buf);
+            return NULL;
+        }
+        /* openlabel is called with 's' from asprintf, must free 's' after */
+        result_view = openlabel(s, false);
+        free(s);
+    } else {
+        /* s was returned by pathfind; assuming pathfind returns a static 
+           or allocated buffer that openlabel handles or doesn't own. */
+        result_view = openlabel(s, false);
+        // free(s); // Uncomment if your pathfind returns heap memory
+    }
+
+    free(buf);
+    return result_view;
 }
+
 
 /**********************************************************
 	static functions

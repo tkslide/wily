@@ -2,6 +2,8 @@
 #include <libc.h>
 #include <libg.h>
 #include "libgint.h"
+#include <stdlib.h>
+
 
 Bitmap*
 balloc(Rectangle r, int ldepth)

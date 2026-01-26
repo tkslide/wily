@@ -133,50 +133,60 @@ text_write(Text *t, char *fname) {
  * Put the selection into a text file and attach that text
  * file to the command's fdin.
  */
+
 int
 text_fd(Text *t, Range sel)
 {
-	char	*file = tmpnam(0);
-	int	fd = -1;
-	int	input = -1;
+    // mkstemp requires a template ending in XXXXXX
+    char template[] = "/tmp/wily.XXXXXX";
+    int fd = mkstemp(template);
+    int input = -1;
 
-	if ((fd = open(file, O_WRONLY|O_CREAT, 0600)) < 0) {
-		perror("open temp file");
-		goto fail;
-	}
+    if (fd < 0) {
+        perror("mkstemp");
+        return -1;
+    }
 
-	/* Now for the child's end.  Do it quick so we can unlink. */
-	if ((input = open(file, O_RDONLY)) < 0) {
-		perror("open temp file");
-		goto fail;
-	}
+    /* 
+     * Unlink immediately. On Unix, the file exists as long as 
+     * the FD is open, but no other process can see it in the FS.
+     */
+    unlink(template);
 
-	if (unlink(file) < 0)
-		perror("unlink temp file");
-		/* no need to *do* anything about it */
+    /* 
+     * Since we need a separate FD for reading (input), 
+     * we can duplicate the one we have and then seek.
+     */
+    if ((input = dup(fd)) < 0) {
+        perror("dup");
+        goto fail;
+    }
 
-	/* Our buffer is the most recent selection, or if the
-	 * most recent selection is in a tag, the selection in the body
-	 * of that win.
-	 */
-	if (text_write_range(t, sel, fd)) {
-		perror("write temp file");
-		goto fail;
-	}
-	if (close(fd) <  0)
-		perror("close temp file");
+    /* Write the buffer content to the file */
+    if (text_write_range(t, sel, fd)) {
+        perror("write temp file");
+        goto fail;
+    }
 
-	return input;
+    /* 
+     * Rewind the 'input' descriptor so the child reads from 
+     * the start of the file.
+     */
+    if (lseek(input, 0, SEEK_SET) == (off_t)-1) {
+        perror("lseek");
+        goto fail;
+    }
 
- fail:
-	if (input >= 0)
-		(void) close(input);
-	if (fd >= 0) {
-		(void) close(fd);
-		(void) unlink(file);
-	}
-	return(-1);
+    /* We are done with the writing end */
+    close(fd);
+    return input;
+
+fail:
+    if (fd >= 0) close(fd);
+    if (input >= 0) close(input);
+    return -1;
 }
+
 
 /****************************************************
 	Auto indent

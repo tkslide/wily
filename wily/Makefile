@@ -1,8 +1,8 @@
-# Generated automatically from Makefile.in by configure.
 SHELL=/bin/sh
 srcdir=.
+
 prefix = /usr/local
-LIBS=
+LIBS=-lnsl -lm 
 exec_prefix = ${prefix}
 
 # Directory in which to install scripts.
@@ -11,7 +11,7 @@ CC=gcc
 RANLIB=ranlib
 INCLUDES= -I.. -I$(srcdir)/../include 
 OPTS=-DNDEBUG
-CFLAGS= -g -O $(OPTS) $(INCLUDES)
+CFLAGS= -g -O2 $(OPTS) $(INCLUDES)
 TARGET=wily
 OBJECTS= env.o include.o label.o file.o msg.o data.o line.o\
 	vgeom.o vsearch.o vshow.o \
@@ -23,7 +23,7 @@ OBJECTS= env.o include.o label.o file.o msg.o data.o line.o\
 	sam.o text.o click.o tile.o search.o
 
 MYLIBS=../libmsg/libmsg.a ../libframe/libframe.a ../libXg/libXg.a
-XLIBS=$(LIBS)  -lXt  -lX11 
+XLIBS=$(LIBS)  -lXt  -lSM -lICE -lX11 
 all: $(TARGET)
 $(TARGET): $(OBJECTS) $(MYLIBS)
 	$(CC) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(MYLIBS) $(XLIBS)

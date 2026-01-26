@@ -2,6 +2,8 @@
 #include <libc.h>
 #include <libg.h>
 #include "libgint.h"
+#include <stdlib.h>
+#include <unistd.h>
 
 #define CHUNK 6000
 

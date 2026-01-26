@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <libg.h>
 #include <string.h>
+#include <stdlib.h>
 
 /*
  * Cobble fake font using existing subfont

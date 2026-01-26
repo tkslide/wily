@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <libg.h>
 #include "libgint.h"
+#include <unistd.h>
 
 static Cursor sweep={
 	{-7, -7},

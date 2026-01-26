@@ -2,6 +2,8 @@
 #include <libc.h>
 #include <libg.h>
 #include "libgint.h"
+#include <string.h>
+#include <stdlib.h>
 
 void
 rdbitmap(Bitmap *b, int miny, int maxy, unsigned char *data)

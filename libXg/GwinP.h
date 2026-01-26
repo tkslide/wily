@@ -11,7 +11,7 @@ typedef struct {
 	/* New resource fields */
 	Pixel		    foreground;
 	Font		    font;
-	boolean		  forwardr;	  /* does right button scroll forward? */
+	Boolean		  forwardr;	  /* does right button scroll forward? */
 	Reshapefunc	reshaped;	  /* Notify app of reshape */
 	Charfunc	  gotchar;	  /* Notify app of char arrival */
 	Mousefunc	  gotmouse;	  /* Notify app of mouse change */

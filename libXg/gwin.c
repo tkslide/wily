@@ -24,6 +24,8 @@ static void Mappingaction(Widget, XEvent *, String *, Cardinal*);
 static void Keyaction(Widget, XEvent *, String *, Cardinal*);
 static void Mouseaction(Widget, XEvent *, String *, Cardinal*);
 static String SelectSwap(Widget, String);
+long latin1(unsigned char *);
+long unicode(unsigned char *);
 
 /* Data */
 
@@ -34,7 +36,7 @@ static XtResource resources[] = {
 	Offset(foreground), XtRString, (XtPointer)XtDefaultForeground},
 	{XtNfont,  XtCFont, XtRFontStruct, sizeof(XFontStruct *),
 	Offset(font),XtRString, (XtPointer)XtDefaultFont},
-	{XtNscrollForwardR, XtCScrollForwardR, XtRboolean, sizeof(boolean),
+	{XtNscrollForwardR, XtCScrollForwardR, XtRBoolean, sizeof(Boolean),
 	Offset(forwardr), XtRImmediate, (XtPointer)TRUE},
 	{XtNreshaped, XtCReshaped, XtRFunction, sizeof(Reshapefunc),
 	Offset(reshaped), XtRFunction, (XtPointer) NULL},
@@ -439,7 +441,7 @@ XtPointer val, unsigned long *len, int *fmt)
 	XtFree(val);
 }
 
-static boolean
+static Boolean
 SendSel(Widget w, Atom *sel, Atom *target, Atom *rtype, XtPointer *ans,
 unsigned long *anslen, int *ansfmt)
 {

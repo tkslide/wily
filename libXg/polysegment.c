@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <libg.h>
 #include "libgint.h"
+#include <stdlib.h>
 
 void
 polysegment(Bitmap *d, int n, Point *pp, int v, Fcode f)

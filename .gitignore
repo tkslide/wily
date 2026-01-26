@@ -11,3 +11,5 @@ Makefile
 config.cache
 config.h
 config.status
+configure.ac
+autom4te.cache/

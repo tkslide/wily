@@ -8,6 +8,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 void
 wrbitmap(Bitmap *b, int miny, int maxy, unsigned char *data)
 {

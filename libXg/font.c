@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <libg.h>
 #include "libgint.h"
+#include <stdlib.h>
 
 #define	PJW	0	/* use NUL==pjw for invisible characters */
 

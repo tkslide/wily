@@ -3,6 +3,8 @@
 #include <libg.h>
 #include <stdio.h>
 #include "libgint.h"
+#include <stdlib.h>
+#include <unistd.h>
 
 #define COMPRESSMOUSE
 
@@ -29,6 +31,8 @@
 #undef Cursor
 #undef Font
 #undef Event
+
+static int log_2(int);
 
 /* libg globals */
 Bitmap	screen;
@@ -87,7 +91,7 @@ static Font *	initfont(char *, 	XFontStruct *, char *);
 static void	reshaped(int, int, int, int);
 static void	gotchar(int);
 static void	gotmouse(Gwinmouse *);
-static int	log2(int);
+static int	log_2(int);
 static void	pixtocolor(Pixel, XColor *);
 static Subfont	*XFontStructtoSubfont(XFontStruct *);
 static Ebuf	*ebread(Esrc *);
@@ -188,7 +192,7 @@ xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
 	n++;
 	XtGetValues(widg, args, n);
 	XSetIOErrorHandler(ioerr);
-	XSetErrorHandler(ioerr);
+	//XSetErrorHandler(ioerr);
 
 	if (compose < 0 || compose > 5) {
 		n = 0;
@@ -203,7 +207,7 @@ xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
 	pixtocolor(_fgpixel, &_fgcolor);
 	pixtocolor(_bgpixel, &_bgcolor);
 	screen.id = (int) XtWindow(widg);
-	screen.ldepth = log2(depth);
+	screen.ldepth = log_2(depth);
 	screen.flag = SCR;
 	if(_fgpixel != 0)
 		screen.flag |= BL1;
@@ -379,7 +383,7 @@ gottimeout(XtPointer cldata, XtIntervalId *id)
 }
 
 static int
-log2(int n)
+log_2(int n)
 {
 	int i, v;
 
@@ -599,7 +603,7 @@ int
 scrollfwdbut(void)
 {
 	Arg arg;
-	boolean v;
+	Boolean v;
 	String s;
 
 	XtSetArg(arg, XtNscrollForwardR, &v);
@@ -611,7 +615,7 @@ void
 einit(unsigned long keys)
 {
 	/*
-	 * Make sure Smouse = log2(Emouse) and Skeyboard == log2(Ekeyboard)
+	 * Make sure Smouse = log_2(Emouse) and Skeyboard == log_2(Ekeyboard)
 	 */
 	nsrc = 0;
 	if(keys&Emouse){
@@ -672,7 +676,7 @@ estop(unsigned long key)
 {
 	int s;
 
-	s = log2(key);
+	s = log_2(key);
 	if (!esrc[s].inuse){
 		berror("key not in use");
 	}
@@ -685,7 +689,7 @@ estoptimer(unsigned long key)
 {
 	int	s;
 
-	s = log2(key);
+	s = log_2(key);
 	if (!esrc[s].inuse){
 		berror("key not in use");
 	}

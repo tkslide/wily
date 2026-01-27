@@ -18,7 +18,7 @@ fprint(int fd, char *z, ...)
 
 	va_start(args, z);
 	vsprintf(buf, z, args);
-	int x = write(fd, buf, strlen(buf));
+	if (write(fd, buf, strlen(buf)));  /* XXX do nothing */
 	va_end(args);
 }
 #else	/* !HAVE_STDARG_H */

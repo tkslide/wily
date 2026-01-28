@@ -185,12 +185,10 @@ view_scroll(View *v, Mouse *m) {
 		view_set(v, n);
 		break;
 	case SCROLLDOWN: /* XXX */
-		runepos = frcharofpt(&v->f, m->xy);
-		view_set(v, base + runepos);
+		view_pagedown(v, true);
 		break;
 	case SCROLLUP: /* XXX */
-		runepos = frcharofpt(&v->f, m->xy);
-		view_set(v, base - runepos);
+		view_pagedown(v, false);
 		break;
 	default:
 		runepos = (text_length(v->t) * y) / Dy(v->f.r);

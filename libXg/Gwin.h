@@ -26,14 +26,16 @@ extern WidgetClass gwinWidgetClass;
 typedef struct _GwinRec *GwinWidget;
 
 /* Type definition for gwin resources */
-typedef struct {
-		int buttons;
-		struct {
-			int x;
-			int y;
-		} xy;
-		unsigned long msec;
-	} Gwinmouse;
+typedef struct
+{
+	int buttons;
+	struct
+	{
+		int x;
+		int y;
+	} xy;
+	unsigned long msec;
+} Gwinmouse;
 
 typedef void (*Reshapefunc)(int, int, int, int);
 typedef void (*Charfunc)(int);
@@ -41,7 +43,6 @@ typedef void (*Mousefunc)(Gwinmouse*);
 
 /* Method declarations */
 extern String GwinSelectionSwap(Widget, String);
-extern char*	Gwinselect_get(Widget w);
-extern void	Gwinselect_put(Widget w,char*s);
-
-#endif /* GWIN_H */
+extern char*    Gwinselect_get(Widget w);
+extern void Gwinselect_put(Widget w,char*s);
+#endif							 /* GWIN_H */

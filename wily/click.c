@@ -8,29 +8,46 @@
 
 /* Matching brackets for double-click
  */
-static Rune	l1[] =		{ 
-	'{', '[', '(', '<', 0253, 0};
-static Rune	r1[] =		{
-	'}', ']', ')', '>', 0273, 0};
-static Rune	l2[] =		{ 
-	'\n', 0};
-static Rune	r2[] =		{
-	'\n', 0};
-static Rune	l3[] =		{ 
-	'\'', '"', '`', '>', 0};
-static Rune	r3[] =		{
-	'\'', '"', '`', '<', 0};
+static Rune l1[] =
+{
+	'{', '[', '(', '<', 0253, 0
+};
+static Rune r1[] =
+{
+	'}', ']', ')', '>', 0273, 0
+};
+static Rune l2[] =
+{
+	'\n', 0
+};
+static Rune r2[] =
+{
+	'\n', 0
+};
+static Rune l3[] =
+{
+	'\'', '"', '`', '>', 0
+};
+static Rune r3[] =
+{
+	'\'', '"', '`', '<', 0
+};
 
-Rune		*left[]=	{ 
-	l1, l2, l3, 0};
-Rune		*right[]=	{ 
-	r1, r2, r3, 0};
+Rune        *left[]=
+{
+	l1, l2, l3, 0
+};
+Rune        *right[]=
+{
+	r1, r2, r3, 0
+};
 
 /* Return false if 'c' is obviously not an alphanumeric character,
  * or if it is in the stoplist.
  */
 static bool
-okchar(int c, char *stoplist) {
+okchar(int c, char *stoplist)
+{
 	/*
 	 * Hard to get absolutely right.  Use what we know about ASCII
 	 * and assume anything above the Latin control characters is
@@ -45,28 +62,35 @@ okchar(int c, char *stoplist) {
 	return 1;
 }
 
+
 static int
-clickmatch(Text *t, int cl, int cr, int dir) {
+clickmatch(Text *t, int cl, int cr, int dir)
+{
 	int c, nest;
 
 	nest=1;
-	while((c=(dir>0? Tgetc(t) : Tbgetc(t))) > 0) {
-		if(cl=='\n' && c==0x04)	/* EOT is trouble */
+	while((c=(dir>0? Tgetc(t) : Tbgetc(t))) > 0)
+	{
+		if(cl=='\n' && c==0x04)	 /* EOT is trouble */
 			return 1;
-		if(c == cr){
+		if(c == cr)
+		{
 			if(--nest == 0)
 				return 1;
 		} else if(c == cl)
-			nest++;
+		nest++;
 	}
 	return cl=='\n' && nest==1;
 }
 
+
 static Rune *
-strrune(Rune *s, Rune c) {
+strrune(Rune *s, Rune c)
+{
 	Rune c1;
 
-	if(c == 0) {
+	if(c == 0)
+	{
 		while(*s++)
 			;
 		return s-1;
@@ -78,12 +102,14 @@ strrune(Rune *s, Rune c) {
 	return 0;
 }
 
+
 /* Expand the selection (pp0-pp1) left and right, stopping
  * at characters that aren't alphanumeric or are in the stop list 's'
  */
 Range
-text_expand(Text *t, Range r, char *s) {
-	int	c;
+text_expand(Text *t, Range r, char *s)
+{
+	int c;
 
 	assert(ROK(r));
 	Tgetcset(t, r.p1);
@@ -95,30 +121,38 @@ text_expand(Text *t, Range r, char *s) {
 	return r;
 }
 
+
 /*
  * Expand a doubleclick at p0, return the resulting range.
  */
 Range
-text_doubleclick(Text *t, ulong p0) {
+text_doubleclick(Text *t, ulong p0)
+{
 	int c, i;
 	Rune *r, *l;
-	Range	dot;
+	Range   dot;
 
 	assert (p0 <= t->length);
 	dot.p0 = dot.p1 = p0;
-	for(i=0; left[i]; i++){
+	for(i=0; left[i]; i++)
+	{
 		l = left[i];
 		r = right[i];
 		/* try left match */
-		if(p0 == 0){
+		if(p0 == 0)
+		{
 			Tgetcset(t, p0);
 			c = '\n';
-		} else{
+		}
+		else
+		{
 			Tgetcset(t, p0-1);
 			c = Tgetc(t);
 		}
-		if(c!=-1 && strrune(l, c)){
-			if(clickmatch(t, c, r[strrune(l, c)-l], 1)){
+		if(c!=-1 && strrune(l, c))
+		{
+			if(clickmatch(t, c, r[strrune(l, c)-l], 1))
+			{
 				dot.p0 = p0;
 				dot.p1 = t->pos-(c!='\n');
 			}
@@ -126,18 +160,23 @@ text_doubleclick(Text *t, ulong p0) {
 			return dot;
 		}
 		/* try right match */
-		if(p0 == t->length){
+		if(p0 == t->length)
+		{
 			Tbgetcset(t, p0);
 			c = '\n';
-		} else{
+		}
+		else
+		{
 			Tbgetcset(t, p0+1);
 			c = Tbgetc(t);
 		}
-		if(c !=-1 && strrune(r, c)){
-			if(clickmatch(t, c, l[strrune(r, c)-r], -1)){
+		if(c !=-1 && strrune(r, c))
+		{
+			if(clickmatch(t, c, l[strrune(r, c)-r], -1))
+			{
 				dot.p0 = t->pos;
 				if(c!='\n' || t->pos!=0 ||
-				    (Tgetcset(t, 0),Tgetc(t))=='\n')
+					(Tgetcset(t, 0),Tgetc(t))=='\n')
 					dot.p0++;
 				dot.p1 = p0+(p0<t->length && c=='\n');
 			}
@@ -157,11 +196,13 @@ text_doubleclick(Text *t, ulong p0) {
 	return dot;
 }
 
+
 /*
  * Find start of word, going back from p0.
  */
 ulong
-text_startofword(Text *t, ulong p0) {
+text_startofword(Text *t, ulong p0)
+{
 	int c;
 
 	Tbgetcset(t, p0);
@@ -175,4 +216,3 @@ text_startofword(Text *t, ulong p0) {
 		;
 	return t->pos + (c!=-1);
 }
-

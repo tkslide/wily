@@ -12,7 +12,8 @@ disc(Bitmap *b, Point p, int r, int v, Fcode f)
 
 	x = p.x - r;
 	y = p.y - r;
-	if (b->flag&SHIFT){
+	if (b->flag&SHIFT)
+	{
 		x -= b->r.min.x;
 		y -= b->r.min.y;
 	}

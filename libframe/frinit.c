@@ -4,7 +4,7 @@
 #include <libg.h>
 #include <frame.h>
 
-int tabsize = 4;		/* tabsize as number of 0s */
+int tabsize = 4;				 /* tabsize as number of 0s */
 void
 frinit(Frame *f, Rectangle r, Font *ft, Bitmap *b)
 {
@@ -20,12 +20,14 @@ frinit(Frame *f, Rectangle r, Font *ft, Bitmap *b)
 	frsetrects(f, r, b);
 }
 
+
 void
 frfont(Frame *f, Font *ft)
 {
 	f->font = ft;
 	f->maxtab = tabsize*charwidth(ft, '0');
 }
+
 
 void
 frsetrects(Frame *f, Rectangle r, Bitmap *b)
@@ -37,6 +39,7 @@ frsetrects(Frame *f, Rectangle r, Bitmap *b)
 	f->left = r.min.x+1;
 	f->maxlines = (r.max.y-r.min.y)/f->font->height;
 }
+
 
 void
 frclear(Frame *f)

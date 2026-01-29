@@ -8,18 +8,21 @@ extern char* columntools;
 
 /* Return the column enclosing 'tile', or 0 */
 Tile*
-tile_col(Tile*tile){
+tile_col(Tile*tile)
+{
 	if(tile && tile->ori != H)
 		tile = tile->up;
 	return tile;
 }
 
+
 /* Create and display a new column. */
 void
-col_new(View*v, char *arg) {
-	int	min, max;
-	Tile	*col;
-	Text	*tagt;
+col_new(View*v, char *arg)
+{
+	int min, max;
+	Tile    *col;
+	Text    *tagt;
 
 	findplace(wily, &min, &max);
 	tagt = text_alloc(0, false);
@@ -28,15 +31,18 @@ col_new(View*v, char *arg) {
 	list_add(wily, col);
 }
 
+
 /* Delete as many of the windows of 'tile' as possible.  Return 0
  * if we got them all.
  */
 static int
-col_delwins(Tile*tile) {
-	Tile	*t, *next;
-	int	problem = 0;
+col_delwins(Tile*tile)
+{
+	Tile    *t, *next;
+	int problem = 0;
 
-	for(t = tile->down; t; t= next) {
+	for(t = tile->down; t; t= next)
+	{
 		next = t->right;
 		if (win_del(t))
 			problem = 1;
@@ -44,9 +50,12 @@ col_delwins(Tile*tile) {
 	return problem;
 }
 
+
 void
-col_del(Tile*t) {
-	if(t && !col_delwins(t)) {
+col_del(Tile*t)
+{
+	if(t && !col_delwins(t))
+	{
 		tile_del(t);
 	}
 }

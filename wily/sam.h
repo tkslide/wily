@@ -12,7 +12,7 @@
  * on other wily functions including wily.h before sam.h.
  */
 #ifndef WILY_H
-#define error(X)	samerror(X)
+#define error(X)    samerror(X)
 #define SAM_CODE
 #endif
 
@@ -25,16 +25,17 @@
 #include "wily.h"
 #include "text.h"
 
-#define	NSUBEXP	10		/* number of () matches in a regexp */
-typedef long		Posn;		/* file position or address */
-typedef struct Address	Address;
-typedef struct File	File;
-typedef struct samRange	samRange;
-typedef struct samRangeset	samRangeset;
+#define NSUBEXP 10				 /* number of () matches in a regexp */
+typedef long        Posn;		 /* file position or address */
+typedef struct Address  Address;
+typedef struct File File;
+typedef struct samRange samRange;
+typedef struct samRangeset  samRangeset;
 typedef struct String String;
 typedef struct Inst Inst;
 
-typedef enum {
+typedef enum
+{
 	Etoolong,
 	Eleftpar,
 	Erightpar,
@@ -44,26 +45,26 @@ typedef enum {
 	Eoverflow
 } Err;
 
-struct String {
+struct String
+{
 	int n;
 	Rune *s;
 };
 
-
 struct samRange
 {
-	Posn	p1, w2;
+	Posn    p1, w2;
 };
 
 struct samRangeset
 {
-	samRange	w[NSUBEXP];
+	samRange    w[NSUBEXP];
 };
 
 struct Address
 {
-	samRange	r;
-	File	*f;
+	samRange    r;
+	File    *f;
 };
 
 #ifdef TRUE
@@ -73,11 +74,12 @@ struct Address
 #ifdef FALSE
 #undef FALSE
 #endif
-enum {
+enum
+{
 	FALSE=0,
 	TRUE = 1,
-	RUNESIZE	= (sizeof(Rune)),
-	INFINITY	 = 0x7FFFFFFFL
+	RUNESIZE    = (sizeof(Rune)),
+	INFINITY     = 0x7FFFFFFFL
 };
 
 /*
@@ -89,30 +91,30 @@ enum {
 
 struct File
 {
-	Text		*t;		/* the Text that we'll search */
-	Posn	nrunes;		/* total length of file */
-	Address	dot;		/* current position */
+	Text        *t;				 /* the Text that we'll search */
+	Posn    nrunes;				 /* total length of file */
+	Address dot;				 /* current position */
 };
 
-#define	Fgetc(f)  (Tgetc(f->t))
-#define	Fbgetc(f) (Tbgetc(f->t))
+#define Fgetc(f)  (Tgetc(f->t))
+#define Fbgetc(f) (Tbgetc(f->t))
 
-#define	Fgetcload(f,p)		Tgetcload((f)->t, (p))
-#define	Fbgetcload(f,p)	Tbgetcload((f)->t, (p))
-#define	Fgetcset(f,p)		Tgetcset((f)->t, (p))
-#define	Fbgetcset(f,p)		Tbgetcset((f)->t, (p))
-#define	Fchars(f,r,p0,p1)	Tchars((f)->t, (r),(p0),(p1))
+#define Fgetcload(f,p)      Tgetcload((f)->t, (p))
+#define Fbgetcload(f,p) Tbgetcload((f)->t, (p))
+#define Fgetcset(f,p)       Tgetcset((f)->t, (p))
+#define Fbgetcset(f,p)      Tbgetcset((f)->t, (p))
+#define Fchars(f,r,p0,p1)   Tchars((f)->t, (r),(p0),(p1))
 
-int	bexecute(File*, Posn);
-void	compile(String*);
-int	execute(File*, Posn, Posn);
-void	nextmatch(File*, String*, Posn, int);
-void	error_c(Err, int);
-void	panic(char*);
+int bexecute(File*, Posn);
+void    compile(String*);
+int execute(File*, Posn, Posn);
+void    nextmatch(File*, String*, Posn, int);
+void    error_c(Err, int);
+void    panic(char*);
 void Strduplstr(String *, String *);
 int Strcmp(String *, String *);
 void Strzero(String *);
-void error(Err);		/* really samerror() */
+void error(Err);				 /* really samerror() */
 
 extern samRangeset sel;
 extern Inst *startinst;

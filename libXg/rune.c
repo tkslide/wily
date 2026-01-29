@@ -1,30 +1,38 @@
 /* Copyright (c) 1992 AT&T - All rights reserved. */
-#include	<u.h>
-#include	<string.h>
-#include	<libc.h>
+#include    <u.h>
+#include    <string.h>
+#include    <libc.h>
 
 enum
 {
-	Bit1	= 7,
-	    Bitx	= 6,
-	    Bit2	= 5,
-	    Bit3	= 4,
-	    Bit4	= 3,
+	Bit1    = 7,
+	Bitx    = 6,
+	Bit2    = 5,
+	Bit3    = 4,
+	Bit4    = 3,
 
-	    T1	= ((1<<(Bit1+1))-1) ^ 0xFF,	/* 0000 0000 */
-	Tx	= ((1<<(Bitx+1))-1) ^ 0xFF,	/* 1000 0000 */
-	T2	= ((1<<(Bit2+1))-1) ^ 0xFF,	/* 1100 0000 */
-	T3	= ((1<<(Bit3+1))-1) ^ 0xFF,	/* 1110 0000 */
-	T4	= ((1<<(Bit4+1))-1) ^ 0xFF,	/* 1111 0000 */
+								 /* 0000 0000 */
+	T1  = ((1<<(Bit1+1))-1) ^ 0xFF,
+								 /* 1000 0000 */
+	Tx  = ((1<<(Bitx+1))-1) ^ 0xFF,
+								 /* 1100 0000 */
+	T2  = ((1<<(Bit2+1))-1) ^ 0xFF,
+								 /* 1110 0000 */
+	T3  = ((1<<(Bit3+1))-1) ^ 0xFF,
+								 /* 1111 0000 */
+	T4  = ((1<<(Bit4+1))-1) ^ 0xFF,
 
-	Rune1	= (1<<(Bit1+0*Bitx))-1,		/* 0000 0000 0111 1111 */
-	Rune2	= (1<<(Bit2+1*Bitx))-1,		/* 0000 0111 1111 1111 */
-	Rune3	= (1<<(Bit3+2*Bitx))-1,		/* 1111 1111 1111 1111 */
+								 /* 0000 0000 0111 1111 */
+	Rune1   = (1<<(Bit1+0*Bitx))-1,
+								 /* 0000 0111 1111 1111 */
+	Rune2   = (1<<(Bit2+1*Bitx))-1,
+								 /* 1111 1111 1111 1111 */
+	Rune3   = (1<<(Bit3+2*Bitx))-1,
 
-	Maskx	= (1<<Bitx)-1,			/* 0011 1111 */
-	Testx	= Maskx ^ 0xFF,			/* 1100 0000 */
+	Maskx   = (1<<Bitx)-1,		 /* 0011 1111 */
+	Testx   = Maskx ^ 0xFF,		 /* 1100 0000 */
 
-	Bad	= Runeerror
+	Bad = Runeerror
 };
 
 int
@@ -38,7 +46,8 @@ chartorune(Rune *rune, char *str)
 	 *	00000-0007F => T1
 	 */
 	c = *(uchar*)str;
-	if(c < Tx) {
+	if(c < Tx)
+	{
 		*rune = c;
 		return 1;
 	}
@@ -50,7 +59,8 @@ chartorune(Rune *rune, char *str)
 	c1 = *(uchar*)(str+1) ^ Tx;
 	if(c1 & Testx)
 		goto bad;
-	if(c < T3) {
+	if(c < T3)
+	{
 		if(c < T2)
 			goto bad;
 		l = ((c << Bitx) | c1) & Rune2;
@@ -67,7 +77,8 @@ chartorune(Rune *rune, char *str)
 	c2 = *(uchar*)(str+2) ^ Tx;
 	if(c2 & Testx)
 		goto bad;
-	if(c < T4) {
+	if(c < T4)
+	{
 		l = ((((c << Bitx) | c1) << Bitx) | c2) & Rune3;
 		if(l <= Rune2)
 			goto bad;
@@ -78,10 +89,11 @@ chartorune(Rune *rune, char *str)
 	/*
 	 * bad decoding
 	 */
-bad:
+	bad:
 	*rune = Bad;
 	return 1;
 }
+
 
 int
 runetochar(char *str, Rune *rune)
@@ -93,7 +105,8 @@ runetochar(char *str, Rune *rune)
 	 *	00000-0007F => 00-7F
 	 */
 	c = *rune;
-	if(c <= Rune1) {
+	if(c <= Rune1)
+	{
 		str[0] = c;
 		return 1;
 	}
@@ -102,7 +115,8 @@ runetochar(char *str, Rune *rune)
 	 * two character sequence
 	 *	0080-07FF => T2 Tx
 	 */
-	if(c <= Rune2) {
+	if(c <= Rune2)
+	{
 		str[0] = T2 | (c >> 1*Bitx);
 		str[1] = Tx | (c & Maskx);
 		return 2;
@@ -118,6 +132,7 @@ runetochar(char *str, Rune *rune)
 	return 3;
 }
 
+
 int
 runelen(long c)
 {
@@ -128,12 +143,14 @@ runelen(long c)
 	return runetochar(str, &rune);
 }
 
+
 int
 fullrune(char *str, int n)
 {
 	int c;
 
-	if(n > 0) {
+	if(n > 0)
+	{
 		c = *(uchar*)str;
 		if(c < Tx)
 			return 1;
@@ -144,6 +161,7 @@ fullrune(char *str, int n)
 	return 0;
 }
 
+
 char*
 utfrune(char *s, long c)
 {
@@ -151,12 +169,14 @@ utfrune(char *s, long c)
 	Rune r;
 	int n;
 
-	if(c < Runesync)		/* not part of utf sequence */
+	if(c < Runesync)			 /* not part of utf sequence */
 		return strchr(s, c);
 
-	for(;;) {
+	for(;;)
+	{
 		c1 = *(uchar*)s;
-		if(c1 < Runeself) {	/* one byte rune */
+		if(c1 < Runeself)		 /* one byte rune */
+		{
 			if(c1 == 0)
 				return 0;
 			if(c1 == c)
@@ -172,6 +192,7 @@ utfrune(char *s, long c)
 	return 0;
 }
 
+
 long
 utflen(char *s)
 {
@@ -180,14 +201,16 @@ utflen(char *s)
 	Rune rune;
 
 	n = 0;
-	for(;;) {
+	for(;;)
+	{
 		c = *(uchar*)s;
-		if(c < Runeself) {
+		if(c < Runeself)
+		{
 			if(c == 0)
 				return n;
 			s++;
 		} else
-			s += chartorune(&rune, s);
+		s += chartorune(&rune, s);
 		n++;
 	}
 	return 0;

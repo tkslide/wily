@@ -7,27 +7,28 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-static char *	historyfile;
-static char *	shell;
+static char *   historyfile;
+static char *   shell;
 
-static int		ex_run		(View*, char *);
-static int		pipe_views	(char**cmd, View**vout, View**vin);
-static int		openpipes	(int*out, int *err, bool );
-static int		ex_parent	(int , int , char*, char*, View *, int );
-static void	ex_child		(int , int , char *, char *, View *);
-static void	history		(char *cmd);
-static void	childenv		(char *,char*);
-static void	childfds		(int fderr, int fdout, View *vin);
-static void	reap			(void);
-static void	signal_init	(void) ;
-static void	well_known_init(void) ;
+static int      ex_run      (View*, char *);
+static int      pipe_views  (char**cmd, View**vout, View**vin);
+static int      openpipes   (int*out, int *err, bool );
+static int      ex_parent   (int , int , char*, char*, View *, int );
+static void ex_child        (int , int , char *, char *, View *);
+static void history     (char *cmd);
+static void childenv        (char *,char*);
+static void childfds        (int fderr, int fdout, View *vin);
+static void reap            (void);
+static void signal_init (void) ;
+static void well_known_init(void) ;
 
 /*
  * Initialize whatever we need
  * for dealing with external processes
  */
 void
-ex_init(void) {
+ex_init(void)
+{
 	keytab_init();
 	well_known_init();
 	signal_init();
@@ -41,15 +42,17 @@ ex_init(void) {
 		shell=DEFAULTSHELL;
 }
 
+
 /*
  * Run 'cmd' with arg 'arg' in View 'v'.
  *
  * 'arg' may be null, 'cmd' must be nonnull.
  */
 void
-run(View *v, char *cmd, char *arg) {
-	char	*buf, *buf2;
-	char	*a2;
+run(View *v, char *cmd, char *arg)
+{
+	char    *buf, *buf2;
+	char    *a2;
 
 	cmd += strspn(cmd, whitespace);
 	if(!*cmd)
@@ -60,13 +63,16 @@ run(View *v, char *cmd, char *arg) {
 	 * and if we're passed a pointer to 'arg', we must pass
 	 * one on to builtin, even if the arg is just whitespace.
 	 */
-	if(arg) {
+	if(arg)
+	{
 		buf = salloc( strlen(cmd) + strlen(arg) + 2);
 		sprintf(buf, "%s %s", cmd, arg);
-	} else {
+	}
+	else
+	{
 		buf = strdup(cmd);
 	}
-	buf2 = strdup(buf);	/* before we scribble over buf */
+	buf2 = strdup(buf);			 /* before we scribble over buf */
 
 	cmd = strtok(buf, whitespace);
 	assert(*cmd && !isspace(*cmd));
@@ -82,6 +88,7 @@ run(View *v, char *cmd, char *arg) {
 	free (buf2);
 }
 
+
 /*********************************************************************
 	Static Functions
 *********************************************************************/
@@ -91,12 +98,13 @@ run(View *v, char *cmd, char *arg) {
  * Return 0 for success.
  */
 static int
-ex_run(View*v, char *cmd) {
-	View		*vout, *vin;	/* Views for output/input */
-	int		pout[2];		/* pipe for stdout */
-	int		perr[2];		/* pipe for stderr */
-	Path		label;
-	int		pid;
+ex_run(View*v, char *cmd)
+{
+	View        *vout, *vin;	 /* Views for output/input */
+	int     pout[2];			 /* pipe for stdout */
+	int     perr[2];			 /* pipe for stderr */
+	Path        label;
+	int     pid;
 
 	if(pipe_views(&cmd, &vout, &vin))
 		return -1;
@@ -106,44 +114,48 @@ ex_run(View*v, char *cmd) {
 
 	data_getlabel(view_data(v), label);
 
-	switch(pid=fork()) {
-	case -1:	/* fork failed */
-		close(perr[0]); 
-		close(perr[1]);
-		close(pout[0]); 
-		close(pout[1]);
-		return -1;
-	default:	/* parent */
-		close(perr[1]);
-		close(pout[1]);
-		return ex_parent(perr[0], pout[0], label, cmd, vout, pid);
-	case 0:	/* child */
-		close(perr[0]);
-		close(pout[0]);
-		ex_child(perr[1], pout[1], label, cmd, vin);
+	switch(pid=fork())
+	{
+		case -1:				 /* fork failed */
+			close(perr[0]);
+			close(perr[1]);
+			close(pout[0]);
+			close(pout[1]);
+			return -1;
+		default:				 /* parent */
+			close(perr[1]);
+			close(pout[1]);
+			return ex_parent(perr[0], pout[0], label, cmd, vout, pid);
+		case 0:					 /* child */
+			close(perr[0]);
+			close(pout[0]);
+			ex_child(perr[1], pout[1], label, cmd, vin);
 
-		/* ex_child doesn't return */
-		assert(false);
-		exit(1);
-		return -1;
+			/* ex_child doesn't return */
+			assert(false);
+			exit(1);
+			return -1;
 	}
 }
 
+
 /*
- * Update 'cmd', 'vout' and 'vin' 
+ * Update 'cmd', 'vout' and 'vin'
  * appropriately depending on whether 'cmd' is a piping command,
  * i.e. starts with | < or >.
  * Return 0 for success.
  */
 static int
-pipe_views(char**cmd, View**vout, View**vin) {
-	char	op;
+pipe_views(char**cmd, View**vout, View**vin)
+{
+	char    op;
 	View*vpipe;
 
 	op = **cmd;
 	*vout = 0;
 	*vin = 0;
-	if(!( op == '|' || op == '<' || op == '>')){
+	if(!( op == '|' || op == '<' || op == '>'))
+	{
 		return 0;
 	}
 
@@ -167,35 +179,43 @@ pipe_views(char**cmd, View**vout, View**vin) {
 	return 0;
 }
 
+
 /* Open pipes for stdout and stderr.
  * If and only if this is a '|' or '>' operation, stdout
  * will be distinct from stderr.
- * 
+ *
  * Return 0 for success.
  *
  * If we don't succeed, make sure
  * we don't leave any open file descriptors.
  */
 static int
-openpipes(int*out, int *err, bool is_pipe_operation){
-	if (pipe(err) < 0) {
+openpipes(int*out, int *err, bool is_pipe_operation)
+{
+	if (pipe(err) < 0)
+	{
 		diag(0, "pipe");
 		return -1;
 	}
 
-	if (is_pipe_operation) {
-		if (pipe(out) < 0) {
+	if (is_pipe_operation)
+	{
+		if (pipe(out) < 0)
+		{
 			diag(0, "pipe");
 			close(err[0]);
 			close(err[1]);
 			return -1;
 		}
-	} else {
+	}
+	else
+	{
 		out[0] = err[0];
 		out[1] = err[1];
 	}
 	return 0;
 }
+
 
 /*
  * Parent-side accounting for a recently started external process.
@@ -209,7 +229,8 @@ openpipes(int*out, int *err, bool is_pipe_operation){
  * Return 0 for success.
  */
 static int
-ex_parent(int fderr, int fdout, char*label, char*cmd, View *vout, int pid) {
+ex_parent(int fderr, int fdout, char*label, char*cmd, View *vout, int pid)
+{
 	/* fderr == fdout if and only if vout == 0 */
 	assert( (vout==0) == (fderr == fdout));
 
@@ -219,6 +240,7 @@ ex_parent(int fderr, int fdout, char*label, char*cmd, View *vout, int pid) {
 		event_outputstart(fdout, pid, cmd, label, vout);
 	return 0;
 }
+
 
 /*
  * Child-side accounting for a recently started external process.
@@ -233,9 +255,10 @@ ex_parent(int fderr, int fdout, char*label, char*cmd, View *vout, int pid) {
  * After we've set up stderr, just fprintf(stderr,...)
  */
 static void
-ex_child(int fderr, int fdout, char *label, char *cmd, View *vin) {
-	Path	dir;
-	Path	path;
+ex_child(int fderr, int fdout, char *label, char *cmd, View *vin)
+{
+	Path    dir;
+	Path    path;
 
 	childfds(fderr, fdout, vin);
 
@@ -252,20 +275,24 @@ ex_child(int fderr, int fdout, char *label, char *cmd, View *vin) {
 	 */
 	/*
 	if(chdir(dir)){
-		Path	buf;	
+		Path	buf;
 		sprintf(buf, "chdir(%s)", dir);
 		perror(buf);
 		exit(1);
 	}
 	*/
 
-	if (chdir(dir)) {
+	if (chdir(dir))
+	{
 		char *buf;
 		// asprintf returns -1 on allocation failure
-		if (asprintf(&buf, "chdir(%s)", dir) != -1) {
+		if (asprintf(&buf, "chdir(%s)", dir) != -1)
+		{
 			perror(buf);
-			free(buf); // Optional here since we exit, but good practice
-		} else {
+			free(buf);			 // Optional here since we exit, but good practice
+		}
+		else
+		{
 			// Fallback if memory allocation fails
 			perror("chdir");
 		}
@@ -279,9 +306,11 @@ ex_child(int fderr, int fdout, char *label, char *cmd, View *vin) {
 	exit(1);
 }
 
+
 /* Record 'cmd' in the history file */
 static void
-history(char *cmd) {
+history(char *cmd)
+{
 	FILE *fp;
 
 	if(!historyfile)
@@ -292,10 +321,12 @@ history(char *cmd) {
 	fclose(fp);
 }
 
+
 /* Add some stuff to the environment of our child */
 
 static void
-childenv(char *label,char*path) {
+childenv(char *label,char*path)
+{
 	/*
 	Path	buf;
 
@@ -305,64 +336,77 @@ childenv(char *label,char*path) {
 	(void)putenv(strdup(buf));
 	sprintf(buf, "w=%s", path);
 	(void)putenv(strdup(buf));
-}
-*/
+	}
+	*/
 
 	char *buf;
 
 	// asprintf allocates memory for buf; putenv takes ownership of this pointer.
-	if (asprintf(&buf, "WILYLABEL=%s", label) != -1) {
+	if (asprintf(&buf, "WILYLABEL=%s", label) != -1)
+	{
 		(void)putenv(buf);
 	}
 
-	if (asprintf(&buf, "WILYPATH=%s", path) != -1) {
+	if (asprintf(&buf, "WILYPATH=%s", path) != -1)
+	{
 		(void)putenv(buf);
 	}
 
-	if (asprintf(&buf, "w=%s", path) != -1) {
+	if (asprintf(&buf, "w=%s", path) != -1)
+	{
 		(void)putenv(buf);
 	}
 }
+
 
 /*
  * Set up default file descriptors for a child process.
  *
  * Replace 'stderr' and 'stdout' with 'fderr' and 'fdout'.
  *
- * If 'vin' is not null, replace 'stdin' with a file descriptor 
+ * If 'vin' is not null, replace 'stdin' with a file descriptor
  * that will give the contents of the selection in 'vin',
  * otherwise, 'stdin' is set to '/dev/null'.
  */
 static void
-childfds(int fderr, int fdout, View *vin) {
-	int	j;
-	int	fdin;
+childfds(int fderr, int fdout, View *vin)
+{
+	int j;
+	int fdin;
 
 	/* redirect fdout and fderr */
-	if (dup2(fderr, 2) < 0 || dup2(fdout, 1) < 0) {
+	if (dup2(fderr, 2) < 0 || dup2(fdout, 1) < 0)
+	{
 		perror("dup2");
 		exit(1);
 	}
 
-	if (vin) {
+	if (vin)
+	{
 		/* fd open to read current selection */
 		fdin = text_fd(view_text(vin), view_getsel(vin));
 		if(fdin<0)
 			exit(1);
-	} else if ((fdin = open("/dev/null", O_RDONLY, 0)) < 0) {
+	}
+	else if ((fdin = open("/dev/null", O_RDONLY, 0)) < 0)
+	{
 		perror("open /dev/null");
 		fdin = 0;
 	}
 
-	if (fdin) {
-		if (dup2(fdin, 0) < 0) {
+	if (fdin)
+	{
+		if (dup2(fdin, 0) < 0)
+		{
 			perror("input dup2");
 			fdin = 0;
 		}
 	}
-	if (!fdin) {
+	if (!fdin)
+	{
 		/* no need to panic... */
-		if (close(0) < 0) {
+		if (close(0) < 0)
+		{
 			/* OK, panic. */
 			perror("close fdin");
 			exit(1);
@@ -374,18 +418,22 @@ childfds(int fderr, int fdout, View *vin) {
 		close(j);
 }
 
+
 /* Collect any waiting processes, but don't block */
 static void
-reap(void) {
-	int	stat_loc;
+reap(void)
+{
+	int stat_loc;
 
 	while ( waitpid(-1, &stat_loc, WNOHANG)> 0 )
 		;
 }
 
+
 /* Prepare to catch some signals */
 static void
-signal_init(void) {
+signal_init(void)
+{
 	/* in case external process exits */
 	signal(SIGPIPE, SIG_IGN);
 
@@ -398,14 +446,19 @@ signal_init(void) {
 	signal(SIGILL, cleanup_and_abort);
 }
 
+
 /* Start listening to fifo in well-known location */
 static void
-well_known_init(void) {
-	int	fd;
+well_known_init(void)
+{
+	int fd;
 
-	if((fd = wilyfifolisten())<0) {
+	if((fd = wilyfifolisten())<0)
+	{
 		diag(0, "couldn't open fifo");
-	} else {
+	}
+	else
+	{
 		event_wellknown(fd);
 	}
 }

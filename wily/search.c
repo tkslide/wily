@@ -5,23 +5,24 @@
 #include "wily.h"
 #include "text.h"
 
-static char	*endword = "[^a-zA-Z0-9][^a-zA-Z0-9:.$|]*";
-static char	*startword = "[^a-zA-Z0-9]";
-static char 	*special = ".*+?(|)\\[]^$";
+static char *endword = "[^a-zA-Z0-9][^a-zA-Z0-9:.$|]*";
+static char *startword = "[^a-zA-Z0-9]";
+static char     *special = ".*+?(|)\\[]^$";
 
-static bool	findend(Text *t, Range *r, char *addr, Range dot);
-static Rstring	word(Rstring s);
-static Rstring	literal(Rstring s);
-static void	strip_re_slash(char *re);
+static bool findend(Text *t, Range *r, char *addr, Range dot);
+static Rstring  word(Rstring s);
+static Rstring  literal(Rstring s);
+static void strip_re_slash(char *re);
 
 /* Look for the text in 'dot'.
  * If found, set '*r' and return true,
  * otherwise return false.
  */
 bool
-text_look(Text*t, Range *r, Range dot) {
-	RPath	buf;
-	ulong	len;
+text_look(Text*t, Range *r, Range dot)
+{
+	RPath   buf;
+	ulong   len;
 
 	assert(!text_badrange(t,dot));
 
@@ -34,11 +35,12 @@ text_look(Text*t, Range *r, Range dot) {
 	return text_findliteral(t, r, rstring(buf, buf + len));
 }
 
+
 bool
 text_findliteralutf(Text*t, Range *r, char*lit)
 {
-	Rstring	s;
-	bool	found;
+	Rstring s;
+	bool    found;
 
 	s = utf2rstring(lit);
 	/* r->p0 = r->p1; */
@@ -48,11 +50,12 @@ text_findliteralutf(Text*t, Range *r, char*lit)
 	return found;
 }
 
+
 bool
 text_findwordutf(Text*t, Range *r, char*lit)
 {
-	Rstring	s;
-	bool	found;
+	Rstring s;
+	bool    found;
 
 	s = utf2rstring(lit);
 	found = text_findword(t, r, s);
@@ -61,33 +64,38 @@ text_findwordutf(Text*t, Range *r, char*lit)
 	return found;
 }
 
+
 /*
  * If we can find 's' in 't' (start looking at 'r'), return true and
  * set 'r' to the location of the start of the string.  Otherwise,
  * return false.
  */
 bool
-text_findliteral(Text *t, Range *r, Rstring s) {
-	Rstring	s2;
-	bool		found;
+text_findliteral(Text *t, Range *r, Rstring s)
+{
+	Rstring s2;
+	bool        found;
 
 	s2 = literal(s);
-	found =  text_regexp(t, 	s2, r, 1);
+	found =  text_regexp(t,     s2, r, 1);
 	RSFREE(s2);
 	return found;
 }
 
+
 bool
-text_findword(Text *t, Range *r, Rstring s) {
-	Rstring	s2;
-	bool		found;
+text_findword(Text *t, Range *r, Rstring s)
+{
+	Rstring s2;
+	bool        found;
 
 	s2 = word(s);
-	found =  text_regexp(t, 	s2, r, 1);
+	found =  text_regexp(t,     s2, r, 1);
 	RSFREE(s2);
 	r->p0++;
 	return found;
 }
+
 
 /* If we can find 'addr', preferably someplace just after 'r',
  * set 'r' to the range we found, and return true, otherwise return false.
@@ -96,7 +104,7 @@ text_findword(Text *t, Range *r, Rstring s) {
 bool
 text_search(Text *t, Range *r, char *addr, Range dot)
 {
-	char	*addr2;
+	char    *addr2;
 
 	assert(addr);
 
@@ -108,7 +116,8 @@ text_search(Text *t, Range *r, char *addr, Range dot)
 	 */
 	if (*(addr2=addr) == '-')
 		addr2++;
-	if (*addr2++ == '/') {
+	if (*addr2++ == '/')
+	{
 		/* find an unescaped "/" */
 		while ((addr2 = strchr(addr2, '/')) && addr2[-1] == '\\')
 			addr2++;
@@ -122,13 +131,17 @@ text_search(Text *t, Range *r, char *addr, Range dot)
 	if (addr2)
 		*addr2++ = '\0';
 
-	if (*addr == '\0') {
+	if (*addr == '\0')
+	{
 		r->p0 = 0;
-	} else if (!findend(t, r, addr, dot)) {
+	}
+	else if (!findend(t, r, addr, dot))
+	{
 		return false;
 	}
-	if (addr2) {
-		Range	range2 = *r;
+	if (addr2)
+	{
+		Range   range2 = *r;
 
 		if (*addr2 == '\0')
 			r->p1 = t->length;
@@ -142,42 +155,46 @@ text_search(Text *t, Range *r, char *addr, Range dot)
 	return true;
 }
 
+
 /*
  * Used to find one "end" of an addr (which might be the whole addr, but
  * never mind).  The address passed in here is not expected to contain
  * commas.
  */
 static bool
-findend(Text *t, Range *r, char *addr, Range dot) {
+findend(Text *t, Range *r, char *addr, Range dot)
+{
 	if(!strchr("/-#$.0123456789", *addr))
 		return false;
 
-	switch(*addr){
-	case '/':
-		strip_re_slash(addr);
-		return text_utfregexp(t, addr+1, r, true);
-	case '-':
-		if(addr[1] != '/')
-			return false;
-		strip_re_slash(addr);
-		return text_utfregexp(t, addr+2, r, 0);
-	case '#':
-		r->p0 = r->p1 = atol(addr + 1);
-		return r->p0 <= t->length;
-	case '$':
-		if(addr[1] != '\0')
-			return false;
-		*r = text_lastline(t);
-		return true;
-	case '.':
-		if(addr[1] != '\0')
-			return false;
-		*r = dot;
-		return true;
-	default:
-		return text_findline(t, r, atol(addr));
+	switch(*addr)
+	{
+		case '/':
+			strip_re_slash(addr);
+			return text_utfregexp(t, addr+1, r, true);
+		case '-':
+			if(addr[1] != '/')
+				return false;
+			strip_re_slash(addr);
+			return text_utfregexp(t, addr+2, r, 0);
+		case '#':
+			r->p0 = r->p1 = atol(addr + 1);
+			return r->p0 <= t->length;
+		case '$':
+			if(addr[1] != '\0')
+				return false;
+			*r = text_lastline(t);
+			return true;
+		case '.':
+			if(addr[1] != '\0')
+				return false;
+			*r = dot;
+			return true;
+		default:
+			return text_findline(t, r, atol(addr));
 	}
 }
+
 
 /*
  * Strip trailing slash from a regexp, if present and not escaped.
@@ -185,19 +202,23 @@ findend(Text *t, Range *r, char *addr, Range dot) {
  * immediately preceding its argument, so use with care.
  */
 static void
-strip_re_slash(char *re) {
+strip_re_slash(char *re)
+{
 	if ((re = strrchr(re, '/')) && re[1] == '\0' && re[-1] != '\\')
 		re[0] = '\0';
 }
 
+
 static Rstring
-literal(Rstring s) {
-	Rstring	s2;
-	Rune	*r;
+literal(Rstring s)
+{
+	Rstring s2;
+	Rune    *r;
 
 	/* quote any special characters in 's' */
 	s2.r0 = s2.r1 = (Rune*)salloc(RSLEN(s)*2*sizeof(Rune));
-	for (r = s.r0; r < s.r1; r++){
+	for (r = s.r0; r < s.r1; r++)
+	{
 		if(utfrune(special, *r))
 			*s2.r1++ = '\\';
 		*s2.r1++ = *r;
@@ -205,18 +226,21 @@ literal(Rstring s) {
 	return s2;
 }
 
+
 static Rstring
-word(Rstring s) {
-	Rstring	s2;
-	Rune	*r;
-	int	nrunes;
+word(Rstring s)
+{
+	Rstring s2;
+	Rune    *r;
+	int nrunes;
 
 	nrunes = RSLEN(s)*2 +strlen(startword) + strlen(endword);
 	s2.r0 = s2.r1 = (Rune*)salloc(nrunes*sizeof(Rune));
 
 	s2.r1 += utftotext(s2.r1, startword, startword + strlen(startword));
 
-	for (r = s.r0; r < s.r1; r++){
+	for (r = s.r0; r < s.r1; r++)
+	{
 		if(utfrune(special, *r))
 			*s2.r1++ = '\\';
 		*s2.r1++ = *r;
@@ -224,4 +248,3 @@ word(Rstring s) {
 	s2.r1 += utftotext(s2.r1, endword, endword + strlen(endword));
 	return s2;
 }
-

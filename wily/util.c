@@ -16,23 +16,29 @@
 #include <dirent.h>
 
 void
-dirnametrunc(char*s){
+dirnametrunc(char*s)
+{
 	if((s=strrchr(s,'/')))
 		*(++s) = 0;
 }
 
+
 /* Combine 'add' with 'context', put the result in 'dest' */
 void
-addcontext(char*dest, char*context, char*add){
+addcontext(char*dest, char*context, char*add)
+{
 	char*s;
-	if(strchr("/$~", add[0])){
+	if(strchr("/$~", add[0]))
+	{
 		strcpy(dest,add);
 		return;
 	}
 	strcpy(dest, context);
-	if(!(s = strrchr(dest, '/'))){
+	if(!(s = strrchr(dest, '/')))
+	{
 		label2path(dest, context);
-		if(!(s = strrchr(dest, '/'))){
+		if(!(s = strrchr(dest, '/')))
+		{
 			s = dest + strlen(dest) -1;
 		}
 	}
@@ -40,41 +46,49 @@ addcontext(char*dest, char*context, char*add){
 	labelclean(dest);
 }
 
+
 /* Set the name of the window where output from the context
  * of 'label' will appear.
  */
 void
-olabel(char*out, char*label){
+olabel(char*out, char*label)
+{
 	addcontext(out, label, "+Errors");
 }
+
 
 /* Compares two stat buffers, returns 0 if they have
  * the same inode and device numbers.
  */
 int
-statcmp(Stat*a, Stat*b) {
+statcmp(Stat*a, Stat*b)
+{
 	if(a->st_ino != b->st_ino || a->st_dev != b->st_dev)
 		return -1;
 	else
 		return 0;
 }
 
+
 bool
-isdir(char*path) {
+isdir(char*path)
+{
 	struct stat buf;
 
 	return  !stat(path, &buf) && S_ISDIR(buf.st_mode);
 }
 
+
 /*
-** Append bytes from `s' (of length `ns') to `r' (of length `nr') until
-** `r' has a full rune.  Stop if `s' ends or an illegal utf sequence
-** is detected.  Return the number of bytes appended.
-** sizeof `r' must be at least UTFmax+1 bytes.
-*/
+ ** Append bytes from `s' (of length `ns') to `r' (of length `nr') until
+ ** `r' has a full rune.  Stop if `s' ends or an illegal utf sequence
+ ** is detected.  Return the number of bytes appended.
+ ** sizeof `r' must be at least UTFmax+1 bytes.
+ */
 int
-fillutfchar(char *r, int nr, char *s, int ns) {
-	int	c = 0;
+fillutfchar(char *r, int nr, char *s, int ns)
+{
+	int c = 0;
 
 	r += nr;
 	while ((nr < UTFmax) && (ns > 0) && ((((uchar)*s)&0xC0) == 0x80))
@@ -83,17 +97,21 @@ fillutfchar(char *r, int nr, char *s, int ns) {
 	return c;
 }
 
+
 /*
-** If utf string `s' of length `n' ends with an uncomplete rune, return
-** the number of bytes in that rune.  (If `s' ends with an illegal utf
-** sequence, return zero.)
+ ** If utf string `s' of length `n' ends with an uncomplete rune, return
+ ** the number of bytes in that rune.  (If `s' ends with an illegal utf
+ ** sequence, return zero.)
  */
 int
-unfullutfbytes(char *s, int n) {
-	int	e = 1;
+unfullutfbytes(char *s, int n)
+{
+	int e = 1;
 
-	for (e = 1; (e < n) && (e < UTFmax); ++e) {
-		if (((uchar)s[n-e]&0xC0) != 0x80) {
+	for (e = 1; (e < n) && (e < UTFmax); ++e)
+	{
+		if (((uchar)s[n-e]&0xC0) != 0x80)
+		{
 			if (!fullrune(s+n-e, e))
 				return e;
 			break;
@@ -102,24 +120,27 @@ unfullutfbytes(char *s, int n) {
 	return 0;
 }
 
+
 /*
- * Return Rstring for utf.  Either s.r0 == s.r1 == 0, 
+ * Return Rstring for utf.  Either s.r0 == s.r1 == 0,
  * or s.r0 will need to be free
  */
-Rstring 
+Rstring
 utf2rstring(char*utf)
 {
-	Rstring	s;
-	int	len;
+	Rstring s;
+	int len;
 
-	if( (len = utflen(utf)) ) {
+	if( (len = utflen(utf)) )
+	{
 		s.r0 = salloc(len*sizeof(Rune));
 		s.r1 = s.r0 + utftotext(s.r0, utf, utf+strlen(utf));
 	} else
-		s.r0 = s.r1 = 0;
+	s.r0 = s.r1 = 0;
 
 	return s;
 }
+
 
 /* Write into 'back' the name of a file we can write to as a backup
  * for 'orig'.  Return 0 for success. */
@@ -146,30 +167,37 @@ backup_name(char *orig, char *back)
 	int     init_guide = 0;
 
 	/* 1. Determine backup directory */
-	if (!(home = getenv("WILYBAK"))) {
-		if (!(home = getenv("HOME"))) {
+	if (!(home = getenv("WILYBAK")))
+	{
+		if (!(home = getenv("HOME")))
+		{
 			return diag(0, "getenv HOME");
 		}
 		if (asprintf(&dir, "%s/.wilybak", home) == -1) return -1;
-	} else {
+	}
+	else
+	{
 		dir = strdup(home);
 	}
 
 	/* 2. Ensure directory exists */
-	if (access(dir, W_OK) && (mkdir(dir, 0700))) {
+	if (access(dir, W_OK) && (mkdir(dir, 0700)))
+	{
 		int ret = diag(0, "couldn't create backup directory %s", dir);
 		free(dir);
 		return ret;
 	}
 
 	/* 3. Find highest numbered entry */
-	if (!(dirp = opendir(dir))) {
+	if (!(dirp = opendir(dir)))
+	{
 		int ret = diag(0, "couldn't opendir %s", dir);
 		free(dir);
 		return ret;
 	}
 	max = 0;
-	while ((direntp = readdir(dirp))) {
+	while ((direntp = readdir(dirp)))
+	{
 		n = atoi(direntp->d_name);
 		if (n > max) max = n;
 	}
@@ -177,25 +205,30 @@ backup_name(char *orig, char *back)
 	max++;
 
 	/* 4. Generate backup name and copy to provided 'back' pointer */
-	if (asprintf(&temp_back, "%s/%d", dir, max) == -1) {
+	if (asprintf(&temp_back, "%s/%d", dir, max) == -1)
+	{
 		free(dir);
 		return -1;
 	}
-	strcpy(back, temp_back); // Copying into the user-provided buffer
+	strcpy(back, temp_back);	 // Copying into the user-provided buffer
 	free(temp_back);
 
 	/* 5. Update guide file */
-	if (asprintf(&guide, "%s/guide", dir) != -1) {
+	if (asprintf(&guide, "%s/guide", dir) != -1)
+	{
 		if (access(guide, W_OK) < 0)
 			init_guide = 1;
 
 		fp = fopen(guide, "a+");
-		if (fp) {
+		if (fp)
+		{
 			if (init_guide)
 				fprintf(fp, "diff\tcp\trm *\n");
 			fprintf(fp, "%3d\t%s\n", max, orig);
 			fclose(fp);
-		} else {
+		}
+		else
+		{
 			diag(guide, "couldn't update backup guide file");
 		}
 		free(guide);
@@ -209,12 +242,12 @@ backup_name(char *orig, char *back)
 void
 noutput(char *context, char *base, int n)
 {
-	Path	errwin;
-	View	*v;
-	Range	r;
-	char	*s;
-	Text	*t;
-	ulong	p;
+	Path    errwin;
+	View    *v;
+	Range   r;
+	char    *s;
+	Text    *t;
+	ulong   p;
 
 	strcpy(errwin, context? context : wilydir);
 	if((s = strrchr(errwin, '/')))
@@ -229,9 +262,10 @@ noutput(char *context, char *base, int n)
 	t = view_text(v);
 	p = text_length(t);
 	r = text_replaceutf(t, range(p,p), base);
-	r.p0 = r.p1;	/* most interested in the end bit */
+	r.p0 = r.p1;				 /* most interested in the end bit */
 	view_show(v, r);
 }
+
 
 /*
  * Given strings stored in (null-terminated) 'item', arrange them in
@@ -242,14 +276,13 @@ noutput(char *context, char *base, int n)
 char *
 columnate(int totalwidth, int tabwidth, Font *f, char **item)
 {
-	int	rows, columns, row, column;
-	int	maxwidth;
-	int	j, widest,nitems, ntabs, biggest;
-	int	*width;
-	char	*buf, **c;
-	int	remaining;
-	int	bufsize = 1024;
-
+	int rows, columns, row, column;
+	int maxwidth;
+	int j, widest,nitems, ntabs, biggest;
+	int *width;
+	char    *buf, **c;
+	int remaining;
+	int bufsize = 1024;
 
 	/* count the items */
 	nitems = 0;
@@ -266,7 +299,8 @@ columnate(int totalwidth, int tabwidth, Font *f, char **item)
 	 */
 	widest = 0;
 	width = (int*)salloc(nitems*sizeof(int));
-	for(j=0; j< nitems; j++) {
+	for(j=0; j< nitems; j++)
+	{
 		width[j] = strwidth(f, item[j]);
 		if (width[j]>width[widest])
 			widest = j;
@@ -288,9 +322,11 @@ columnate(int totalwidth, int tabwidth, Font *f, char **item)
 	j = 0;
 
 	remaining = nitems;
-	for(row=0; ; row++) {
-		for(column = 0; column < columns; column++) {
-			int	current, deficit;
+	for(row=0; ; row++)
+	{
+		for(column = 0; column < columns; column++)
+		{
+			int current, deficit;
 
 			current = column*rows + row;
 			if (current >= nitems)
@@ -300,8 +336,9 @@ columnate(int totalwidth, int tabwidth, Font *f, char **item)
 			if (deficit % tabwidth)
 				ntabs++;
 			if(column==columns-1)
-				ntabs=0;		/* no tabs for last column */
-			if (j+strlen(item[current])+ntabs+2 >= bufsize) {
+				ntabs=0;		 /* no tabs for last column */
+			if (j+strlen(item[current])+ntabs+2 >= bufsize)
+			{
 				bufsize *= 2;
 				buf = (char*) srealloc(buf, bufsize);
 			}
@@ -314,7 +351,7 @@ columnate(int totalwidth, int tabwidth, Font *f, char **item)
 		}
 		buf[j++] = '\n';
 	}
-done:
+	done:
 	if(column)
 		buf[j++] = '\n';
 	buf[j]='\0';
@@ -323,11 +360,14 @@ done:
 	return buf;
 }
 
+
 static void
-cleanup(void){
+cleanup(void)
+{
 	data_backupall();
 	fifo_cleanup();
 }
+
 
 void
 cleanup_and_die(int n)
@@ -335,6 +375,7 @@ cleanup_and_die(int n)
 	cleanup();
 	exit(0);
 }
+
 
 void
 cleanup_and_abort(int n)
@@ -344,6 +385,7 @@ cleanup_and_abort(int n)
 	abort();
 }
 
+
 /* Send a diagnostic message to the appropriate place,
  * given its context.
  */
@@ -351,11 +393,12 @@ int
 diag(char *context, char *fmt, ...)
 {
 	va_list args;
-	Path	msg;
-	char	*err,*s;
+	Path    msg;
+	char    *err,*s;
 
 	s = msg;
-	if ( errno && (err=strerror(errno)) ) {
+	if ( errno && (err=strerror(errno)) )
+	{
 		sprintf(msg, "diag: %s: ", err);
 		s += strlen(s);
 	}
@@ -368,26 +411,32 @@ diag(char *context, char *fmt, ...)
 	return 1;
 }
 
+
 Rstring
-rstring(Rune*r0, Rune*r1) {
-	Rstring	s;
+rstring(Rune*r0, Rune*r1)
+{
+	Rstring s;
 
 	s.r0 = r0;
 	s.r1 = r1;
 	return s;
 }
 
+
 char*
-mybasename(char*f) {
-	char	*s;
+mybasename(char*f)
+{
+	char    *s;
 	s=strrchr(f,'/');
 	return s ? s+1 : f;
 }
 
+
 ulong
-texttoutf(char *s, Rune *r1, Rune *r2) {
-	Rune	*q;
-	char	*t;
+texttoutf(char *s, Rune *r1, Rune *r2)
+{
+	Rune    *q;
+	char    *t;
 
 	if (r2 <= r1)
 		return 0;
@@ -396,11 +445,13 @@ texttoutf(char *s, Rune *r1, Rune *r2) {
 	return t-s;
 }
 
+
 int
 distance(Point p1, Point p2)
 {
 	return (p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y);
 }
+
 
 /* Error we should be able to recover from
  */
@@ -416,6 +467,7 @@ error(char *fmt, ...)
 	fprintf(stderr, "\n");
 }
 
+
 /* Error we cannot recover from */
 void
 fatal(char *fmt, ...)
@@ -429,26 +481,31 @@ fatal(char *fmt, ...)
 	cleanup_and_abort(0);
 }
 
+
 /*
  *	dummy mouse driver for the frame library
  */
-void frgetmouse(void) {
+void frgetmouse(void)
+{
 }
+
 
 /* Store runes from 't' into X clipboard as UTF
  */
 void
 snarf(Text *t, Range r)
 {
-	char	*buf;
+	char    *buf;
 
 	assert(t);
-	if(RLEN(r)){
+	if(RLEN(r))
+	{
 		buf = text_duputf(t, r);
 		select_put(buf);
 		free(buf);
 	}
 }
+
 
 /* Replace range 'r' of 't' with the snarf buffer, return
  * the range of the new text.
@@ -456,15 +513,15 @@ snarf(Text *t, Range r)
 Range
 paste(Text *t, Range r)
 {
-	char	*cbuf;
-	Rune	*rbuf;
-	int	n;
-	Rstring	s;
+	char    *cbuf;
+	Rune    *rbuf;
+	int n;
+	Rstring s;
 
 	assert(t);
 	assert(ROK(r));
 
-	cbuf = select_get();	/* not to be freed */
+	cbuf = select_get();		 /* not to be freed */
 	rbuf = (Rune *)salloc(sizeof(Rune)*(utflen(cbuf)+1));
 	n  = utftotext(rbuf, cbuf, cbuf+strlen(cbuf));
 	s.r0 = rbuf;
@@ -476,17 +533,20 @@ paste(Text *t, Range r)
 	return r;
 }
 
+
 void
 add_slash(char*s)
 {
-	int	n;
+	int n;
 
 	n = strlen(s);
-	if(s[n-1] != '/'){
+	if(s[n-1] != '/')
+	{
 		s[n++]='/';
 		s[n]='\0';
 	}
 }
+
 
 bool
 frame_isfull(Frame*f)
@@ -494,8 +554,9 @@ frame_isfull(Frame*f)
 	return f->nlines == f->maxlines && f->lastlinefull;
 }
 
-bool	utfHadNulls;
-int	utftotext_unconverted;	/* bytes at the end which weren't converted */
+
+bool    utfHadNulls;
+int utftotext_unconverted;		 /* bytes at the end which weren't converted */
 
 /* Convert UTF from s1 to s2 into runes, store them at r
  * Returns the number of runes stored.
@@ -519,19 +580,25 @@ int	utftotext_unconverted;	/* bytes at the end which weren't converted */
 ulong
 utftotext(Rune *r, char *s1, char *s2)
 {
-	Rune	*q;
-	char	*v;
+	Rune    *q;
+	char    *v;
 
 	if (s2 <= s1)
 		return 0;
-	for (v = s1, q = r; v < s2; ) {
-		if (!(*(uchar*)v)) {
+	for (v = s1, q = r; v < s2; )
+	{
+		if (!(*(uchar*)v))
+		{
 			utfHadNulls = true;
 			v++;
 			*q =Runeerror;
-		} else if (*(uchar *)v < Runeself) {
+		}
+		else if (*(uchar *)v < Runeself)
+		{
 			*q = *v++;
-		} else {
+		}
+		else
+		{
 			v += chartorune(q, v);
 			if (*q == Runeerror)
 				utfHadNulls = true;
@@ -539,25 +606,31 @@ utftotext(Rune *r, char *s1, char *s2)
 		assert(*q);
 		q++;
 	}
-	if (v > s2) {
-		int	length;
+	if (v > s2)
+	{
+		int length;
 		q--;
 		length  = runelen(*q);
 		utftotext_unconverted = s2 - (v-length);
-	} else {
+	}
+	else
+	{
 		utftotext_unconverted = 0;
 	}
 	return q-r;
 }
 
+
 int
-stripnulls(char *buf, int len) {
-	char	*s, *d, *e=buf+len;
+stripnulls(char *buf, int len)
+{
+	char    *s, *d, *e=buf+len;
 
 	if (!(s = d = memchr(buf, '\0', len)))
 		return len;
 
-	while (++s < e) {
+	while (++s < e)
+	{
 		if (*s == '\0')
 			--len;
 		else

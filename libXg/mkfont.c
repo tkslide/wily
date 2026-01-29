@@ -21,7 +21,8 @@ mkfont(Subfont *subfont)
 	memset((void*)font, 0, sizeof(Font));
 	cp = "<synthetic>";
 	font->name = (char *)malloc(strlen(cp)+1);
-	if (font->name == 0) {
+	if (font->name == 0)
+	{
 		free(font);
 		return 0;
 	}
@@ -39,10 +40,11 @@ mkfont(Subfont *subfont)
 	font->ascent = subfont->ascent;
 	font->ldepth = screen.ldepth;
 	c = font->subf;
-	subfont->minchar = subfont->mincol;	/* base font at first char */
+								 /* base font at first char */
+	subfont->minchar = subfont->mincol;
 	c->min = subfont->minchar;
 	c->max = subfont->maxchar;
-	c->name = 0;	/* noticed by freeup() */
+	c->name = 0;				 /* noticed by freeup() */
 	font->subf[0].f = subfont;
 	return font;
 }

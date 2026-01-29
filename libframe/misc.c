@@ -1,12 +1,12 @@
 /* Copyright (c) 1992 AT&T - All rights reserved. */
-#include	<u.h>
-#include	<libc.h>
-#include	<pwd.h>
+#include    <u.h>
+#include    <libc.h>
+#include    <pwd.h>
 
-#ifdef	HAVE_STDARG_H
-#include	<stdarg.h>
+#ifdef  HAVE_STDARG_H
+#include    <stdarg.h>
 #else
-#include	<varargs.h>
+#include    <varargs.h>
 #endif
 
 #ifdef HAVE_STDARG_H
@@ -14,14 +14,17 @@ void
 fprint(int fd, char *z, ...)
 {
 	va_list args;
-	char buf[2048];			/* pick reasonable blocksize */
+	char buf[2048];				 /* pick reasonable blocksize */
 
 	va_start(args, z);
 	vsprintf(buf, z, args);
-	if (write(fd, buf, strlen(buf)));  /* XXX do nothing */
+								 /* XXX do nothing */
+	if (write(fd, buf, strlen(buf)));
 	va_end(args);
 }
-#else	/* !HAVE_STDARG_H */
+
+
+#else							 /* !HAVE_STDARG_H */
 void
 fprint(va_alist)
 va_dcl
@@ -29,7 +32,7 @@ va_dcl
 	int fd;
 	char *fmt;
 	va_list args;
-	char buf[2048];			/* pick reasonable blocksize */
+	char buf[2048];				 /* pick reasonable blocksize */
 
 	va_start(args);
 	fd = va_arg(args, int);
@@ -38,7 +41,7 @@ va_dcl
 	write(fd, buf, strlen(buf));
 	va_end(args);
 }
-#endif	/* HAVE_STDARG_H */
+#endif							 /* HAVE_STDARG_H */
 
 #ifndef HAVE_STRERROR
 char *
@@ -47,7 +50,7 @@ strerror(int n)
 	extern char *sys_errlist[];
 	return sys_errlist[n];
 }
-#endif /* HAVE_STRERROR */
+#endif							 /* HAVE_STRERROR */
 
 int errstr(char *buf)
 {
@@ -57,6 +60,7 @@ int errstr(char *buf)
 	return 1;
 }
 
+
 char*
 getuser(void)
 {
@@ -64,9 +68,11 @@ getuser(void)
 
 	static char *user = 0;
 
-	if (!user) {
+	if (!user)
+	{
 		p = getpwuid(getuid());
-		if (p && p->pw_name) {
+		if (p && p->pw_name)
+		{
 			user = malloc(strlen(p->pw_name)+1);
 			if (user)
 				strcpy(user, p->pw_name);
@@ -76,6 +82,7 @@ getuser(void)
 		user = "unknown";
 	return user;
 }
+
 
 #ifndef HAVE_MEMMOVE
 /*
@@ -93,21 +100,23 @@ memmove(void *a1, const void *a2, size_t n)
 		goto back;
 	if(s1 + n <= s2)
 		return memcpy(a1, a2, n);
-	while(n > 0) {
+	while(n > 0)
+	{
 		*s1++ = *s2++;
 		n--;
 	}
 	return a1;
 
-back:
+	back:
 	s2 += n;
 	if(s2 <= s1)
 		return memcpy(a1, a2, n);
 	s1 += n;
-	while(n > 0) {
+	while(n > 0)
+	{
 		*--s1 = *--s2;
 		n--;
 	}
 	return a1;
 }
-#endif /* HAVE_MEMMOVE */
+#endif							 /* HAVE_MEMMOVE */

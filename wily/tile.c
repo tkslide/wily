@@ -6,15 +6,18 @@
 
 /* Is the tile hidden? */
 bool
-tile_hidden(Tile *t) {
+tile_hidden(Tile *t)
+{
 	/* We are hidden, or one of our ancestors is hidden */
 	return t->ishidden || (t->up && tile_hidden(t->up));
 }
 
+
 bool
-tile_invariant(Tile *tile) {
-	int	size ,body,tag, diff;
-	Tile	*last;
+tile_invariant(Tile *tile)
+{
+	int size ,body,tag, diff;
+	Tile    *last;
 
 	assert(tile);
 
@@ -34,18 +37,21 @@ tile_invariant(Tile *tile) {
 	/* Tests for tiles with bodies, i.e. windows */
 
 	/*
-         * The size of the tile == the sum of the sizes of its body and
-         * tag, except if we're the "bottom" tile, in which case the
-         * size of the tile might be a _little_ bit bigger than that
-         * sum.
+	 * The size of the tile == the sum of the sizes of its body and
+	 * tag, except if we're the "bottom" tile, in which case the
+	 * size of the tile might be a _little_ bit bigger than that
+	 * sum.
 	 */
 	body = view_height(tile->body);
 	tag = view_height(tile->tag);
 	last = last_visible_body(tile, 0);
 
-	if (tile != last) {
+	if (tile != last)
+	{
 		assert(size == body + tag);
-	} else {
+	}
+	else
+	{
 		/* bottom tile might have a little 'slop' */
 		diff = size - (body + tag);
 		assert(diff >= 0);
@@ -55,18 +61,22 @@ tile_invariant(Tile *tile) {
 	return true;
 }
 
+
 bool
-list_invariant(Tile *list) {
-	int	prev;
-	Tile	*t;
-	int	diff;
+list_invariant(Tile *list)
+{
+	int prev;
+	Tile    *t;
+	int diff;
 
-	assert(tile_invariant(list));	/* A list is also a tile */
+	assert(tile_invariant(list));/* A list is also a tile */
 
-	assert(!list->body);			/* Lists don't have bodies */
+	assert(!list->body);		 /* Lists don't have bodies */
 
-	for (prev = list->cmin, t= list->down; t; t=t->right) {
-		assert(tile_invariant(t));	/* Every child is a valid tile */
+	for (prev = list->cmin, t= list->down; t; t=t->right)
+	{
+								 /* Every child is a valid tile */
+		assert(tile_invariant(t));
 		if(t->ishidden)
 			continue;
 
@@ -75,42 +85,48 @@ list_invariant(Tile *list) {
 
 		prev = t->max;
 	}
-	if(list->down) {
-		diff = list->cmax - prev;	/* slop at the bottom */
+	if(list->down)
+	{
+		diff = list->cmax - prev;/* slop at the bottom */
 		assert(diff >= 0);
 		assert(diff <= list->down->base);
 	}
 	return true;
 }
 
+
 /* "Snap" the size of 't' to some "neat" value,
  * without increasing 't's size.
  */
 static void
-quantize(Tile*t) {
-	int	tag, body,size;
+quantize(Tile*t)
+{
+	int tag, body,size;
 
 	if (!t->body)
-		return;	/* only really makes sense for windows */
+		return;					 /* only really makes sense for windows */
 
 	size = TILESIZE(t);
 	tag = snapheight(t->tag, size);
-	assert(size >= tag);	/* or we should have been hidden */
+	assert(size >= tag);		 /* or we should have been hidden */
 
 	body = snapheight( t->body, size -tag);
 	t->max = t->min + tag  + body;
 }
 
+
 /* Ensure 't' wil fit inside 'list'. */
 static void
-crop(Tile*t, Tile *list) {
-	int	size = TILESIZE(t);
-	int	listsize = LISTSIZE(list);
+crop(Tile*t, Tile *list)
+{
+	int size = TILESIZE(t);
+	int listsize = LISTSIZE(list);
 
 	assert(t->up == list);
 	assert (size >= 0);
 
-	if(size > listsize) {
+	if(size > listsize)
+	{
 		t->max = t->min + listsize;
 		size = listsize;
 	}
@@ -125,22 +141,28 @@ crop(Tile*t, Tile *list) {
 	assert (t->min >= list->cmin);
 }
 
+
 /* 't's shape has changed.  Redisplay it, and any of its children */
 void
-tile_reshaped(Tile *t) {
+tile_reshaped(Tile *t)
+{
 	Rectangle r = rectangle(t);
 
-	assert(!t->ishidden);	/* we don't reshape hidden tiles */
+	assert(!t->ishidden);		 /* we don't reshape hidden tiles */
 	cls(r);
 	view_reshaped(t->tag, r);
-	if(t->body) {
+	if(t->body)
+	{
 		r.min.y += view_height(t->tag);
 		view_reshaped(t->body, r);
-	} else {
+	}
+	else
+	{
 		list_reshaped(t,0);
 	}
 	assert(tile_invariant(t));
 }
+
 
 /* Add 'tile' to 'list' and redisplay the modified 'list'
  * Try to maintain 'tile's min and max, but also try to avoid hiding
@@ -148,18 +170,20 @@ tile_reshaped(Tile *t) {
  * of space.
  */
 void
-list_add(Tile *list, Tile *tile) {
-	Tile	*left;
-	Tile	*next;
-	int	max;
+list_add(Tile *list, Tile *tile)
+{
+	Tile    *left;
+	Tile    *next;
+	int max;
 
 	assert(!list->ishidden);
 	assert(!tile->ishidden);
 	assert(list_invariant(list));
 
-	if(tile->body) {
-		Path	buf;
-		Data	*d;
+	if(tile->body)
+	{
+		Path    buf;
+		Data    *d;
 
 		d = view_data(tile->body);
 		data_getlabel(d, buf);
@@ -169,7 +193,8 @@ list_add(Tile *list, Tile *tile) {
 	tile->up = list;
 	crop(tile, list);
 
-	if( (left = list_find(list, tile->min)) ) {
+	if( (left = list_find(list, tile->min)) )
+	{
 		/* Add 'tile' just to the right of 'left' */
 		left->max = tile->min;
 		if(TILESIZE(left) < tile->base)
@@ -181,8 +206,10 @@ list_add(Tile *list, Tile *tile) {
 		left->right = tile;
 		if (tile->right)
 			tile->right->left = tile;
-	} else {
-		assert(!list->down);	/* ...or we would have found a tile */
+	}
+	else
+	{
+		assert(!list->down);	 /* ...or we would have found a tile */
 		tile->right = tile->left = 0;
 		list->down = tile;
 		tile->min = list->cmin;
@@ -197,18 +224,20 @@ list_add(Tile *list, Tile *tile) {
 	list_reshaped(list, tile);
 }
 
+
 /* Adjust the position of 't', to try to make sure we don't
  * have to hide all of t's siblings.  On the other hand, don't
  * move 't' _too_ much.
  */
 static void
-adjust_position(Tile *t) {
-	Tile	*l = t->up;
-	int	size, available, before, after, minsize, diff, move;
+adjust_position(Tile *t)
+{
+	Tile    *l = t->up;
+	int size, available, before, after, minsize, diff, move;
 
-	before = 	list_basesize(l->down, t);
-	after = 	list_basesize(t->right, 0);
-	size =	TILESIZE(t);
+	before =    list_basesize(l->down, t);
+	after =     list_basesize(t->right, 0);
+	size =  TILESIZE(t);
 
 	/* We're prepared to shrink to half our asked-for size,
 	 * or the minimum size for a tile of our type, whichever
@@ -219,9 +248,11 @@ adjust_position(Tile *t) {
 
 	/* move t->min down a bit? */
 	diff = l->cmin + before - t->min;
-	if (diff>0) {
+	if (diff>0)
+	{
 		move= MIN(available, diff);
-		if(move > 0) {
+		if(move > 0)
+		{
 			t->min += move;
 			available -= move;
 		}
@@ -229,40 +260,46 @@ adjust_position(Tile *t) {
 
 	/* move t->max up a bit? */
 	diff = t->max - (l->cmax - after);
-	if (diff>0) {
+	if (diff>0)
+	{
 		move= MIN(available, diff);
-		if(move > 0) {
+		if(move > 0)
+		{
 			t->max -= move;
 		}
 	}
 }
 
+
 /* 
-* Adjust the sizes of the children, redisplay them if necessary.
-* Avoid moving or resizing 't'.  Ensure that 't' remains visible.
-* We can assume that all of the
-* tiles have the right approximate size, but that's it.
-*/
+ * Adjust the sizes of the children, redisplay them if necessary.
+ * Avoid moving or resizing 't'.  Ensure that 't' remains visible.
+ * We can assume that all of the
+ * tiles have the right approximate size, but that's it.
+ */
 void
-list_reshaped(Tile *l, Tile *tile) {
-	Tile	*t;
-	int	cmin, cmax;
-	Tile	*slop;
-	int	diff;
+list_reshaped(Tile *l, Tile *tile)
+{
+	Tile    *t;
+	int cmin, cmax;
+	Tile    *slop;
+	int diff;
 
 	assert(list_oksizes(l));
-	if (tile) {
+	if (tile)
+	{
 		crop(tile,l);
 		adjust_position(tile);
 		adjust_sizes_in_range(l->down, tile, tile->min - l->cmin);
 		adjust_sizes_in_range(tile->right, 0, l->cmax - tile->max);
 	} else
-		adjust_sizes_in_range(l->down, 0, LISTSIZE(l));
+	adjust_sizes_in_range(l->down, 0, LISTSIZE(l));
 
 	assert(list_oksizes(l));
 	assert(list_size(l->down, 0) <= LISTSIZE(l));
 
-	FOR_EACH_VISIBLE(l->down,0) {
+	FOR_EACH_VISIBLE(l->down,0)
+	{
 		quantize(t);
 	}
 
@@ -271,14 +308,16 @@ list_reshaped(Tile *l, Tile *tile) {
 
 	/* Even things up a little bit */
 	if ((slop = last_visible_body(l->down,0)) ||
-	    (slop = last_visible(l->down, 0)) ) {
+		(slop = last_visible(l->down, 0)) )
+	{
 		slop->max += diff;
 	}
 
 	list_slide(l);
 
 	setcminmax(l, &cmin, &cmax);
-	FOR_EACH_TILE(l->down,0) {
+	FOR_EACH_TILE(l->down,0)
+	{
 		t->cmin = cmin;
 		t->cmax = cmax;
 		if(!t->ishidden)
@@ -287,6 +326,7 @@ list_reshaped(Tile *l, Tile *tile) {
 	assert(list_invariant(l));
 }
 
+
 /*
  * Find a good place to create a window to display 'path'.
  * Fill *col with the column to contain the window,
@@ -294,29 +334,39 @@ list_reshaped(Tile *l, Tile *tile) {
  */
 /* Change the font of 't' and t's children */
 void
-tile_setfont(Tile *t,char* arg) {
-	if(t->body) {
+tile_setfont(Tile *t,char* arg)
+{
+	if(t->body)
+	{
 		view_setfont( t->body, arg);
-	} else {
-		FOR_EACH_TILE(t->down, 0) {
+	}
+	else
+	{
+		FOR_EACH_TILE(t->down, 0)
+		{
 			tile_setfont(t, arg);
 		}
 	}
 }
 
+
 /*
  * Unlink 'tile' from its parent/child/siblings.
  */
 void
-tile_unlink(Tile*tile){
+tile_unlink(Tile*tile)
+{
 	/* Unlink tile */
 	if(tile->right)
 		tile->right->left = tile->left;
-	if(tile->left) {
+	if(tile->left)
+	{
 		tile->left->right = tile->right;
 		/* Give the preceding window all the space. */
 		tile->left->max = tile->max;
-	} else {
+	}
+	else
+	{
 		tile->up->down = tile->right;
 	}
 
@@ -325,41 +375,49 @@ tile_unlink(Tile*tile){
 	list_reshaped(tile->up, 0);
 }
 
+
 /*
  * Free up all the resources used by 'tile'
  */
 void
-tile_free(Tile*tile){
+tile_free(Tile*tile)
+{
 	/* Free tile's resources */
 	free(tile->body);
 	free(tile->tag);
 	free(tile);
 }
 
+
 /*
  * Unlink 'tile' from its parent/child/siblings.
  * Free up all the resources used by 'tile'
  */
 void
-tile_del(Tile *tile) {
+tile_del(Tile *tile)
+{
 	tile_unlink(tile);
 	tile_free(tile);
 }
 
+
 /* Find a new parent for 'tile' somewhere at point 'p' */
 Tile*
-newparent(Tile*tile, Point p){
-	Tile	*t = point2tile(wily, p);
+newparent(Tile*tile, Point p)
+{
+	Tile    *t = point2tile(wily, p);
 	assert(t);
 	while((t->ori == tile->ori) || t->body)
 		t = t->up;
 	return t;
 }
 
+
 void
-tile_move(Tile *tile, Point p){
-	Tile	*parent;
-	int	dest;
+tile_move(Tile *tile, Point p)
+{
+	Tile    *parent;
+	int dest;
 
 	/* Make sure we'll have someplace worth moving to */
 	parent = point2tile(wily,p);
@@ -378,41 +436,52 @@ tile_move(Tile *tile, Point p){
 	cursorset(buttonpos(tile));
 }
 
+
 void
-tile_show(Tile *tile) {
+tile_show(Tile *tile)
+{
 	if(tile->up)
 		tile_show(tile->up);
 	if (tile->ishidden || (TILESIZE(tile) < tile_minsize(tile)))
 		tile_grow(tile, 1);
 }
 
+
 View*
-tile_body(Tile*t) {
+tile_body(Tile*t)
+{
 	return t? t->body: 0;
 }
 
+
 View*
-tile_tag(Tile*t) {
+tile_tag(Tile*t)
+{
 	return t? t->tag: 0;
 }
+
 
 /* Fill in 'min' and 'max' with a subregion within 'tile' for creating a new tile */
 static void
 tile_split(Tile *tile, int *min, int *max)
 {
-	int	lastline, average;
+	int lastline, average;
 
 	*max = tile->max;
 	average = (tile->max + tile->min)/ 2;
 
-	if(tile->body) {
+	if(tile->body)
+	{
 		lastline = view_lastlinepos(tile->body);
 		assert(lastline <= tile->max);
 		*min = MIN(average, lastline);
-	} else {
+	}
+	else
+	{
 		*min = average;
 	}
 }
+
 
 /* Fill 'min' and 'max' with a good place to add a tile within 'list'
  */
@@ -423,30 +492,35 @@ findplace(Tile*list, int *min, int *max)
 
 	Tile*biggest;
 
-	if ( (biggest=biggest_visible(list->down, 0)) ) {
+	if ( (biggest=biggest_visible(list->down, 0)) )
+	{
 		tile_split(biggest, min, max);
-	} else {
+	}
+	else
+	{
 		*max = list->cmax;
 		*min = list->cmin;
 	}
 }
 
+
 /* Change t's position, keeping its size. */
 void
 moveto(Tile*t, int pos)
 {
-	int	size = TILESIZE(t);
+	int size = TILESIZE(t);
 	t->min = pos;
 	t->max = t->min + size;
 }
 
+
 /* Create (but don't display) a new tile */
 Tile*
-tile_new(Ori ori, int min, int max, int base, 
+tile_new(Ori ori, int min, int max, int base,
 Tile*parent, Text *tagt, Text*bodyt)
 {
 	Tile*tile = NEW(Tile);
-	int	minsize;
+	int minsize;
 
 	tile->ishidden = false;
 	tile->ori = ori;
@@ -466,10 +540,10 @@ Tile*parent, Text *tagt, Text*bodyt)
 	return tile;
 }
 
+
 /* The minimum comfortable viewing size for 't' */
 int
 tile_minsize(Tile*t)
 {
 	return 3 * t->base;
 }
-

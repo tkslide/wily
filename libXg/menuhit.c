@@ -6,19 +6,20 @@
 
 enum
 {
-	Margin = 3,		/* outside to text */
-	Border = 2,		/* outside to selection boxes */
-	Blackborder = 1,	/* width of outlining border */
-	Vspacing = 1,		/* extra spacing between lines of text */
-	Maxunscroll = 25,	/* maximum #entries before scrolling turns on */
-	Nscroll = 20,		/* number entries in scrolling part */
-	Scrollwid = 14,		/* width of scroll bar */
-	Gap = 4			/* between text and scroll bar */
+	Margin = 3,					 /* outside to text */
+	Border = 2,					 /* outside to selection boxes */
+	Blackborder = 1,			 /* width of outlining border */
+	Vspacing = 1,				 /* extra spacing between lines of text */
+	Maxunscroll = 25,			 /* maximum #entries before scrolling turns on */
+	Nscroll = 20,				 /* number entries in scrolling part */
+	Scrollwid = 14,				 /* width of scroll bar */
+	Gap = 4						 /* between text and scroll bar */
 };
 
-static	Bitmap	*menutxt;
+static  Bitmap  *menutxt;
 
-static	uchar menutxtbits[] = {
+static  uchar menutxtbits[] =
+{
 	0x22, 0x22, 0x88, 0x88, 0x22, 0x22, 0x88, 0x88,
 	0x22, 0x22, 0x88, 0x88, 0x22, 0x22, 0x88, 0x88,
 	0x22, 0x22, 0x88, 0x88, 0x22, 0x22, 0x88, 0x88,
@@ -39,6 +40,7 @@ menurect(Rectangle r, int i)
 	return inset(r, Border-Margin);
 }
 
+
 /*
  * r is a rectangle holding the text elements.
  * return the element number containing p.
@@ -50,6 +52,7 @@ menusel(Rectangle r, Point p)
 		return -1;
 	return (p.y-r.min.y)/(font->height+Vspacing);
 }
+
 
 /*
  * menur is a rectangle holding all the highlightable text elements.
@@ -66,7 +69,8 @@ menuscan(int but, Mouse *m, Rectangle menur, int lasti)
 	r = menurect(menur, lasti);
 	bitblt(&screen, r.min, &screen, r, F&~D);
 	*m = emouse();
-	while(m->buttons & (1<<(but-1))){
+	while(m->buttons & (1<<(but-1)))
+	{
 		*m = emouse();
 		i = menusel(menur, m->xy);
 		if(i == lasti)
@@ -81,6 +85,7 @@ menuscan(int but, Mouse *m, Rectangle menur, int lasti)
 	return lasti;
 }
 
+
 void
 menupaint(Menu *menu, Rectangle textr, int off, int nitemdrawn)
 {
@@ -92,13 +97,15 @@ menupaint(Menu *menu, Rectangle textr, int off, int nitemdrawn)
 	r = inset(textr, Border-Margin);
 	bitblt(&screen, r.min, &screen, r, 0);
 	pt = Pt(textr.min.x+textr.max.x, textr.min.y);
-	for(i = 0; i<nitemdrawn; i++, pt.y += font->height+Vspacing){
+	for(i = 0; i<nitemdrawn; i++, pt.y += font->height+Vspacing)
+	{
 		item = menu->item? menu->item[i+off] : (*menu->gen)(i+off);
 		string(&screen,
-		    Pt((pt.x-strwidth(font, item))/2, pt.y),
-		    font, item, S);
+			Pt((pt.x-strwidth(font, item))/2, pt.y),
+			font, item, S);
 	}
 }
+
 
 static void
 menuscrollpaint(Rectangle scrollr, int off, int nitem, int nitemdrawn)
@@ -113,7 +120,8 @@ menuscrollpaint(Rectangle scrollr, int off, int nitem, int nitemdrawn)
 	if(r.max.y < r.min.y+2)
 		r.max.y = r.min.y+2;
 	border(&screen, r, 1, F);
-	if(menutxt == 0){
+	if(menutxt == 0)
+	{
 		menutxt = balloc(Rect(0, 0, 16, 16), 0);
 		if(menutxt)
 			wrbitmap(menutxt, 0, 16, menutxtbits);
@@ -121,6 +129,7 @@ menuscrollpaint(Rectangle scrollr, int off, int nitem, int nitemdrawn)
 	if(menutxt)
 		texture(&screen, inset(r, 1), menutxt, S);
 }
+
 
 int
 menuhit(int but, Mouse *m, Menu *menu)
@@ -136,8 +145,9 @@ menuhit(int but, Mouse *m, Menu *menu)
 	clipr(&screen, screen.r);
 	maxwid = 0;
 	for(nitem = 0;
-	    item = menu->item? menu->item[nitem] : (*menu->gen)(nitem);
-	    nitem++){
+		item = menu->item? menu->item[nitem] : (*menu->gen)(nitem);
+		nitem++)
+	{
 		i = strwidth(font, item);
 		if(i > maxwid)
 			maxwid = i;
@@ -145,7 +155,8 @@ menuhit(int but, Mouse *m, Menu *menu)
 	if(menu->lasthit<0 || menu->lasthit>=nitem)
 		menu->lasthit = 0;
 	screenitem = (Dy(screen.r)-10)/(font->height+Vspacing);
-	if(nitem>Maxunscroll || nitem>screenitem){
+	if(nitem>Maxunscroll || nitem>screenitem)
+	{
 		scrolling = 1;
 		nitemdrawn = Nscroll;
 		if(nitemdrawn > screenitem)
@@ -157,7 +168,9 @@ menuhit(int but, Mouse *m, Menu *menu)
 		if(off > nitem-nitemdrawn)
 			off = nitem-nitemdrawn;
 		lasti = menu->lasthit-off;
-	} else{
+	}
+	else
+	{
 		scrolling = 0;
 		nitemdrawn = nitem;
 		wid = maxwid;
@@ -181,11 +194,12 @@ menuhit(int but, Mouse *m, Menu *menu)
 	textr.min.x = textr.max.x-maxwid;
 	textr.min.y = menur.min.y+Margin;
 	textr.max.y = textr.min.y + nitemdrawn*(font->height+Vspacing);
-	if(scrolling){
+	if(scrolling)
+	{
 		scrollr = inset(menur, Border);
 		scrollr.max.x = scrollr.min.x+Scrollwid;
 	} else
-		scrollr = Rect(0, 0, 0, 0);
+	scrollr = Rect(0, 0, 0, 0);
 
 	b = balloc(menur, screen.ldepth);
 	if(b == 0)
@@ -203,19 +217,23 @@ menuhit(int but, Mouse *m, Menu *menu)
 	menupaint(menu, textr, off, nitemdrawn);
 	if(scrolling)
 		menuscrollpaint(scrollr, off, nitem, nitemdrawn);
-	while(m->buttons & (1<<(but-1))){
+	while(m->buttons & (1<<(but-1)))
+	{
 		lasti = menuscan(but, m, textr, lasti);
 		if(lasti >= 0)
 			break;
-		while(!ptinrect(m->xy, textr) && (m->buttons & (1<<(but-1)))){
-			if(scrolling && ptinrect(m->xy, scrollr)){
+		while(!ptinrect(m->xy, textr) && (m->buttons & (1<<(but-1))))
+		{
+			if(scrolling && ptinrect(m->xy, scrollr))
+			{
 				noff = ((m->xy.y-scrollr.min.y)*nitem)/Dy(scrollr);
 				noff -= nitemdrawn/2;
 				if(noff < 0)
 					noff = 0;
 				if(noff > nitem-nitemdrawn)
 					noff = nitem-nitemdrawn;
-				if(noff != off){
+				if(noff != off)
+				{
 					off = noff;
 					menupaint(menu, textr, off, nitemdrawn);
 					menuscrollpaint(scrollr, off, nitem, nitemdrawn);
@@ -228,7 +246,8 @@ menuhit(int but, Mouse *m, Menu *menu)
 	if(b != &screen)
 		bfree(b);
 	clipr(&screen, sc);
-	if(lasti >= 0){
+	if(lasti >= 0)
+	{
 		menu->lasthit = lasti+off;
 		return menu->lasthit;
 	}

@@ -14,34 +14,41 @@
  * is better.
  */
 
-struct Undo {
-	Undo	*next;
-	Range	r;			/* where to replace */
-	Rstring	s;			/* what to replace with */
-	ulong	alloced;		/* bytes alloced at s.p0 */
+struct Undo
+{
+	Undo    *next;
+	Range   r;					 /* where to replace */
+	Rstring s;					 /* what to replace with */
+	ulong   alloced;			 /* bytes alloced at s.p0 */
 };
 
-static bool undoing = false;	/* prevent recording undo ops */
-static Range illegal_range = {
-	10,1};
+static bool undoing = false;	 /* prevent recording undo ops */
+static Range illegal_range =
+{
+	10,1
+};
 
-static Undo *	reverse	(Text*, Range, Rstring);
-static bool 	append	(Text*, Range r, Rstring s);
-static void 	reset	(Undo**);
-static void	save_state	(Text *);
-static void	update_state	(Text *);
-static Range	shift	(Text *, Undo **, Undo **, bool );
+static Undo *   reverse (Text*, Range, Rstring);
+static bool     append  (Text*, Range r, Rstring s);
+static void     reset   (Undo**);
+static void save_state  (Text *);
+static void update_state    (Text *);
+static Range    shift   (Text *, Undo **, Undo **, bool );
 
 static void
-text_rmtool(Text*t, char*s)	{
+text_rmtool(Text*t, char*s)
+{
 	if(t->data)
 		tag_rmtool(data_tag(t->data), s);
 }
 
+
 static void
-text_addtool(Text*t, char*s)	{
+text_addtool(Text*t, char*s)
+{
 	tag_addtool(data_tag(t->data), s);
 }
+
 
 /* Record information allowing us to undo the replacement of
  * 'r' in 't' with 's'.  This replacement hasn't happened yet.
@@ -50,7 +57,7 @@ void
 undo_record
 (Text *t, Range r, Rstring s)
 {
-	Undo	*u;
+	Undo    *u;
 
 	assert(ROK(r));
 	assert(RSOK(s));
@@ -61,7 +68,8 @@ undo_record
 
 	save_state(t);
 
-	if(!append(t, r, s)) {
+	if(!append(t, r, s))
+	{
 		/* remove old t->undone trail */
 		reset(&t->undone);
 
@@ -73,6 +81,7 @@ undo_record
 
 	update_state(t);
 }
+
 
 /* Undo the top operation in the undo stack, and move it to the redo
  * stack.  Keep going to mark if appropriate.
@@ -88,13 +97,15 @@ undo_undo(Text *t, bool all)
 
 	save_state(t);
 
-	do {
+	do
+	{
 		r = shift(t, &t->did, &t->undone, true);
 	} while (all && t->did && t->did != t->mark);
 
 	update_state(t);
 	return (all ? illegal_range : r);
 }
+
 
 /* The mirror of undo_undo */
 Range
@@ -119,12 +130,15 @@ undo_redo(Text *t, bool all)
 	return r;
 }
 
+
 /* Throw away all the undo information. */
 void
-undo_free(Text*t) {
+undo_free(Text*t)
+{
 	reset(&t->did);
 	reset(&t->undone);
 }
+
 
 /* Throw away all the undo information, leave in NoUndo state. */
 void
@@ -137,12 +151,14 @@ undo_reset(Text*t)
 	text_rmtool(t, "Redo");
 }
 
+
 /* Start undoing on this Text. */
 void
 undo_start(Text*t)
 {
 	t->undoing = StartUndo;
 }
+
 
 /*
  * Make sure we don't merge whatever's currently on top of the undo
@@ -155,6 +171,7 @@ undo_break(Text*t)
 		t->undoing = StartUndo;
 }
 
+
 /* Remember this point in the Undo history
  * for future reference.
  */
@@ -165,6 +182,7 @@ undo_mark(Text*t)
 	t->undoing = StartUndo;
 }
 
+
 /* Are we at the same point in the history as we marked earlier?
  */
 bool
@@ -173,11 +191,12 @@ undo_atmark(Text*t)
 	return t->mark == t->did;
 }
 
+
 /*********************************************************
 	INTERNAL STUFF
 *********************************************************/
-static void	tag		(Text *, bool , bool , char *);
-static bool	undo_eq(Undo*u, Range r, Rstring s);
+static void tag     (Text *, bool , bool , char *);
+static bool undo_eq(Undo*u, Range r, Rstring s);
 
 /* 
  * We are about to replace the text at 'r' with 's'.  If we can record
@@ -187,11 +206,12 @@ static bool	undo_eq(Undo*u, Range r, Rstring s);
 static bool
 append(Text *t, Range r, Rstring s)
 {
-	Undo 	*u;
-	Rune	*buf;
-	int		rlen, slen;
+	Undo    *u;
+	Rune    *buf;
+	int     rlen, slen;
 
-	if (undo_eq(t->did, r, s)) {
+	if (undo_eq(t->did, r, s))
+	{
 		/*
 		 * What we're about to do is exactly what would happen by
 		 * an Undo operation.  Therefore, we just move the front of
@@ -208,11 +228,13 @@ append(Text *t, Range r, Rstring s)
 
 	u = t->did;
 
-	if(u->r.p1 == r.p0 && RLEN(r)==0 && RSLEN(u->s)==0) {
+	if(u->r.p1 == r.p0 && RLEN(r)==0 && RSLEN(u->s)==0)
+	{
 		u->r.p1 += RSLEN(s);
 		return true;
 	}
-	if (RLEN(u->r)==0 && RSLEN(s)==0 && u->r.p0 == r.p1) {
+	if (RLEN(u->r)==0 && RSLEN(s)==0 && u->r.p0 == r.p1)
+	{
 		slen = RSLEN(u->s);
 		rlen = RLEN(r);
 		buf = salloc ( (slen + rlen) * sizeof(Rune) );
@@ -227,13 +249,16 @@ append(Text *t, Range r, Rstring s)
 	return false;
 }
 
+
 /* Free all the nodes in the list, set the head of the list to 0.*/
 
 static void
-reset(Undo**head) {
-	Undo	*u, *next;
+reset(Undo**head)
+{
+	Undo    *u, *next;
 
-	for(u = *head; u; u = next){
+	for(u = *head; u; u = next)
+	{
 		next = u->next;
 		free(u->s.r0);
 		free(u);
@@ -241,13 +266,14 @@ reset(Undo**head) {
 	*head = 0;
 }
 
+
 /*
  * We use save_state() and update_state() to compare our undo state
  * before and after operations.  These two functions use 'did' and
  * 'undone'
  */
-static Undo	*did, *undone;
-static bool	state_count = 0;
+static Undo *did, *undone;
+static bool state_count = 0;
 static void
 save_state(Text *t)
 {
@@ -256,17 +282,21 @@ save_state(Text *t)
 	did = t->did;
 	undone = t->undone;
 }
+
+
 static void
 update_state(Text *t)
 {
 	if(--state_count)
 		return;
-	if(t->needsbackup) {
+	if(t->needsbackup)
+	{
 		tag(t, did!=0, t->did!=0, "Undo");
 		tag(t, undone!=0, t->undone!=0, "Redo");
 		tag(t, t->did == t->mark, did==t->mark, "Put");
 	}
 }
+
 
 /*
  * If 'change_text', do the replacement at 'from'.
@@ -278,9 +308,9 @@ update_state(Text *t)
 static Range
 shift(Text *t, Undo **from, Undo **to, bool change_text)
 {
-	Range	r;
-	Undo	*u;
-	Undo	*rev;
+	Range   r;
+	Undo    *u;
+	Undo    *rev;
 
 	u = *from;
 	assert(u);
@@ -288,7 +318,8 @@ shift(Text *t, Undo **from, Undo **to, bool change_text)
 
 	rev = reverse(t, u->r, u->s);
 
-	if(change_text){
+	if(change_text)
+	{
 		undoing=true;
 		r = text_replace(t, u->r, u->s);
 		undoing = false;
@@ -303,6 +334,7 @@ shift(Text *t, Undo **from, Undo **to, bool change_text)
 	return r;
 }
 
+
 /*If the state has changed to (true/false), (add/remove) 's'
  * in all the tags associated with 't'
  */
@@ -313,6 +345,7 @@ tag(Text *t, bool before, bool after, char *s)
 		(after? text_addtool : text_rmtool)(t,s);
 }
 
+
 /*
  * Compare two rune strings.  Return a number >0, <0 or 0 to indicate if
  * s1 is lexically after, before or equal to s2
@@ -320,29 +353,31 @@ tag(Text *t, bool before, bool after, char *s)
 int
 rstrcmp(Rstring s1, Rstring s2)
 {
-	Rune	*p1, *p2;
-	int		diff;
+	Rune    *p1, *p2;
+	int     diff;
 
-	for (	p1=s1.r0, p2 = s2.r0;  p1<s1.r1 && p2 < s2.r1; p1++, p2++)
+	for (   p1=s1.r0, p2 = s2.r0;  p1<s1.r1 && p2 < s2.r1; p1++, p2++)
 		if( (diff = *p1 - *p2) )
 			return diff;
 	return RSLEN(s1) - RSLEN(s2);
 }
 
+
 static bool
 undo_eq(Undo*u, Range r, Rstring s)
 {
-	return u && 
-	    r.p0 == u->r.p0 && r.p1 == u->r.p1 &&
-	    !rstrcmp(u->s, s);
+	return u &&
+		r.p0 == u->r.p0 && r.p1 == u->r.p1 &&
+		!rstrcmp(u->s, s);
 }
+
 
 /* Return undo entry to undo the replacement of 'r' in 't' with 's'
  */
 static Undo *
 reverse(Text*t, Range r, Rstring s)
 {
-	Undo	*u;
+	Undo    *u;
 
 	assert(ROK(r));
 	assert(RSOK(s));

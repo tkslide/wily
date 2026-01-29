@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/param.h>	/* for MAXPATHLEN */
+#include <sys/param.h>			 /* for MAXPATHLEN */
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -13,12 +13,13 @@
 #include <msg.h>
 /* ../include/msg.h */
 
-enum {
-	MAXTRIES = 10	/* number of names to try for fifo */
+enum
+{
+	MAXTRIES = 10				 /* number of names to try for fifo */
 };
-static int		findname(char *);
-static void	addenv(char*key, char *val);
-static char	*myfifo=0;
+static int      findname(char *);
+static void addenv(char*key, char *val);
+static char *myfifo=0;
 
 /* Return file descriptor open for reading connection requests,
  * returns negative value for failure.
@@ -27,13 +28,14 @@ static char	*myfifo=0;
 int
 wilyfifolisten(void)
 {
-	int	fd=-1;
-	char	name[MAXPATHLEN];
+	int fd=-1;
+	char    name[MAXPATHLEN];
 
 	if (findname(name))
 		return -1;
 
-	if(mkfifo(name, 0600)) {
+	if(mkfifo(name, 0600))
+	{
 		fprintf(stderr, "try\n\trm %s\n", name);
 		perror(name);
 		return -1;
@@ -41,12 +43,14 @@ wilyfifolisten(void)
 
 	fd = open(name, O_RDONLY|O_NONBLOCK);
 
-	if (fd<0) {
+	if (fd<0)
+	{
 		perror(name);
 		return -1;
 	}
 	/* dummy fd to hold the read fd open */
-	if (open(name, O_WRONLY) < 0) {
+	if (open(name, O_WRONLY) < 0)
+	{
 		perror(name);
 		return -1;
 	}
@@ -56,6 +60,7 @@ wilyfifolisten(void)
 
 	return fd;
 }
+
 
 /* remove the fifo if we can.
  */
@@ -67,17 +72,19 @@ fifo_cleanup(void)
 			perror(myfifo);
 }
 
+
 /* Return file descriptor open for write to wily, or a negative number.
  */
 int
 wilyfifotalk(void)
 {
-	char	name[MAXPATHLEN];
+	char    name[MAXPATHLEN];
 
 	if(findname(name))
 		return -1;
 	return open(name, O_WRONLY);
 }
+
 
 /* Return file descriptor connected to wily, or <0 on failure.
 
@@ -107,7 +114,8 @@ client_connect(void)
 
 	/* 2. Securely generate a unique filename and create it */
 	int tmp_fd = mkstemp(template);
-	if (tmp_fd < 0) {
+	if (tmp_fd < 0)
+	{
 		perror("mkstemp");
 		return -1;
 	}
@@ -123,9 +131,10 @@ client_connect(void)
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
 	strncpy(addr.sun_path, template, sizeof(addr.sun_path) - 1);
-	path = strdup(template); // Keep a copy for unlinking later
+	path = strdup(template);	 // Keep a copy for unlinking later
 	/* 5. Bind the socket to the name we just reserved */
-	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+	{
 		perror("bind");
 		goto fail;
 	}
@@ -141,7 +150,8 @@ client_connect(void)
 	nwritten = write(fd, path, len);
 	close(fd);
 
-	if (nwritten != (ssize_t)len) {
+	if (nwritten != (ssize_t)len)
+	{
 		fprintf(stderr, "short write to wily fifo\n");
 		goto fail;
 	}
@@ -152,21 +162,22 @@ client_connect(void)
 
 	/* 8. Cleanup: close listening socket and remove file from filesystem */
 	close(s);
-	if (path) {
+	if (path)
+	{
 		unlink(path);
 		free(path);
 	}
 	return fd;
 
-fail:
+	fail:
 	if (s >= 0) close(s);
-	if (path) {
+	if (path)
+	{
 		unlink(path);
 		free(path);
 	}
 	return -1;
 }
-
 
 
 /* Given 'addrname' of length 'n', (from some client), connect to it,
@@ -192,6 +203,7 @@ wily_connect(char*addrname, int n)
 	return s;
 }
 
+
 /* Find a name to use as a wily fifo.  Use $WILYFIFO if
  * set, otherwise use wily$USER$DISPLAY in $TMPDIR or /tmp,
  *
@@ -200,30 +212,35 @@ wily_connect(char*addrname, int n)
 static int
 findname(char *buf)
 {
-	char	*name = 0;
+	char    *name = 0;
 	struct passwd *pw;
-	char	*disp;
-	char	*dir;
+	char    *disp;
+	char    *dir;
 
-	if ((name = getenv(WILYFIFO))){
+	if ((name = getenv(WILYFIFO)))
+	{
 		strcpy(buf, name);
 		return 0;
 	}
 
-	if(!(pw = getpwuid( getuid() )) ) {
+	if(!(pw = getpwuid( getuid() )) )
+	{
 		perror("getpwuid or getuid");
 		return -1;
 	}
-	if(!(disp = getenv("DISPLAY"))) {
+	if(!(disp = getenv("DISPLAY")))
+	{
 		fprintf(stderr, "$DISPLAY not set");
 		return -1;
 	}
-	if(!(dir = getenv("TMPDIR"))) {
+	if(!(dir = getenv("TMPDIR")))
+	{
 		dir = "/tmp";
 	}
 	sprintf(buf, "%s/wily%s%s", dir, pw->pw_name, disp);
 	return 0;
 }
+
 
 static void
 addenv(char*key, char *val)
@@ -234,4 +251,3 @@ addenv(char*key, char *val)
 	sprintf(buf, "%s=%s", key, val);
 	putenv(buf);
 }
-

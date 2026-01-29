@@ -7,9 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-static char *	pathfind (const char *paths, const char *file);
-static bool	is_includebrackets(char left, char right);
+static char *   pathfind (const char *paths, const char *file);
+static bool is_includebrackets(char left, char right);
 
 /*
  * The user has selected 'r' in 'v'.
@@ -23,7 +22,8 @@ static bool	is_includebrackets(char left, char right);
 #include <stdlib.h>
 
 View*
-openinclude(View *v, Range r) {
+openinclude(View *v, Range r)
+{
 	Range    expanded;
 	char     *buf = NULL;
 	char     *s = NULL;
@@ -48,7 +48,8 @@ openinclude(View *v, Range r) {
 	buf[len] = '\0';
 
 	/* Check for enclosing brackets <...> or "..." */
-	if (!is_includebrackets(buf[0], buf[len-1])) {
+	if (!is_includebrackets(buf[0], buf[len-1]))
+	{
 		free(buf);
 		return NULL;
 	}
@@ -61,17 +62,21 @@ openinclude(View *v, Range r) {
 	s = pathfind(getenv("INCLUDES"), filename);
 
 	/* 2. Fall back to /usr/include if pathfind fails */
-	if (!s) {
-		if (asprintf(&s, "/usr/include/%s", filename) == -1) {
+	if (!s)
+	{
+		if (asprintf(&s, "/usr/include/%s", filename) == -1)
+		{
 			free(buf);
 			return NULL;
 		}
 		/* openlabel is called with 's' from asprintf, must free 's' after */
 		result_view = openlabel(s, false);
 		free(s);
-	} else {
-		/* s was returned by pathfind; assuming pathfind returns a static 
-           or allocated buffer that openlabel handles or doesn't own. */
+	}
+	else
+	{
+		/* s was returned by pathfind; assuming pathfind returns a static
+		   or allocated buffer that openlabel handles or doesn't own. */
 		result_view = openlabel(s, false);
 		// free(s); // Uncomment if your pathfind returns heap memory
 	}
@@ -86,23 +91,27 @@ openinclude(View *v, Range r) {
 **********************************************************/
 
 static bool
-is_includebrackets(char left, char right) {
+is_includebrackets(char left, char right)
+{
 	return (left == '"' && right == '"') ||
-	(left == '<' && right == '>');
+		(left == '<' && right == '>');
 }
 
+
 static const char *
-nextstr (const char *p, const char *c, int *n){
+nextstr (const char *p, const char *c, int *n)
+{
 	int i;
 
 	if (!p || !*p)
 		return 0;
 
-	*n = i = strcspn (p, c);	/* XXX - utf */
+	*n = i = strcspn (p, c);	 /* XXX - utf */
 	if (p[i])
-		i += 1;					/* strspn (p+i, c); ? */
+		i += 1;					 /* strspn (p+i, c); ? */
 	return p+i;
 }
+
 
 static char *
 pathfind (const char *paths, const char *file)
@@ -116,15 +125,20 @@ pathfind (const char *paths, const char *file)
 
 	flen = strlen(file);
 	p = paths;
-	while((ptmp = nextstr(p, ":", &plen))!= 0) {
+	while((ptmp = nextstr(p, ":", &plen))!= 0)
+	{
 		int fd;
 		char *tmp = malloc(plen+1+flen+1);
 
-		if (tmp) {
+		if (tmp)
+		{
 			sprintf(tmp, "%.*s/%s", plen, p, file);
-			if ((fd = open(tmp, 0)) < 0) {
+			if ((fd = open(tmp, 0)) < 0)
+			{
 				free(tmp);
-			} else {
+			}
+			else
+			{
 				close(fd);
 				return tmp;
 			}
@@ -133,4 +147,3 @@ pathfind (const char *paths, const char *file)
 	}
 	return 0;
 }
-

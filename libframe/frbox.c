@@ -4,11 +4,12 @@
 #include <libg.h>
 #include <frame.h>
 
-#define	SLOP	25
+#define SLOP    25
 
 void
-_fraddbox(Frame *f, int bn, int n)	/* add n boxes after bn, shift the rest up,
-				 * box[bn+n]==box[bn] */
+_fraddbox(Frame *f, int bn, int n)
+/* add n boxes after bn, shift the rest up,
+ * box[bn+n]==box[bn] */
 {
 	int i;
 
@@ -21,8 +22,10 @@ _fraddbox(Frame *f, int bn, int n)	/* add n boxes after bn, shift the rest up,
 	f->nbox+=n;
 }
 
+
 void
-_frclosebox(Frame *f, int n0, int n1)	/* inclusive */
+								 /* inclusive */
+_frclosebox(Frame *f, int n0, int n1)
 {
 	int i;
 
@@ -34,8 +37,10 @@ _frclosebox(Frame *f, int n0, int n1)	/* inclusive */
 	f->nbox -= n1-n0;
 }
 
+
 void
-_frdelbox(Frame *f, int n0, int n1)	/* inclusive */
+								 /* inclusive */
+_frdelbox(Frame *f, int n0, int n1)
 {
 	if(n0>=f->nbox || n1>=f->nbox || n1<n0)
 		berror("_frdelbox");
@@ -43,8 +48,10 @@ _frdelbox(Frame *f, int n0, int n1)	/* inclusive */
 	_frclosebox(f, n0, n1);
 }
 
+
 void
-_frfreebox(Frame *f, int n0, int n1)	/* inclusive */
+								 /* inclusive */
+_frfreebox(Frame *f, int n0, int n1)
 {
 	int i;
 
@@ -58,6 +65,7 @@ _frfreebox(Frame *f, int n0, int n1)	/* inclusive */
 			free(f->box[i].a.ptr);
 }
 
+
 void
 _frgrowbox(Frame *f, int delta)
 {
@@ -66,6 +74,7 @@ _frgrowbox(Frame *f, int delta)
 	if(f->box == 0)
 		berror("_frgrowbox");
 }
+
 
 static
 void
@@ -76,12 +85,14 @@ dupbox(Frame *f, int bn)
 	if(f->box[bn].nrune < 0)
 		berror("dupbox");
 	_fraddbox(f, bn, 1);
-	if(f->box[bn].nrune >= 0){
+	if(f->box[bn].nrune >= 0)
+	{
 		p = _frallocstr(NBYTE(&f->box[bn])+1);
 		strcpy((char*)p, (char*)f->box[bn].a.ptr);
 		f->box[bn+1].a.ptr = p;
 	}
 }
+
 
 static
 uchar*
@@ -93,16 +104,19 @@ runeindex(uchar *p, int n)
 	for(i=0; i<n; i++,p+=w)
 		if(*p < Runeself)
 			w = 1;
-		else{
-			w = chartorune(&rune, (char*)p);
-			USED(rune);
-		}
+	else
+	{
+		w = chartorune(&rune, (char*)p);
+		USED(rune);
+	}
 	return p;
 }
 
+
 static
 void
-truncatebox(Frame *f, Frbox *b, int n)	/* drop last n chars; no allocation done */
+								 /* drop last n chars; no allocation done */
+truncatebox(Frame *f, Frbox *b, int n)
 {
 	if(b->nrune<0 || b->nrune<n)
 		berror("truncatebox");
@@ -111,9 +125,11 @@ truncatebox(Frame *f, Frbox *b, int n)	/* drop last n chars; no allocation done 
 	b->wid = strwidth(f->font, (char *)b->a.ptr);
 }
 
+
 static
 void
-chopbox(Frame *f, Frbox *b, int n)	/* drop first n chars; no allocation done */
+								 /* drop first n chars; no allocation done */
+chopbox(Frame *f, Frbox *b, int n)
 {
 	if(b->nrune<0 || b->nrune<n)
 		berror("chopbox");
@@ -121,6 +137,7 @@ chopbox(Frame *f, Frbox *b, int n)	/* drop first n chars; no allocation done */
 	b->nrune -= n;
 	b->wid = strwidth(f->font, (char *)b->a.ptr);
 }
+
 
 void
 _frsplitbox(Frame *f, int bn, int n)
@@ -130,8 +147,9 @@ _frsplitbox(Frame *f, int bn, int n)
 	chopbox(f, &f->box[bn+1], n);
 }
 
+
 void
-_frmergebox(Frame *f, int bn)		/* merge bn and bn+1 */
+_frmergebox(Frame *f, int bn)	 /* merge bn and bn+1 */
 {
 	Frbox *b;
 
@@ -143,8 +161,10 @@ _frmergebox(Frame *f, int bn)		/* merge bn and bn+1 */
 	_frdelbox(f, bn+1, bn+1);
 }
 
+
 int
-_frfindbox(Frame *f, int bn, ulong p, ulong q)	/* find box containing q and put q on a box boundary */
+								 /* find box containing q and put q on a box boundary */
+_frfindbox(Frame *f, int bn, ulong p, ulong q)
 {
 	Frbox *b;
 

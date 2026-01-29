@@ -9,7 +9,8 @@
 
 static jmp_buf regexp_state;
 
-static char *errs[] = {
+static char *errs[] =
+{
 	"Etoolong",
 	"Eleftpar",
 	"Erightpar",
@@ -34,6 +35,7 @@ Finit(File *f, Text*t, Range *r)
 	return;
 }
 
+
 /*
  * stub routines
  */
@@ -44,6 +46,7 @@ do_compile(String *s)
 	return (startinst == 0);
 }
 
+
 void
 panic(char *str)
 {
@@ -51,12 +54,14 @@ panic(char *str)
 	exit(1);
 }
 
+
 void
 samerror(Err e)
 {
 	fprintf(stderr, "regexp error: %s\n",errs[e]);
 	longjmp(regexp_state, 1);
 }
+
 
 void
 Strduplstr(String *s0, String *s1)
@@ -70,6 +75,7 @@ Strduplstr(String *s0, String *s1)
 	memcpy(s0->s, s1->s, n);
 }
 
+
 int
 Strcmp(String *s0, String *s1)
 {
@@ -82,6 +88,7 @@ Strcmp(String *s0, String *s1)
 	return *i != *j;
 }
 
+
 void
 error_c(Err e, int c)
 {
@@ -89,11 +96,13 @@ error_c(Err e, int c)
 	longjmp(regexp_state, 1);
 }
 
+
 void
 Strzero(String *s)
 {
 	memset(s->s, 0, s->n*RUNESIZE);
 }
+
 
 /*
  * Seems to work, so now I need to sort out the handling of
@@ -124,12 +133,14 @@ text_strregexp(Text *t,  String str, Range *r, bool fwd)
 
 	assert(!active);
 	active = true;
-	if (setjmp(regexp_state)) {
+	if (setjmp(regexp_state))
+	{
 		found = false;
 		goto out;
 	}
 	found =false;
-	if (do_compile(&str)) {
+	if (do_compile(&str))
+	{
 		fprintf(stderr, "regexp: compilation failed\n");
 		goto out;
 	}
@@ -138,21 +149,24 @@ text_strregexp(Text *t,  String str, Range *r, bool fwd)
 	Finit(&f, t, r);
 	/* first, try after current posn to end of file. */
 	found = fwd? execute(&f, q1, t->length) : bexecute(&f,q0);
-	if (found) {
+	if (found)
+	{
 		r->p0 = sel.w[0].p1;
 		r->p1 = sel.w[0].w2;
 		goto out;
 	}
 	/* No good. wrap, and try from start of file. */
 	found = fwd? execute(&f,0,t->length) : bexecute(&f,t->length);
-	if (found) {
+	if (found)
+	{
 		r->p0 = sel.w[0].p1;
 		r->p1 = sel.w[0].w2;
 	}
-out:
+	out:
 	active = false;
 	return found;
 }
+
 
 bool
 text_utfregexp(Text *t, char *re, Range *r, bool fwd)
@@ -160,7 +174,8 @@ text_utfregexp(Text *t, char *re, Range *r, bool fwd)
 	static String str;
 	int l = (1+strlen(re))*sizeof(Rune);
 
-	if (str.n <= l) {
+	if (str.n <= l)
+	{
 		str.n = l;
 		str.s = srealloc(str.s, str.n);
 	}
@@ -168,13 +183,15 @@ text_utfregexp(Text *t, char *re, Range *r, bool fwd)
 	return text_strregexp(t, str, r, fwd);
 }
 
+
 bool
 text_regexp(Text *t, Rstring re, Range *r, bool fwd)
 {
 	static String str;
 	int l = (1+RSLEN(re))*sizeof(Rune);
 
-	if (str.n <= l) {
+	if (str.n <= l)
+	{
 		str.n = l;
 		str.s = srealloc(str.s, str.n);
 	}
@@ -184,9 +201,11 @@ text_regexp(Text *t, Rstring re, Range *r, bool fwd)
 	return text_strregexp(t, str, r, fwd);
 }
 
+
 long
-Tchars(Text *t, Rune *buf, ulong p0, ulong p1) {
-	Range	r;
+Tchars(Text *t, Rune *buf, ulong p0, ulong p1)
+{
+	Range   r;
 
 	assert(p0 <= p1);
 	r = range( p0, MIN(p1, t->length));

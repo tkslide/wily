@@ -3,8 +3,10 @@
 #include <libg.h>
 #include "libgint.h"
 
-enum	{ 
-	Max = 128 };
+enum
+{
+	Max = 128
+};
 
 Point
 string(Bitmap *b, Point p, Font *ft, char *s, Fcode f)
@@ -18,26 +20,31 @@ string(Bitmap *b, Point p, Font *ft, char *s, Fcode f)
 
 	x = p.x;
 	y = p.y;
-	if (b->flag&SHIFT){
+	if (b->flag&SHIFT)
+	{
 		x -= b->r.min.x;
 		y -= b->r.min.y;
 	}
 	y += ft->ascent;
 	g = _getfillgc(f, b, ~0);
 
-	while (*s) {
+	while (*s)
+	{
 		n = cachechars(ft, &s, cbuf, Max, &wid, fbuf);
-		if (n <= 0) {
+		if (n <= 0)
+		{
 			s += chartorune(&r, s);
 			continue;
 		}
 		nti = 0;
-		cf = fbuf[0];			/* first font */
+		cf = fbuf[0];			 /* first font */
 		ti[0].chars = cbuf;
 		ti[0].delta = 0;
 		ti[0].font = (xFont)ft->subf[cf].f->id;
-		for (i = 1, j = 1; i < n; i++, j++) {
-			if (fbuf[i] != cf) {	/* font change */
+		for (i = 1, j = 1; i < n; i++, j++)
+		{
+			if (fbuf[i] != cf)	 /* font change */
+			{
 				cf = fbuf[i];
 				ti[nti++].nchars = j;
 				ti[nti].chars = &cbuf[i];

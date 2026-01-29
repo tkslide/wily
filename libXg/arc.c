@@ -29,7 +29,8 @@ arc(Bitmap *b, Point p0, Point p1, Point p2, int v, Fcode f)
 		delta += 64*360;
 	x = p0.x - r;
 	y = p0.y - r;
-	if(b->flag&SHIFT){
+	if(b->flag&SHIFT)
+	{
 		x -= b->r.min.x;
 		y -= b->r.min.y;
 	}
@@ -41,4 +42,3 @@ arc(Bitmap *b, Point p0, Point p1, Point p2, int v, Fcode f)
 	 */
 	XDrawArc(_dpy, (Drawable)b->id, g, x, y, d, d, start, delta);
 }
-

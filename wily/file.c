@@ -9,13 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-static int		data_getstat		(Data*, char*, char*, Stat*);
-static void	data_opennew		(Data*, char*, char*path);
-static int		data_getdir		(Data*, char*, char*, Stat*);
-static int		data_getfile		(Data*, char*, char*, Stat*);
-static void	data_settag		(Data*, char*);
-static Data *	data_alloc		(void);
+static int      data_getstat        (Data*, char*, char*, Stat*);
+static void data_opennew        (Data*, char*, char*path);
+static int      data_getdir     (Data*, char*, char*, Stat*);
+static int      data_getfile        (Data*, char*, char*, Stat*);
+static void data_settag     (Data*, char*);
+static Data *   data_alloc      (void);
 
 /*
  * Open a new 'data' to represent 'label'.  Either read 'label', or if
@@ -26,31 +25,38 @@ static Data *	data_alloc		(void);
  * exist and we don't want to create it.
  */
 View*
-data_open(char*label, bool create) {
-	Data	*d;
-	Stat	buf;
-	Path	path;
-	bool	failure;
+data_open(char*label, bool create)
+{
+	Data    *d;
+	Stat    buf;
+	Path    path;
+	bool    failure;
 
 	label2path(path, label);
 
 	d = data_alloc();
 	failure = false;
 
-	if(stat(path,&buf)) { /* doesn't exist -- yet */
+	if(stat(path,&buf))			 /* doesn't exist -- yet */
+	{
 		if(create)
 			data_opennew(d, label, path);
 		else
 			failure = true;
-	} else {
+	}
+	else
+	{
 		failure = data_getstat(d, label, path,&buf);
 	}
 
-	if(failure){
+	if(failure)
+	{
 		data_listremove(d);
 		free(d);
 		return 0;
-	} else {
+	}
+	else
+	{
 		if(d->names)
 			add_slash(path);
 		data_settag(d, path);
@@ -59,42 +65,49 @@ data_open(char*label, bool create) {
 	}
 }
 
+
 /*
- * Read file or directory 'label' into 'd'. 
+ * Read file or directory 'label' into 'd'.
  * Return 0 for success.
  */
 int
-data_get(Data *d, char *label) {
-	Stat	buf;
-	Path	path;
+data_get(Data *d, char *label)
+{
+	Stat    buf;
+	Path    path;
 
 	if(data_backup(d))
-		return -1;		/* If we did this, we'd lose data */
+		return -1;				 /* If we did this, we'd lose data */
 
 	if(!label)
-		label = d->label;	/* is strcpy(a,a) bad? */
+		label = d->label;		 /* is strcpy(a,a) bad? */
 	label2path(path,label);
-	if(stat(path,&buf)){
+	if(stat(path,&buf))
+	{
 		diag(0, "Couldn't stat [%s (%s)]", path, label);
 		return -1;
-	} else {
+	}
+	else
+	{
 		return data_getstat(d, label, path, &buf);
 	}
 }
+
 
 /* Load 'd' with 'path', which has stat buffer 'buf'.
  * Returns 0 if we loaded succesfully.
  */
 static int
-data_getstat(Data*d, char* label, char*path, Stat*buf) {
-	int	failed;
+data_getstat(Data*d, char* label, char*path, Stat*buf)
+{
+	int failed;
 
 	cursorswitch(&boxcursor);
 	bflush();
 	undo_reset(d->t);
 	failed =  S_ISDIR(buf->st_mode) ?
-	    data_getdir(d, label, path, buf) :
-	    data_getfile(d, label, path, buf);
+		data_getdir(d, label, path, buf) :
+	data_getfile(d, label, path, buf);
 
 	undo_start(d->t);
 	if(!failed)
@@ -104,9 +117,11 @@ data_getstat(Data*d, char* label, char*path, Stat*buf) {
 	return failed;
 }
 
+
 /* Load 'd' with new file 'path'. */
 static void
-data_opennew(Data*d, char*label, char*path) {
+data_opennew(Data*d, char*label, char*path)
+{
 	/* d */
 	pathcontract(d->label, label);
 	strcpy(d->cachedlabel, d->label);
@@ -125,16 +140,19 @@ data_opennew(Data*d, char*label, char*path) {
 	tag_rmtool(d->tag, "Put");
 }
 
+
 /* Load 'd' with directory 'path', which has stat buffer 'buf'.
  * Returns 0 if we loaded succesfully.
  */
 static int
-data_getdir(Data*d, char*label, char*path, Stat*buf) {
-	DIR*	dirp;
+data_getdir(Data*d, char*label, char*path, Stat*buf)
+{
+	DIR*    dirp;
 
-	if((dirp = opendir(path)) == NULL) {
+	if((dirp = opendir(path)) == NULL)
+	{
 		diag(0, "opendir [%s]", path);
-		return -1;	/* failure - modify nothing */
+		return -1;				 /* failure - modify nothing */
 	}
 
 	/* d */
@@ -158,16 +176,19 @@ data_getdir(Data*d, char*label, char*path, Stat*buf) {
 	return 0;
 }
 
+
 /* Load 'd' with file 'path', which has stat buffer 'buf'.
  * Returns 0 if we loaded succesfully.
  */
 static int
-data_getfile(Data*d, char*label, char*path, Stat*buf) {
-	int	fd;
+data_getfile(Data*d, char*label, char*path, Stat*buf)
+{
+	int fd;
 	extern bool utfHadNulls;
-	if((fd = open(path, O_RDONLY)) == -1) {
+	if((fd = open(path, O_RDONLY)) == -1)
+	{
 		diag(path, "open [%s]", path);
-		return -1;	/* failure - modify nothing */
+		return -1;				 /* failure - modify nothing */
 	}
 
 	/* d */
@@ -184,7 +205,8 @@ data_getfile(Data*d, char*label, char*path, Stat*buf) {
 	utfHadNulls = false;
 	text_read(d->t, fd, buf->st_size);
 	close(fd);
-	if (utfHadNulls) {
+	if (utfHadNulls)
+	{
 		errno=0, diag(path, "nulls or illegal utf in [%s]", path);
 		data_setbackup(d,0);
 	}
@@ -196,9 +218,11 @@ data_getfile(Data*d, char*label, char*path, Stat*buf) {
 	return 0;
 }
 
+
 /* Fill 'buf' with appropriate stuff for d's tag */
 static void
-data_settag(Data *d, char *path) {
+data_settag(Data *d, char *path)
+{
 	char *buf = NULL;
 	char *common;
 	char *specific;
@@ -207,25 +231,27 @@ data_settag(Data *d, char *path) {
 	specific = tag_match(path);
 
 	/* 
-     * asprintf handles the formatting and memory allocation.
-     * It returns the number of bytes allocated, or -1 on error.
-     */
-	int result = asprintf(&buf, "%s %s | %s %s ", 
-	    d->label, 
-	    d->names ? "Get" : "", 
-	    common, 
-	    specific);
+	 * asprintf handles the formatting and memory allocation.
+	 * It returns the number of bytes allocated, or -1 on error.
+	 */
+	int result = asprintf(&buf, "%s %s | %s %s ",
+		d->label,
+		d->names ? "Get" : "",
+		common,
+		specific);
 
-	if (result != -1) {
+	if (result != -1)
+	{
 		tag_set(d->tag, buf);
-		free(buf); // Clean up the dynamic buffer after use
+		free(buf);				 // Clean up the dynamic buffer after use
 	}
 }
 
 
 static Data *
-data_alloc(void) {
-	Data	*d;
+data_alloc(void)
+{
+	Data    *d;
 	static Id id;
 
 	d = NEW(Data);

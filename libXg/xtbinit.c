@@ -35,20 +35,24 @@
 static int log_2(int);
 
 /* libg globals */
-Bitmap	screen;
-Font	*font, *fixed;
+Bitmap  screen;
+Font    *font, *fixed;
 
 /* implementation globals */
-Display		*_dpy;
-Widget		_toplevel;
-unsigned long	_fgpixel, _bgpixel;
-XColor		_fgcolor, _bgcolor;
-int		_ld2d[6] = { 
-	1, 2, 4, 8, 16, 24 };
-unsigned long	_ld2dmask[6] = { 
-	0x1, 0x3, 0xF, 0xFF, 0xFFFF, 0x00FFFFFF };
-Colormap	_libg_cmap;
-int		_cmap_installed;
+Display     *_dpy;
+Widget      _toplevel;
+unsigned long   _fgpixel, _bgpixel;
+XColor      _fgcolor, _bgcolor;
+int     _ld2d[6] =
+{
+	1, 2, 4, 8, 16, 24
+};
+unsigned long   _ld2dmask[6] =
+{
+	0x1, 0x3, 0xF, 0xFF, 0xFFFF, 0x00FFFFFF
+};
+Colormap    _libg_cmap;
+int     _cmap_installed;
 
 /* xbinit implementation globals */
 #ifndef R3
@@ -59,69 +63,72 @@ static int exposed = 0;
 static Atom wm_take_focus;
 static Mouse lastmouse;
 
-typedef struct Ebuf {
-	struct Ebuf	*next;
-	int		n;
-	unsigned char	buf[2];
+typedef struct Ebuf
+{
+	struct Ebuf *next;
+	int     n;
+	unsigned char   buf[2];
 } Ebuf;
 
-typedef struct Esrc {
-	int	inuse;
-	int	size;
-	int	count;
-	Ebuf	*head;
-	Ebuf	*tail;
-	XtInputId	id;
+typedef struct Esrc
+{
+	int inuse;
+	int size;
+	int count;
+	Ebuf    *head;
+	Ebuf    *tail;
+	XtInputId   id;
 } Esrc;
 
-#define	MAXINPUT	1024		/* number of queued input events */
-#define MAXSRC 		10
+#define MAXINPUT    1024		 /* number of queued input events */
+#define MAXSRC      10
 
-static Esrc	esrc[MAXSRC];
-static int	nsrc;
-
+static Esrc esrc[MAXSRC];
+static int  nsrc;
 
 static int einitcalled = 0;
 static int Smouse = -1;
 static int Skeyboard = -1;
 static int Stimer = -1;
-static XtIntervalId	timerid;
+static XtIntervalId timerid;
 
-static Font *	initfont(char *, 	XFontStruct *, char *);
-static void	reshaped(int, int, int, int);
-static void	gotchar(int);
-static void	gotmouse(Gwinmouse *);
-static int	log_2(int);
-static void	pixtocolor(Pixel, XColor *);
-static Subfont	*XFontStructtoSubfont(XFontStruct *);
-static Ebuf	*ebread(Esrc *);
-static Ebuf	*ebadd(Esrc *);
-static void	focinit(Widget);
-static void	wmproto(Widget, XEvent *, String *, Cardinal *);
-static void	waitevent(void);
+static Font *   initfont(char *,    XFontStruct *, char *);
+static void reshaped(int, int, int, int);
+static void gotchar(int);
+static void gotmouse(Gwinmouse *);
+static int  log_2(int);
+static void pixtocolor(Pixel, XColor *);
+static Subfont  *XFontStructtoSubfont(XFontStruct *);
+static Ebuf *ebread(Esrc *);
+static Ebuf *ebadd(Esrc *);
+static void focinit(Widget);
+static void wmproto(Widget, XEvent *, String *, Cardinal *);
+static void waitevent(void);
 
-static Errfunc	onerr;
+static Errfunc  onerr;
 
-String _fallbacks[] = {
+String _fallbacks[] =
+{
 	"*gwin.width: 800",
-	    "*gwin.height: 600",
-	    NULL
+	"*gwin.height: 600",
+	NULL
 };
 
 #ifndef R3
-static char *shelltrans = 
+static char *shelltrans =
 "<ClientMessage> WM_PROTOCOLS : WMProtocolAction()";
-static XtActionsRec wmpactions[] = {
+static XtActionsRec wmpactions[] =
+{
 	{"WMProtocolAction", wmproto}
 };
-
 #endif
 
 /* too many X options */
-static XrmOptionDescRec optable[] = {
-	{"-p9fn",	"*p9font",	XrmoptionSepArg,        (caddr_t)NULL},
-	{"-p9font",	"*p9font",	XrmoptionSepArg,        (caddr_t)NULL},
-	{"-p9fixed",	"*p9fixed",	XrmoptionSepArg,        (caddr_t)NULL},
+static XrmOptionDescRec optable[] =
+{
+	{"-p9fn",   "*p9font",  XrmoptionSepArg,        (caddr_t)NULL},
+	{"-p9font", "*p9font",  XrmoptionSepArg,        (caddr_t)NULL},
+	{"-p9fixed",    "*p9fixed", XrmoptionSepArg,        (caddr_t)NULL},
 };
 
 static int
@@ -133,6 +140,7 @@ ioerr(Display *d)
 		exit(1);
 	return 0;
 }
+
 
 void
 xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
@@ -147,7 +155,8 @@ xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
 	XSetWindowAttributes attr;
 	int compose;
 
-	if(!class && argv[0]){
+	if(!class && argv[0])
+	{
 		p = strrchr(argv[0], '/');
 		if(p)
 			class = XtNewString(p+1);
@@ -160,43 +169,44 @@ xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
 	if (!fallbacks)
 		fallbacks = _fallbacks;
 	n = 0;
-	XtSetArg(args[n], XtNinput, TRUE);		
+	XtSetArg(args[n], XtNinput, TRUE);
 	n++;
 	_toplevel = XtAppInitialize(&app, class,
-	    optable, sizeof(optable)/sizeof(optable[0]),
-	    pargc, argv, fallbacks, args, n);
+		optable, sizeof(optable)/sizeof(optable[0]),
+		pargc, argv, fallbacks, args, n);
 
 	n = 0;
-	XtSetArg(args[n], XtNreshaped, reshaped);	
+	XtSetArg(args[n], XtNreshaped, reshaped);
 	n++;
-	XtSetArg(args[n], XtNgotchar, gotchar);		
+	XtSetArg(args[n], XtNgotchar, gotchar);
 	n++;
-	XtSetArg(args[n], XtNgotmouse, gotmouse);	
+	XtSetArg(args[n], XtNgotmouse, gotmouse);
 	n++;
 	widg = XtCreateManagedWidget("gwin", gwinWidgetClass, _toplevel, args, n);
 
 	n = 0;
-	XtSetArg(args[n], XtNforeground, &_fgpixel);	
+	XtSetArg(args[n], XtNforeground, &_fgpixel);
 	n++;
-	XtSetArg(args[n], XtNbackground, &_bgpixel);	
+	XtSetArg(args[n], XtNbackground, &_bgpixel);
 	n++;
-	XtSetArg(args[n], XtNdepth, &depth);		
+	XtSetArg(args[n], XtNdepth, &depth);
 	n++;
-	XtSetArg(args[n], XtNfont, &xf);		
+	XtSetArg(args[n], XtNfont, &xf);
 	n++;
-	XtSetArg(args[n], XtNp9font, &fontname);	
+	XtSetArg(args[n], XtNp9font, &fontname);
 	n++;
-	XtSetArg(args[n], XtNp9fixed, &fixedname);	
+	XtSetArg(args[n], XtNp9fixed, &fixedname);
 	n++;
-	XtSetArg(args[n], XtNcomposeMod, &compose);	
+	XtSetArg(args[n], XtNcomposeMod, &compose);
 	n++;
 	XtGetValues(widg, args, n);
 	XSetIOErrorHandler(ioerr);
 	//XSetErrorHandler(ioerr);
 
-	if (compose < 0 || compose > 5) {
+	if (compose < 0 || compose > 5)
+	{
 		n = 0;
-		XtSetArg(args[n], XtNcomposeMod, 0);	
+		XtSetArg(args[n], XtNcomposeMod, 0);
 		n++;
 		XtSetValues(widg, args, n);
 	}
@@ -216,7 +226,8 @@ xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
 	font = initfont(fontname, xf, "variable");
 	fixed = initfont(fixedname, 0, "fixed");
 	/* leave screen rect at all zeros until reshaped() sets it */
-	while(!exposed) {
+	while(!exposed)
+	{
 		XFlush(_dpy);
 		XtAppProcessEvent(app, XtIMXEvent);
 	}
@@ -224,30 +235,34 @@ xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
 	focinit(_toplevel);
 }
 
+
 static Font *
-initfont(char *name, 	XFontStruct *xf, char *backupname)
+initfont(char *name,    XFontStruct *xf, char *backupname)
 {
 	/* Given (in order of preference)
 	 * 'name' which may be the name of a font file,
 	 * 'backupfont' which may be an XFontStruct,
 	 * and 'backupname', which is the name of an X font.
 	 */
-	Font	*f;
+	Font    *f;
 
-	if (name) {
+	if (name)
+	{
 		f = rdfontfile(name, screen.ldepth);
 		if (f && charwidth(f, (Rune) ' ') != 0)
 			return f;
 	}
 	if (xf)
 		return mkfont(XFontStructtoSubfont(xf));
-	return mkfont(getsubfont(backupname));	/* just has to work */
+								 /* just has to work */
+	return mkfont(getsubfont(backupname));
 }
+
 
 static void
 focinit(Widget w)
 {
-#ifndef R3
+	#ifndef R3
 	XrmValue src, dst;
 
 	src.addr = "WM_TAKE_FOCUS";
@@ -258,8 +273,9 @@ focinit(Widget w)
 	XSetWMProtocols(XtDisplay(w), XtWindow(w), &wm_take_focus, 1);
 	XtAppAddActions(app, wmpactions, XtNumber(wmpactions));
 	XtAugmentTranslations(w, XtParseTranslationTable(shelltrans));
-#endif
+	#endif
 }
+
 
 #ifndef R3
 static void
@@ -268,7 +284,8 @@ wmproto(Widget w, XEvent *e , String *p, Cardinal *np)
 	Time t;
 
 	if(e->type == ClientMessage &&
-	    (Atom)(e->xclient.data.l[0]) == wm_take_focus) {
+		(Atom)(e->xclient.data.l[0]) == wm_take_focus)
+	{
 		t = (Time) e->xclient.data.l[1];
 		XtCallAcceptFocus(widg, &t);
 	}
@@ -283,11 +300,13 @@ reshaped(int minx, int miny, int maxx, int maxy)
 
 	screen.r = Rect(minx, miny, maxx, maxy);
 	screen.clipr = screen.r;
-	if (screen.id) {
+	if (screen.id)
+	{
 		exposed = 1;
 		ereshaped(screen.r);
 	}
-	if(einitcalled){
+	if(einitcalled)
+	{
 		/*
 		 * Cause a mouse event, so programs like sam
 		 * will get out of eread and REALLY do the reshape
@@ -299,6 +318,7 @@ reshaped(int minx, int miny, int maxx, int maxy)
 		esrc[Smouse].count++;
 	}
 }
+
 
 static void
 gotchar(int c)
@@ -313,6 +333,7 @@ gotchar(int c)
 	BPSHORT(eb->buf, (unsigned short)(c & 0xffff));
 	esrc[Skeyboard].count++;
 }
+
 
 static void
 gotmouse(Gwinmouse *gm)
@@ -334,6 +355,7 @@ gotmouse(Gwinmouse *gm)
 	esrc[Smouse].count++;
 }
 
+
 static void
 gotinput(XtPointer cldata, int *pfd, XtInputId *id)
 {
@@ -350,11 +372,13 @@ gotinput(XtPointer cldata, int *pfd, XtInputId *id)
 	eb = ebadd(es);
 	if (eb == 0)
 		return;
-	if(es->size){
+	if(es->size)
+	{
 		n = read(*pfd, (char *)eb->buf, es->size);
 		if (n < 0)
 			n = 0;
-		if(n < es->size) {
+		if(n < es->size)
+		{
 			newe = realloc(eb, sizeof(Ebuf)+n);
 			newe->n = n;
 			if (es->head == eb)
@@ -366,6 +390,7 @@ gotinput(XtPointer cldata, int *pfd, XtInputId *id)
 	}
 	es->count++;
 }
+
 
 static void
 gottimeout(XtPointer cldata, XtIntervalId *id)
@@ -382,6 +407,7 @@ gottimeout(XtPointer cldata, XtIntervalId *id)
 	esrc[Stimer].id = (XtInputId) XtAppAddTimeOut(app, (long)cldata, gottimeout, cldata);
 }
 
+
 static int
 log_2(int n)
 {
@@ -393,21 +419,22 @@ log_2(int n)
 	return i;
 }
 
+
 static void
 pixtocolor(Pixel p, XColor *pc)
 {
-#ifdef R3
+	#ifdef R3
 	Colormap cmap;
 	Arg args[2];
 	int n;
 
 	n = 0;
-	XtSetArg(args[n], XtNcolormap, &cmap);	
+	XtSetArg(args[n], XtNcolormap, &cmap);
 	n++;
 	XtGetValues(_toplevel, args, n);
 	pc->pixel = p;
 	XQueryColor(_dpy, cmap, pc);
-#else
+	#else
 	XrmValue xvf, xvt;
 
 	xvf.size = sizeof(Pixel);
@@ -415,9 +442,10 @@ pixtocolor(Pixel p, XColor *pc)
 	xvt.size = sizeof(XColor);
 	xvt.addr = (XtPointer)pc;
 	if(!XtConvertAndStore(_toplevel, XtRPixel, &xvf, XtRColor, &xvt))
-		pc->pixel = p;	/* maybe that's enough */
-#endif
+		pc->pixel = p;			 /* maybe that's enough */
+	#endif
 }
+
 
 unsigned long
 rgbpix(Bitmap *b, RGB col)
@@ -429,9 +457,10 @@ rgbpix(Bitmap *b, RGB col)
 	RGB map[256], *m;
 	unsigned long d, max, pixel;
 
-	if (!_cmap_installed) {
+	if (!_cmap_installed)
+	{
 		n = 0;
-		XtSetArg(args[n], XtNcolormap, &cmap);	
+		XtSetArg(args[n], XtNcolormap, &cmap);
 		n++;
 		XtGetValues(_toplevel, args, n);
 		c.red = col.red>>16;
@@ -459,6 +488,7 @@ rgbpix(Bitmap *b, RGB col)
 	return pixel;
 }
 
+
 void
 rdcolmap(Bitmap *b, RGB *map)
 {
@@ -467,36 +497,44 @@ rdcolmap(Bitmap *b, RGB *map)
 	Colormap cmap;
 	Arg args[2];
 
-	if (_cmap_installed) {
+	if (_cmap_installed)
+	{
 		cmap = _libg_cmap;
-	} else {
+	}
+	else
+	{
 		i = 0;
-		XtSetArg(args[i], XtNcolormap, &cmap);	
+		XtSetArg(args[i], XtNcolormap, &cmap);
 		i++;
 		XtGetValues(_toplevel, args, i);
 	}
 
 	depth = _ld2d[screen.ldepth];
 	n = 1 << depth;
-	if (depth == 1) {
+	if (depth == 1)
+	{
 		map[0].red = map[0].green = map[0].blue = ~0;
 		map[1].red = map[1].green = map[1].blue = 0;
 	}
-	else {
-		if (n > 256) {
+	else
+	{
+		if (n > 256)
+		{
 			berror("rdcolmap bitmap too deep");
 			return;
 		}
 		for (i = 0; i < n; i++)
 			cols[i].pixel = i;
 		XQueryColors(_dpy, cmap, cols, n);
-		for (i = 0; i < n; i++) {
+		for (i = 0; i < n; i++)
+		{
 			map[i].red = (cols[i].red << 16) | cols[i].red;
 			map[i].green = (cols[i].green << 16) | cols[i].green;
 			map[i].blue = (cols[i].blue << 16) | cols[i].blue;
 		}
 	}
 }
+
 
 void
 wrcolmap(Bitmap *b, RGB *map)
@@ -511,11 +549,15 @@ wrcolmap(Bitmap *b, RGB *map)
 	scr = XtScreen(_toplevel);
 	depth = _ld2d[screen.ldepth];
 	n = 1 << depth;
-	if (n > 256) {
+	if (n > 256)
+	{
 		berror("wrcolmap bitmap too deep");
 		return;
-	} else if (depth > 1) {
-		for (i = 0; i < n; i++) {
+	}
+	else if (depth > 1)
+	{
+		for (i = 0; i < n; i++)
+		{
 			cols[i].red = map[i].red >> 16;
 			cols[i].green = map[i].green >> 16;
 			cols[i].blue = map[i].blue >> 16;
@@ -523,7 +565,8 @@ wrcolmap(Bitmap *b, RGB *map)
 			cols[i].flags = DoRed|DoGreen|DoBlue;
 		}
 		if (!XMatchVisualInfo(_dpy, XScreenNumberOfScreen(scr),
-		    depth, PseudoColor, &vi)) {
+			depth, PseudoColor, &vi))
+		{
 			berror("wrcolmap can't get visual");
 			return;
 		}
@@ -532,12 +575,13 @@ wrcolmap(Bitmap *b, RGB *map)
 		XStoreColors(_dpy, _libg_cmap, cols, n);
 
 		i = 0;
-		XtSetArg(args[i], XtNcolormap, _libg_cmap);	
+		XtSetArg(args[i], XtNcolormap, _libg_cmap);
 		i++;
 		XtSetValues(_toplevel, args, i);
 		_cmap_installed = 1;
 	}
 }
+
 
 Subfont *
 getsubfont(char *s)
@@ -551,6 +595,7 @@ getsubfont(char *s)
 		return 0;
 	return XFontStructtoSubfont(fp);
 }
+
 
 static Subfont *
 XFontStructtoSubfont(XFontStruct *fp)
@@ -573,7 +618,8 @@ XFontStructtoSubfont(XFontStruct *fp)
 	f->n = f->width;
 	f->minchar = 0;
 	f->maxchar = fp->max_char_or_byte2;
-	if (min || max) {
+	if (min || max)
+	{
 		f->maxchar |= (max<<8);
 		f->n *= (max-min+1);
 	}
@@ -584,7 +630,8 @@ XFontStructtoSubfont(XFontStruct *fp)
 	if(!f->info)
 		berror("getsubfont malloc");
 	memset((void*)f->info, 0, (f->n+1)*sizeof(Fontchar));
-	for(i = 0; i < f->n; i++){
+	for(i = 0; i < f->n; i++)
+	{
 		if(fp->per_char)
 			cp = fp->per_char + i;
 		else
@@ -599,6 +646,7 @@ XFontStructtoSubfont(XFontStruct *fp)
 	return f;
 }
 
+
 int
 scrollfwdbut(void)
 {
@@ -611,6 +659,7 @@ scrollfwdbut(void)
 	return v ? 3 : 1;
 }
 
+
 void
 einit(unsigned long keys)
 {
@@ -618,14 +667,16 @@ einit(unsigned long keys)
 	 * Make sure Smouse = log_2(Emouse) and Skeyboard == log_2(Ekeyboard)
 	 */
 	nsrc = 0;
-	if(keys&Emouse){
+	if(keys&Emouse)
+	{
 		Smouse = 0;
 		esrc[Smouse].inuse = 1;
 		esrc[Smouse].size = sizeof(Mouse);
 		esrc[Smouse].count = 0;
 		nsrc = Smouse+1;
 	}
-	if(keys&Ekeyboard){
+	if(keys&Ekeyboard)
+	{
 		Skeyboard = 1;
 		esrc[Skeyboard].inuse = 1;
 		esrc[Skeyboard].size = 1;
@@ -635,6 +686,7 @@ einit(unsigned long keys)
 	}
 	einitcalled = 1;
 }
+
 
 unsigned long
 estart(unsigned long key, int fd, int n)
@@ -646,18 +698,20 @@ estart(unsigned long key, int fd, int n)
 	if(n <= 0 || n > EMAXMSG)
 		n = EMAXMSG;
 	for(i=0; i<MAXSRC; i++)
-		if((key & ~(1<<i)) == 0 && !esrc[i].inuse){
-			if(nsrc <= i)
-				nsrc = i+1;
-			esrc[i].inuse = 1;
-			esrc[i].size = n;
-			esrc[i].count = 0;
-			esrc[i].id =  XtAppAddInput(app, fd, (XtPointer)XtInputReadMask,
-			    gotinput, (XtPointer) &esrc[i]);
-			return 1<<i;
-		}
+		if((key & ~(1<<i)) == 0 && !esrc[i].inuse)
+	{
+		if(nsrc <= i)
+			nsrc = i+1;
+		esrc[i].inuse = 1;
+		esrc[i].size = n;
+		esrc[i].count = 0;
+		esrc[i].id =  XtAppAddInput(app, fd, (XtPointer)XtInputReadMask,
+			gotinput, (XtPointer) &esrc[i]);
+		return 1<<i;
+	}
 	return 0;
 }
+
 
 static void
 rmsource(int s)
@@ -671,26 +725,30 @@ rmsource(int s)
 	esrc[s].head = esrc[s].tail = 0;
 }
 
+
 void
 estop(unsigned long key)
 {
 	int s;
 
 	s = log_2(key);
-	if (!esrc[s].inuse){
+	if (!esrc[s].inuse)
+	{
 		berror("key not in use");
 	}
 	XtRemoveInput(esrc[s].id);
 	rmsource(s);
 }
 
+
 void
 estoptimer(unsigned long key)
 {
-	int	s;
+	int s;
 
 	s = log_2(key);
-	if (!esrc[s].inuse){
+	if (!esrc[s].inuse)
+	{
 		berror("key not in use");
 	}
 	if(Stimer != s)
@@ -699,6 +757,7 @@ estoptimer(unsigned long key)
 	Stimer = -1;
 	rmsource(s);
 }
+
 
 unsigned long
 etimer(unsigned long key, long n)
@@ -710,27 +769,30 @@ etimer(unsigned long key, long n)
 	if(n <= 0)
 		n = 1000;
 	for(i=0; i<MAXSRC; i++)
-		if((key & ~(1<<i)) == 0 && !esrc[i].inuse){
-			if(nsrc <= i)
-				nsrc = i+1;
-			esrc[i].inuse = 1;
-			esrc[i].size = 0;
-			esrc[i].count = 0;
-			esrc[i].head = 0;	/* bugfix by gary */
-			/* Assume an XtInputId can hold an XtIntervalId */
-			esrc[i].id = (XtInputId) XtAppAddTimeOut(
-			    app, n, gottimeout, (XtPointer)n);
-			Stimer = i;
-			return 1<<i;
-		}
+		if((key & ~(1<<i)) == 0 && !esrc[i].inuse)
+	{
+		if(nsrc <= i)
+			nsrc = i+1;
+		esrc[i].inuse = 1;
+		esrc[i].size = 0;
+		esrc[i].count = 0;
+		esrc[i].head = 0;		 /* bugfix by gary */
+		/* Assume an XtInputId can hold an XtIntervalId */
+		esrc[i].id = (XtInputId) XtAppAddTimeOut(
+			app, n, gottimeout, (XtPointer)n);
+		Stimer = i;
+		return 1<<i;
+	}
 	return 0;
 }
+
 
 unsigned long
 event(Event *e)
 {
 	return eread(~0L, e);
 }
+
 
 unsigned long
 eread(unsigned long keys, Event *e)
@@ -744,28 +806,34 @@ eread(unsigned long keys, Event *e)
 	if (XtAppPending(app) & XtIMXEvent)
 		XtAppProcessEvent(app, XtIMXEvent);
 
-	for(;;){
+	for(;;)
+	{
 		for(i=0; i<nsrc; i++)
-			if((keys & (1<<i)) && esrc[i].head){
-				if(i == Smouse)
-					e->mouse = emouse();
-				else if(i == Skeyboard)
-					e->kbdc = ekbd();
-				else if(i == Stimer) {
-					esrc[i].head = 0;
-					esrc[i].count = 0;
-				} else {
-					eb = ebread(&esrc[i]);
-					e->n = eb->n;
-					if(e->n > 0)
-						memcpy((void*)e->data, (void*)eb->buf, e->n);
-					free(eb);
-				}
-				return 1<<i;
+			if((keys & (1<<i)) && esrc[i].head)
+		{
+			if(i == Smouse)
+				e->mouse = emouse();
+			else if(i == Skeyboard)
+				e->kbdc = ekbd();
+			else if(i == Stimer)
+			{
+				esrc[i].head = 0;
+				esrc[i].count = 0;
 			}
+			else
+			{
+				eb = ebread(&esrc[i]);
+				e->n = eb->n;
+				if(e->n > 0)
+					memcpy((void*)e->data, (void*)eb->buf, e->n);
+				free(eb);
+			}
+			return 1<<i;
+		}
 		waitevent();
 	}
 }
+
 
 void
 eflush(unsigned long keys)
@@ -777,16 +845,19 @@ eflush(unsigned long keys)
 		return;
 
 	for(i=0; i<nsrc; i++)
-		if((keys & (1<<i))){
-			for (eb = esrc[i].head; eb; eb = enext) {
-				enext = eb->next;
-				free(eb);
-			}
-			esrc[i].count = 0;
-			esrc[i].head = 0;
-			esrc[i].tail = 0;
+		if((keys & (1<<i)))
+	{
+		for (eb = esrc[i].head; eb; eb = enext)
+		{
+			enext = eb->next;
+			free(eb);
 		}
+		esrc[i].count = 0;
+		esrc[i].head = 0;
+		esrc[i].tail = 0;
+	}
 }
+
 
 Mouse
 emouse(void)
@@ -802,6 +873,7 @@ emouse(void)
 	return m;
 }
 
+
 int
 ekbd(void)
 {
@@ -816,13 +888,16 @@ ekbd(void)
 	return c;
 }
 
+
 int
 ecanread(unsigned long keys)
 {
 	int i;
 
-	for(;;){
-		for(i=0; i<nsrc; i++){
+	for(;;)
+	{
+		for(i=0; i<nsrc; i++)
+		{
 			if((keys & (1<<i)) && esrc[i].head)
 				return 1<<i;
 		}
@@ -833,6 +908,7 @@ ecanread(unsigned long keys)
 	}
 }
 
+
 int
 ecanmouse(void)
 {
@@ -841,6 +917,7 @@ ecanmouse(void)
 	return ecanread(Emouse);
 }
 
+
 int
 ecankbd(void)
 {
@@ -848,6 +925,7 @@ ecankbd(void)
 		berror("keyboard events not selected");
 	return ecanread(Ekeyboard);
 }
+
 
 static Ebuf*
 ebread(Esrc *s)
@@ -858,27 +936,31 @@ ebread(Esrc *s)
 		waitevent();
 	eb = s->head;
 	s->head = s->head->next;
-	if(s->head == 0) {
+	if(s->head == 0)
+	{
 		s->tail = 0;
 		s->count = 0;
 	} else
-		s->count--;
+	s->count--;
 
-#ifdef COMPRESSMOUSE
-	if ((s == &esrc[Smouse]) && (s->head)) {
+	#ifdef COMPRESSMOUSE
+	if ((s == &esrc[Smouse]) && (s->head))
+	{
 		Ebuf *t = s->head;
 
-		while(t->next && ((Mouse*) t->buf)->buttons == ((Mouse*) t->next->buf)->buttons) {
+		while(t->next && ((Mouse*) t->buf)->buttons == ((Mouse*) t->next->buf)->buttons)
+		{
 			s->head = t->next;
 			s->count--;
 			free(t);
 			t = s->head;
 		}
 	}
-#endif
+	#endif
 
 	return eb;
 }
+
 
 static Ebuf*
 ebadd(Esrc *s)
@@ -888,30 +970,35 @@ ebadd(Esrc *s)
 
 	m = sizeof(Ebuf);
 	if(s->size > 1)
-		m += (s->size-1);	/* overestimate, because of alignment */
+		m += (s->size-1);		 /* overestimate, because of alignment */
 	eb = (Ebuf *)malloc(m);
-	if(eb) {
+	if(eb)
+	{
 		eb->next = 0;
 		eb->n = s->size;
-		if(s->tail){
+		if(s->tail)
+		{
 			s->tail->next = eb;
 			s->tail = eb;
 		} else
-			s->head = s->tail = eb;
+		s->head = s->tail = eb;
 	}
 	return eb;
 }
+
 
 void
 berror(char *s)
 {
 	if(onerr)
 		(*onerr)(s);
-	else{
+	else
+	{
 		fprintf(stderr, "libg error: %s:\n", s);
 		exit(1);
 	}
 }
+
 
 void
 bflush(void)
@@ -920,10 +1007,11 @@ bflush(void)
 		waitevent();
 }
 
+
 static void
 waitevent(void)
 {
-	XtInputMask	mask;
+	XtInputMask mask;
 
 	XFlush(_dpy);
 
@@ -935,6 +1023,7 @@ waitevent(void)
 		XtAppProcessEvent(app, XtIMAll);
 }
 
+
 int
 snarfswap(char *s, int n, char **t)
 {
@@ -944,17 +1033,20 @@ snarfswap(char *s, int n, char **t)
 	return 0;
 }
 
+
 char*
 select_get(void)
 {
 	return Gwinselect_get(widg);
 }
 
+
 void
 select_put(char*s)
 {
 	Gwinselect_put(widg,s);
 }
+
 
 int scrpix(int *w, int *h)
 {
@@ -965,6 +1057,7 @@ int scrpix(int *w, int *h)
 	return 1;
 }
 
+
 #ifdef DEBUG
 /* for debugging */
 printgc(char *msg, GC g)
@@ -972,11 +1065,10 @@ printgc(char *msg, GC g)
 	XGCValues v;
 
 	XGetGCValues(_dpy, g, GCFunction|GCForeground|GCBackground|GCFont|
-	    GCTile|GCFillStyle|GCStipple, &v);
+		GCTile|GCFillStyle|GCStipple, &v);
 	fprintf(stderr, "%s: gc %x\n", msg, g);
 	fprintf(stderr, "  fg %d bg %d func %d fillstyle %d font %x tile %x stipple %x\n",
-	    v.foreground, v.background, v.function, v.fill_style,
-	    v.font, v.tile, v.stipple);
+		v.foreground, v.background, v.function, v.fill_style,
+		v.font, v.tile, v.stipple);
 }
 #endif
-

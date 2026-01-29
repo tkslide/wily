@@ -8,14 +8,14 @@
 #include <string.h>
 #include <ctype.h>
 
-/* The tag for a window contains: a label then whitespace, then some 
+/* The tag for a window contains: a label then whitespace, then some
  * system-maintained tools, then a pipe symbol, then user stuff.
  */
 
 static char * whitespace_regexp = "[ \t\n]+";
-static Range	tag_findtool(Text *, char*);
+static Range    tag_findtool(Text *, char*);
 
-static bool		wily_modifying_tag = false;
+static bool     wily_modifying_tag = false;
 
 /************************************************
 	Gettools and Settools only used by the messaging interface.
@@ -23,35 +23,46 @@ static bool		wily_modifying_tag = false;
 	TODO - ensure space before/after "|" separator.
 ************************************************/
 char*
-tag_gettools(Text*t){
+tag_gettools(Text*t)
+{
 	Range r;
 
 	r = nr;
-	if(text_utfregexp(t, "\\|.*", &r, true)) {
+	if(text_utfregexp(t, "\\|.*", &r, true))
+	{
 		r.p0++;
 		return text_duputf(t, r);
-	} else {
+	}
+	else
+	{
 		return "";
 	}
 }
 
-void
-tag_settools(Text*t, char*s) {
-	Range r = nr;
-	ulong	len;
 
-	if(text_utfregexp(t, "\\|.*", &r, true)) {
+void
+tag_settools(Text*t, char*s)
+{
+	Range r = nr;
+	ulong   len;
+
+	if(text_utfregexp(t, "\\|.*", &r, true))
+	{
 		r.p0++;
-	} else {
+	}
+	else
+	{
 		len = text_length(t);
 		r = range(len,len);
 	}
 	text_replaceutf(t,r,s);
 }
 
+
 void
-tag_set(Text*t, char*s) {
-	View	*v;
+tag_set(Text*t, char*s)
+{
+	View    *v;
 
 	assert(TEXT_ISTAG(t));
 
@@ -62,18 +73,20 @@ tag_set(Text*t, char*s) {
 	wily_modifying_tag = false;
 }
 
+
 void
 tag_setlabel(Text *t, char *s)
 {
-	Range	r;
-	Path		buf;
-	ulong	l;
+	Range   r;
+	Path        buf;
+	ulong   l;
 
 	wily_modifying_tag = true;
 
 	/* find first whitespace_regexp */
 	r = range(0,0);
-	if(! text_utfregexp(t, whitespace_regexp, &r, true)) {
+	if(! text_utfregexp(t, whitespace_regexp, &r, true))
+	{
 		l = text_length(t);
 		r = range(l,l);
 	}
@@ -84,12 +97,13 @@ tag_setlabel(Text *t, char *s)
 	wily_modifying_tag = false;
 }
 
+
 /* Remove 's' from the tool section of tag 't', if it exists there.
  */
 void
 tag_rmtool(Text *t, char *s)
 {
-	Range	r;
+	Range   r;
 
 	wily_modifying_tag = true;
 
@@ -101,14 +115,17 @@ tag_rmtool(Text *t, char *s)
 	wily_modifying_tag = false;
 }
 
+
 /* Replace 'r' in 't' with 's' and a trailing space */
 static void
-place_tool(Text*t, Range r, char*s) {
-	Path	tmp;
+place_tool(Text*t, Range r, char*s)
+{
+	Path    tmp;
 
 	sprintf(tmp, "%s ", s);
 	text_replaceutf(t,r,tmp);
 }
+
 
 /* 
  * Add a string to represent a running command to 't'.
@@ -118,20 +135,22 @@ place_tool(Text*t, Range r, char*s) {
  * tag could read "xterm xterm "
  */
 void
-tag_addrunning(Text *t, char *cmd) {
-	Range	r;
+tag_addrunning(Text *t, char *cmd)
+{
+	Range   r;
 
 	r = tag_findtool(t,cmd);
-	r.p0  = r.p1;	/* don't replace */
+	r.p0  = r.p1;				 /* don't replace */
 	place_tool(t,r,cmd);
 }
 
+
 /* Add 's' to the tool section of tag 't', unless it's there already.
-*/
+ */
 void
 tag_addtool(Text *t, char *s)
 {
-	Range	r;
+	Range   r;
 
 	wily_modifying_tag = true;
 
@@ -143,6 +162,7 @@ tag_addtool(Text *t, char *s)
 	wily_modifying_tag = false;
 }
 
+
 /* If 's' is in the system tools section of t, return the range
  * containing 's' and all the immediately following whitespace.
  * Otherwise return a 0-length range where the next tool
@@ -151,13 +171,16 @@ tag_addtool(Text *t, char *s)
 static Range
 tag_findtool(Text*t, char*s)
 {
-	Range	pos, endpos;
-	ulong	l;
+	Range   pos, endpos;
+	ulong   l;
 
 	endpos = pos = nr;
-	if(text_findliteralutf(t, &endpos, "|")) {
+	if(text_findliteralutf(t, &endpos, "|"))
+	{
 		endpos.p1 = endpos.p0;
-	} else {
+	}
+	else
+	{
 		l = text_length(t);
 		endpos = range(l,l);
 	}
@@ -168,15 +191,17 @@ tag_findtool(Text*t, char*s)
 	return endpos;
 }
 
+
 /*
  * 't' has been modified in some fashion. 'p' is the index of the
  * most recently modified character.
  */
 void
-tag_modified(Text*t, ulong p) {
-	Range	r;
-	Path		buf;
-	int		n;
+tag_modified(Text*t, ulong p)
+{
+	Range   r;
+	Path        buf;
+	int     n;
 
 	assert(t->data && TEXT_ISTAG(t));
 	if( wily_modifying_tag)
@@ -184,12 +209,15 @@ tag_modified(Text*t, ulong p) {
 
 	/* find first whitespace_regexp */
 	r = nr;
-	if(text_utfregexp(t, whitespace_regexp, &r, true)) {
+	if(text_utfregexp(t, whitespace_regexp, &r, true))
+	{
 		if(p>r.p0)
 			return;
 		r.p1 = r.p0;
 		r.p0 = 0;
-	} else {
+	}
+	else
+	{
 		r = text_all(t);
 	}
 

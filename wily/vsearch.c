@@ -6,32 +6,36 @@
 #include "view.h"
 #include <errno.h>
 
-static bool	view_literal(View**vp, Range*r, char*s);
-static bool	view_gotofile(View**vp, Range *r, char *s);
+static bool view_literal(View**vp, Range*r, char*s);
+static bool view_gotofile(View**vp, Range *r, char *s);
 
 /* If 'label' is the label of some existing file, return View for it. */
 View*
-openlabel(char*label, bool create) {
+openlabel(char*label, bool create)
+{
 	View*v;
-	Path	contracted;
+	Path    contracted;
 
 	pathcontract(contracted,label);
 
-	if ( (v=data_find(contracted)) ) {
+	if ( (v=data_find(contracted)) )
+	{
 		tile_show(v->tile);
 		return v;
 	} else if ( (v=data_open(contracted,create)) )
-		return v;
+	return v;
 	else
 		return 0;
 }
 
+
 /* Look (builtin) for 'arg' in the context of 'v' */
 void
-view_look (View *v, char *arg) {
-	bool		found = false;
-	ulong	p;
-	Range	r;
+view_look (View *v, char *arg)
+{
+	bool        found = false;
+	ulong   p;
+	Range   r;
 
 	assert(ISBODY(v));
 
@@ -41,20 +45,27 @@ view_look (View *v, char *arg) {
 	p = (v->sel.p0 + 1) % text_length(v->t);
 	r = range(p, p);
 
-	if(arg) {
+	if(arg)
+	{
 		found = text_findliteralutf(v->t, &r, arg);
-	} else if (RLEN(v->sel) ){
+	}
+	else if (RLEN(v->sel) )
+	{
 		found = text_look(v->t, &r, v->sel);
-	} else {
+	}
+	else
+	{
 		found = false;
 	}
 
-	if(found){
+	if(found)
+	{
 		view_show(v,r);
 		view_select(v, r);
 		view_setlastselection(v);
 	}
 }
+
 
 /*
  * Search for address 's'.  Use *vp for context, *r as the starting point
@@ -68,26 +79,29 @@ view_look (View *v, char *arg) {
  * NB modifies 's'
  */
 bool
-view_goto(View**vp, Range *r, char *s) {
+view_goto(View**vp, Range *r, char *s)
+{
 	return view_gotofile(vp,r,s) || view_literal(vp, r,s);
 }
+
 
 /* We've clicked the 'goto' button, selecting 'r' in 'v'
  * If this window is under external control, just send the event,
  * otherwise expand the selection, and 'goto' it, in the context of 'v'.
  */
 void
-b3(View *v, Range r) {
-	char	*s;
+b3(View *v, Range r)
+{
+	char    *s;
 	View *oldv;
 	Range expanded;
-	Data	*d;
+	Data    *d;
 	View*found;
 
 	/* Try to send simply expanded version to remote process */
 	expanded = view_expand(v, r, notaddress);
 	if (!RLEN(expanded))
-		return;	/* empty click nowhere -- ignore */
+		return;					 /* empty click nowhere -- ignore */
 	s = text_duputf(v->t, expanded);
 	d = view_data(v);
 	oldv = v;
@@ -96,15 +110,22 @@ b3(View *v, Range r) {
 	if(data_sendgoto(d,expanded, s))
 		goto cleanup;
 
-
-	if (view_gotofile(&v, &expanded, s)) { /* Simple file? */
+								 /* Simple file? */
+	if (view_gotofile(&v, &expanded, s))
+	{
 		r = expanded;
-	} else if ( (found = openinclude(v,r)) ) {
+	}
+	else if ( (found = openinclude(v,r)) )
+	{
 		v = found;
 		r = found->sel;
-	} else if (view_literal(&v, &expanded, s)) { /* Literal? */
+	}							 /* Literal? */
+	else if (view_literal(&v, &expanded, s))
+	{
 		r = expanded;
-	} else {	/* found nothing */
+	}							 /* found nothing */
+	else
+	{
 		goto cleanup;
 	}
 
@@ -116,40 +137,48 @@ b3(View *v, Range r) {
 	if (oldv != tile_tag(view_win(v)))
 		view_warp(v,r);
 
-cleanup:
+	cleanup:
 	free(s);
 }
+
 
 /* Search for literal 's' in '*vp' starting at '*r'.
  * If we find a match, update 'vp' and 'r' and return true,
  * otherwise, return false.
  */
 static bool
-view_literal(View**vp, Range*r, char*s) {
+view_literal(View**vp, Range*r, char*s)
+{
 	View*v;
-	Text	*t;
-	Range	tmp;
+	Text    *t;
+	Range   tmp;
 
 	v = *vp;
 	tmp = *r;
 	/* Only makes sense if 'v' is a body or we can find a useful body */
-	if(!ISBODY(v)){
-		if ((v = view_body(v)) || (v = view_body(last_selection))) {
+	if(!ISBODY(v))
+	{
+		if ((v = view_body(v)) || (v = view_body(last_selection)))
+		{
 			tmp = v->sel;
-		} else {
+		}
+		else
+		{
 			return false;
 		}
 	}
 	assert(ISBODY(v));
 
 	t = v->t;
-	if(text_findliteralutf(t, &tmp, s)) {
+	if(text_findliteralutf(t, &tmp, s))
+	{
 		*vp = v;
 		*r = tmp;
 		return true;
 	}
 	return false;
 }
+
 
 /*
  * Search for address 'a'.  Use *vp for context, *r as the starting point
@@ -160,55 +189,65 @@ view_literal(View**vp, Range*r, char*s) {
  * 's' may be of the form path:addr, or path, or :addr.
  */
 static bool
-view_gotofile(View**vp, Range *r, char *a) {
-	Path	s;
-	View	*v = *vp;
-	View	*v2;
-	char *colon;	/* preserve the colon */
-	Path	label;
+view_gotofile(View**vp, Range *r, char *a)
+{
+	Path    s;
+	View    *v = *vp;
+	View    *v2;
+	char *colon;				 /* preserve the colon */
+	Path    label;
 
-	if (strlen(a) > sizeof(Path)-1) {
+	if (strlen(a) > sizeof(Path)-1)
+	{
 		errno=0;
 		diag(0, "couldn't goto \"%s\": path too long", a);
 		return false;
 	}
 	strcpy(s,a);
 	colon = strchr(s, ':');
-	if (colon) {
+	if (colon)
+	{
 		*colon=0;
 	}
 
 	/* look for 's' as a file or directory */
-	if(strlen(s)) {
+	if(strlen(s))
+	{
 		/* 'path' or 'path:addr' */
 		data_addcontext(view_data(v), label, s);
-		if( (v2=openlabel(label, false))){
-			if(colon) {
+		if( (v2=openlabel(label, false)))
+		{
+			if(colon)
+			{
 				Range oldr = v2->sel;
 
-				if(!text_search(v2->t, r, colon+1, v2->sel)) {
+				if(!text_search(v2->t, r, colon+1, v2->sel))
+				{
 					*r = oldr;
 				}
-			} else {
+			}
+			else
+			{
 				*r = v2->sel;
 			}
 			*vp = v2;
 			return true;
-		} else 
-			return false;	/* bad path */
+		} else
+		return false;			 /* bad path */
 	}
 	assert(!strlen(s));
 
 	/* :addr by itself then */
-	if(!ISBODY(v)){
+	if(!ISBODY(v))
+	{
 		if( ! ((v = view_body(v)) || (v = view_body(last_selection))) )
 			return false;
 	}
 	*r = v->sel;
-	if (text_search(v->t, r, colon+1, v->sel)) {
+	if (text_search(v->t, r, colon+1, v->sel))
+	{
 		*vp = v;
 		return true;
 	}
 	return false;
 }
-

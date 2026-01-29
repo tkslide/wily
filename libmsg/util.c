@@ -19,6 +19,7 @@ ladjust(ulong val, Range r, int len)
 		return val;
 }
 
+
 ulong
 radjust(ulong val, Range r, int len)
 {
@@ -30,6 +31,7 @@ radjust(ulong val, Range r, int len)
 	else
 		return val;
 }
+
 
 /* Clip a value to be between two other values */
 int
@@ -44,11 +46,13 @@ clip(int orig, int low, int high)
 	return orig;
 }
 
+
 Range
 rclip(Range r, Range c)
 {
 	return range( pclipr(r.p0, c), pclipr(r.p1, c));
 }
+
 
 ulong
 pclipr(ulong p, Range r)
@@ -56,11 +60,13 @@ pclipr(ulong p, Range r)
 	return clip(p, r.p0, r.p1);
 }
 
+
 Range
 intersect (Range a, Range b)
 {
 	return range(MAX(a.p0, b.p0), MIN(a.p1, b.p1));
 }
+
 
 Range
 range(ulong p0, ulong p1)
@@ -72,11 +78,13 @@ range(ulong p0, ulong p1)
 	return r;
 }
 
+
 Range
 maybereverserange(ulong p0, ulong p1)
 {
 	return (p0 <= p1)? range(p0,p1) : range(p1,p0);
 }
+
 
 /* "Safe" realloc.   Currently all it does is crash cleanly
  * if it runs out of memory.
@@ -91,12 +99,14 @@ srealloc(void *orig, int size)
 	size = size? size: 2;
 	p = orig? realloc(orig, size) : malloc(size);
 
-	if (!p){
+	if (!p)
+	{
 		perror("alloc");
 		abort();
 	}
 	return p;
 }
+
 
 /* "Safe" alloc.   Currently all it does is crash cleanly
  * if it runs out of memory.
@@ -111,9 +121,10 @@ salloc(int size)
 	size = size? size : sizeof(int);
 	p = malloc(size);
 	if (!p)
-		abort();	/* todo */
+		abort();				 /* todo */
 	return p;
 }
+
 
 /* Print to stderr
  */
@@ -125,4 +136,3 @@ eprintf(char *fmt, ...)
 	va_start(args,fmt);
 	vfprintf(stderr, fmt, args);
 }
-

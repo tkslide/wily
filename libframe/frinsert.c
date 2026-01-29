@@ -4,9 +4,9 @@
 #include <libg.h>
 #include <frame.h>
 
-#define	DELTA	25
-#define	TMPSIZE	256
-static Frame		frame;
+#define DELTA   25
+#define TMPSIZE 256
+static Frame        frame;
 
 static
 Point
@@ -14,7 +14,7 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 {
 	int w, c, nb, delta, nl, nr, rw;
 	Frbox *b;
-	char *s, tmp[TMPSIZE+3];	/* +3 for rune overflow */
+	char *s, tmp[TMPSIZE+3];	 /* +3 for rune overflow */
 	uchar *p;
 
 	frame.r = f->r;
@@ -26,15 +26,18 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 	frame.nchars = 0;
 	delta = DELTA;
 	nl = 0;
-	for(nb=0; sp<ep && nl<=f->maxlines; nb++,frame.nbox++){
-		if(nb == frame.nalloc){
+	for(nb=0; sp<ep && nl<=f->maxlines; nb++,frame.nbox++)
+	{
+		if(nb == frame.nalloc)
+		{
 			_frgrowbox(&frame, delta);
 			if(delta < 10000)
 				delta *= 2;
 		}
 		b = &frame.box[nb];
 		c = *sp;
-		if(c=='\t' || c=='\n'){
+		if(c=='\t' || c=='\n')
+		{
 			b->a.b.bc = c;
 			b->wid = 5000;
 			b->a.b.minwid = (c=='\n')? 0 : charwidth(frame.font, ' ');
@@ -43,11 +46,14 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 				nl++;
 			frame.nchars++;
 			sp++;
-		} else{
+		}
+		else
+		{
 			s = tmp;
 			nr = 0;
 			w = 0;
-			while(sp < ep){
+			while(sp < ep)
+			{
 				c = *sp;
 				if(c=='\t' || c=='\n')
 					break;
@@ -73,13 +79,15 @@ bxscan(Frame *f, Rune *sp, Rune *ep, Point *ppt)
 	return _frdraw(&frame, *ppt);
 }
 
+
 static
 void
 chopframe(Frame *f, Point pt, ulong p, int bn)
 {
 	Frbox *b;
 
-	for(b = &f->box[bn]; ; b++){
+	for(b = &f->box[bn]; ; b++)
+	{
 		if(b >= &f->box[f->nbox])
 			berror("endofframe");
 		_frcklinewrap(f, &pt, b);
@@ -90,9 +98,10 @@ chopframe(Frame *f, Point pt, ulong p, int bn)
 	}
 	f->nchars = p;
 	f->nlines = f->maxlines;
-	if(b<&f->box[f->nbox])				/* BUG */
+	if(b<&f->box[f->nbox])		 /* BUG */
 		_frdelbox(f, (int)(b-f->box), f->nbox-1);
 }
+
 
 void
 frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
@@ -101,7 +110,8 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	Frbox *b;
 	int n, n0, nn0, y;
 	Rectangle r;
-	static struct{
+	static struct
+	{
 		Point pt0, pt1;
 	}*pts;
 	static int nalloc=0;
@@ -115,8 +125,10 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	ppt0 = pt0;
 	pt1 = bxscan(f, sp, ep, &ppt0);
 	ppt1 = pt1;
-	if(n0 < f->nbox){
-		_frcklinewrap(f, &pt0, b = &f->box[n0]);	/* for frselectf() */
+	if(n0 < f->nbox)
+	{
+								 /* for frselectf() */
+		_frcklinewrap(f, &pt0, b = &f->box[n0]);
 		_frcklinewrap0(f, &ppt1, b);
 	}
 	f->modified = 1;
@@ -125,7 +137,7 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	 * insertion is complete. pt0 is current location of insertion position
 	 * (p0); pt1 is terminal point (without line wrap) of insertion.
 	 */
-	if(p0==f->p0 && p0==f->p1)		/* quite likely */
+	if(p0==f->p0 && p0==f->p1)	 /* quite likely */
 		frselectf(f, pt0, pt0, F&~D);
 	else
 		frselectp(f, F&~D);
@@ -137,19 +149,23 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	 * If pt1 goes off the rectangle, we can toss everything from there on
 	 */
 	for(b = &f->box[n0],npts=0;
-	    pt1.x!=pt0.x && pt1.y!=f->r.max.y && n0<f->nbox; b++,n0++,npts++){
+		pt1.x!=pt0.x && pt1.y!=f->r.max.y && n0<f->nbox; b++,n0++,npts++)
+	{
 		_frcklinewrap(f, &pt0, b);
 		_frcklinewrap0(f, &pt1, b);
-		if(b->nrune > 0){
+		if(b->nrune > 0)
+		{
 			n = _frcanfit(f, pt1, b);
 			if(n == 0)
 				berror("_frcanfit==0");
-			if(n != b->nrune){
+			if(n != b->nrune)
+			{
 				_frsplitbox(f, n0, n);
 				b = &f->box[n0];
 			}
 		}
-		if(npts == nalloc){
+		if(npts == nalloc)
+		{
 			pts = pts? realloc(pts, (npts+DELTA)*sizeof(pts[0])) : malloc((npts+DELTA)*sizeof(pts[0])) ;
 			nalloc += DELTA;
 			b = &f->box[n0];
@@ -164,13 +180,15 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	}
 	if(pt1.y > f->r.max.y)
 		berror("frinsert pt1 too far");
-	if(pt1.y==f->r.max.y && n0<f->nbox){
+	if(pt1.y==f->r.max.y && n0<f->nbox)
+	{
 		f->nchars -= _frstrlen(f, n0);
 		_frdelbox(f, n0, f->nbox-1);
 	}
 	if(n0 == f->nbox)
 		f->nlines = (pt1.y-f->r.min.y)/f->font->height+(pt1.x>f->left);
-	else if(pt1.y!=pt0.y){
+	else if(pt1.y!=pt0.y)
+	{
 		int q0, q1;
 
 		y = f->r.max.y;
@@ -179,7 +197,8 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 		f->nlines += (q1-q0)/f->font->height;
 		if(f->nlines > f->maxlines)
 			chopframe(f, ppt1, p0, nn0);
-		if(pt1.y < y){
+		if(pt1.y < y)
+		{
 			r = f->r;
 			r.min.y = q0;
 			r.max.y = y-(q1-q0);
@@ -195,15 +214,18 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	 * between the insertion and the point where the x's lined up.
 	 * The bitblts above moved everything down after the point they lined up.
 	 */
-	for((y=pt1.y==f->r.max.y?pt1.y:0),b = &f->box[n0-1]; --npts>=0; --b){
+	for((y=pt1.y==f->r.max.y?pt1.y:0),b = &f->box[n0-1]; --npts>=0; --b)
+	{
 		pt = pts[npts].pt1;
-		if(b->nrune > 0){
+		if(b->nrune > 0)
+		{
 			r.min = pts[npts].pt0;
 			r.max = r.min;
 			r.max.x += b->wid;
 			r.max.y += f->font->height;
 			bitblt(f->b, pt, f->b, r, S);
-			if(pt.y < y){	/* clear bit hanging off right */
+			if(pt.y < y)		 /* clear bit hanging off right */
+			{
 				r.min = pt;
 				r.max = pt;
 				r.min.x += b->wid;
@@ -212,7 +234,9 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 				bitblt(f->b, r.min, f->b, r, 0);
 			}
 			y = pt.y;
-		} else{
+		}
+		else
+		{
 			r.min = pt;
 			r.max = pt;
 			r.max.x += b->wid;
@@ -228,7 +252,8 @@ frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0)
 	_fraddbox(f, nn0, frame.nbox);
 	for(n=0; n<frame.nbox; n++)
 		f->box[nn0+n] = frame.box[n];
-	if(nn0>0 && f->box[nn0-1].nrune>=0 && ppt0.x-f->box[nn0-1].wid>=(int)f->left){
+	if(nn0>0 && f->box[nn0-1].nrune>=0 && ppt0.x-f->box[nn0-1].wid>=(int)f->left)
+	{
 		--nn0;
 		ppt0.x -= f->box[nn0].wid;
 	}

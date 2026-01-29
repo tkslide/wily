@@ -11,72 +11,96 @@
 	Random garbage
 ****************************************************/
 void
-text_allread (Text*t) {
+text_allread (Text*t)
+{
 	undo_reset(t);
 	undo_start(t);
 	viewlist_refresh(t->v);
 }
 
+
 /****************************************************
 	Simple data access
 ****************************************************/
 Data*
-text_data(Text*t) {
+text_data(Text*t)
+{
 	return t? t->data:0;
 }
 
+
 View*
-text_view(Text*t) {
+text_view(Text*t)
+{
 	return t->v;
 }
 
+
 ulong
-text_length(Text*t) {
+text_length(Text*t)
+{
 	return t->length;
 }
 
+
 bool
-text_needsbackup(Text*t) {
+text_needsbackup(Text*t)
+{
 	return t->needsbackup;
 }
+
 
 /****************************************************
 	Cooked data access
 ****************************************************/
 /* Return body view associated with 't'. */
 View*
-text_body(Text*t) {
-	if(t->data) {
-		if (TEXT_ISTAG(t)) {
+text_body(Text*t)
+{
+	if(t->data)
+	{
+		if (TEXT_ISTAG(t))
+		{
 			t = data_body(t->data);
 			return t->v;
-		} else {
+		}
+		else
+		{
 			return t->v;
 		}
-	} else {
+	}
+	else
+	{
 		return 0;
 	}
 }
+
 
 /****************************************************
 	Simple data manipulations
 ****************************************************/
 
 void
-text_setneedsbackup(Text*t, bool b) {
+text_setneedsbackup(Text*t, bool b)
+{
 	t->needsbackup = b;
 }
 
+
 bool
-text_badrange(Text *t, Range r) {
+text_badrange(Text *t, Range r)
+{
 	return r.p1 > t->length || r.p0 > r.p1;
 }
 
+
 void
-text_addview(Text*t, View*v) {
+text_addview(Text*t, View*v)
+{
 	v->next = t->v;
 	t->v = v;
 }
+
 
 /*
  * Remove 'v' from list of views displaying 't'.  If 'v' was the last
@@ -84,10 +108,12 @@ text_addview(Text*t, View*v) {
  * it up if necessary.  Return 0 for success.
  */
 int
-text_rmview(Text*t, View *v) {
+text_rmview(Text*t, View *v)
+{
 	View**ptr;
 
-	if (t->v ==v && v->next == 0) {
+	if (t->v ==v && v->next == 0)
+	{
 		/* this is the last view */
 		if (t->isbody && data_del(t->data))
 			return -1;
@@ -97,12 +123,14 @@ text_rmview(Text*t, View *v) {
 		;
 	*ptr = v->next;
 
-	if(!t->v) { /* we've deleted the last view */
+	if(!t->v)					 /* we've deleted the last view */
+	{
 		text_free(t);
 		free(t);
 	}
 	return 0;
 }
+
 
 /****************************************************
 	Write to file
@@ -110,12 +138,14 @@ text_rmview(Text*t, View *v) {
 
 /* Write the contents of 't' to 'fname'.  Return 0 for success. */
 int
-text_write(Text *t, char *fname) {
-	int		fd;
-	int		retval;
+text_write(Text *t, char *fname)
+{
+	int     fd;
+	int     retval;
 
 	/* open 0666 and rely on the umask */
-	if((fd = open(fname,O_RDWR|O_CREAT|O_TRUNC, 0666))<0){
+	if((fd = open(fname,O_RDWR|O_CREAT|O_TRUNC, 0666))<0)
+	{
 		diag(fname, "couldn't open %s for write",fname);
 		return 1;
 	}
@@ -126,9 +156,10 @@ text_write(Text *t, char *fname) {
 	return retval;
 }
 
+
 /*Return a file descriptor open for reading from a temporary
  * file which has a copy of the current selection.
- * 
+ *
  * The input for the child comes from the current selection.
  * Put the selection into a text file and attach that text
  * file to the command's fdin.
@@ -142,37 +173,41 @@ text_fd(Text *t, Range sel)
 	int fd = mkstemp(template);
 	int input = -1;
 
-	if (fd < 0) {
+	if (fd < 0)
+	{
 		perror("mkstemp");
 		return -1;
 	}
 
 	/* 
-     * Unlink immediately. On Unix, the file exists as long as 
-     * the FD is open, but no other process can see it in the FS.
-     */
+	 * Unlink immediately. On Unix, the file exists as long as
+	 * the FD is open, but no other process can see it in the FS.
+	 */
 	unlink(template);
 
 	/* 
-     * Since we need a separate FD for reading (input), 
-     * we can duplicate the one we have and then seek.
-     */
-	if ((input = dup(fd)) < 0) {
+	 * Since we need a separate FD for reading (input),
+	 * we can duplicate the one we have and then seek.
+	 */
+	if ((input = dup(fd)) < 0)
+	{
 		perror("dup");
 		goto fail;
 	}
 
 	/* Write the buffer content to the file */
-	if (text_write_range(t, sel, fd)) {
+	if (text_write_range(t, sel, fd))
+	{
 		perror("write temp file");
 		goto fail;
 	}
 
 	/* 
-     * Rewind the 'input' descriptor so the child reads from 
-     * the start of the file.
-     */
-	if (lseek(input, 0, SEEK_SET) == (off_t)-1) {
+	 * Rewind the 'input' descriptor so the child reads from
+	 * the start of the file.
+	 */
+	if (lseek(input, 0, SEEK_SET) == (off_t)-1)
+	{
 		perror("lseek");
 		goto fail;
 	}
@@ -181,7 +216,7 @@ text_fd(Text *t, Range sel)
 	close(fd);
 	return input;
 
-fail:
+	fail:
 	if (fd >= 0) close(fd);
 	if (input >= 0) close(input);
 	return -1;
@@ -191,8 +226,10 @@ fail:
 /****************************************************
 	Auto indent
 ****************************************************/
-enum {
-	MAXAI=128};
+enum
+{
+	MAXAI=128
+};
 
 /*
  * Return an Rstring to be inserted after position 'p',
@@ -205,8 +242,8 @@ text_autoindent(Text *t, ulong p)
 {
 	static Rune buf[MAXAI];
 	Rstring s;
-	Range	r;
-	int	i;
+	Range   r;
+	int i;
 
 	buf[0] = '\n';
 	s.r0 = buf;
@@ -217,12 +254,14 @@ text_autoindent(Text *t, ulong p)
 	text_copy(t, r, buf +1);
 
 	i = 1;
-	while (i <= RLEN(r) && (buf[i] < 128) && isspace(buf[i])) /* FIXME unicode isspace() */
+								 /* FIXME unicode isspace() */
+	while (i <= RLEN(r) && (buf[i] < 128) && isspace(buf[i]))
 		i++;
 	s.r1 = buf + i;
 
 	return s;
 }
+
 
 /****************************************************
 	Convenience functions
@@ -235,26 +274,30 @@ text_autoindent(Text *t, ulong p)
  * in a window of width 'w', with Font 'f'
  */
 int
-back_height(Text *t, ulong p, Font *f, int width, int height) {
-	int	c, hpos;
+back_height(Text *t, ulong p, Font *f, int width, int height)
+{
+	int c, hpos;
 
 	if (p > 0) --p;
-	for( hpos = 0; p>0 && height>0; p--) {
+	for( hpos = 0; p>0 && height>0; p--)
+	{
 		Tgetcset(t,p);
 		c = Tgetc(t);
-		switch(c) {
-		case '\t': 
-			hpos += tabsize; 
-			break;
-		case '\n': 
-			hpos = 0; 
-			height -= f->height; 
-			break;
-		default: 
-			hpos += charwidth(f,c); 
-			break;
+		switch(c)
+		{
+			case '\t':
+				hpos += tabsize;
+				break;
+			case '\n':
+				hpos = 0;
+				height -= f->height;
+				break;
+			default:
+				hpos += charwidth(f,c);
+				break;
 		}
-		if (hpos >= width) {
+		if (hpos >= width)
+		{
 			hpos =0;
 			height -= f->height;
 		}
@@ -262,8 +305,10 @@ back_height(Text *t, ulong p, Font *f, int width, int height) {
 	return p? p+2 : p;
 }
 
+
 Range
-text_all(Text*t){
+text_all(Text*t)
+{
 	Range r;
 
 	r.p0 = 0;
@@ -271,12 +316,15 @@ text_all(Text*t){
 	return r;
 }
 
+
 void
-text_fillbutton(Text*t, Fcode f) {
+text_fillbutton(Text*t, Fcode f)
+{
 	View*v;
 	for(v = t->v; v; v= v->next)
 		view_fillbutton(v,f);
 }
+
 
 /* Try to copy 'n' Runes at 'p' from 't' into 'buf'.
  * Return the number of runes copied.
@@ -284,7 +332,7 @@ text_fillbutton(Text*t, Fcode f) {
 ulong
 text_ncopy(Text *t, Rune*buf, ulong p, ulong n)
 {
-	Range	r;
+	Range   r;
 	if (p >= t->length)
 		return 0;
 	r = range(p, MIN(p+n, t->length));
@@ -292,10 +340,12 @@ text_ncopy(Text *t, Rune*buf, ulong p, ulong n)
 	return RLEN(r);
 }
 
+
 /* Replace 'r' in 't' with 'utf', return the range of newly placed runes */
 Range
-text_replaceutf(Text*t, Range r, char*utf) {
-	Rstring	s;
+text_replaceutf(Text*t, Range r, char*utf)
+{
+	Rstring s;
 
 	s = utf2rstring(utf);
 	r =  text_replace(t, r, s);
@@ -304,14 +354,16 @@ text_replaceutf(Text*t, Range r, char*utf) {
 	return r;
 }
 
+
 /* Return a newly allocated string containing the utf
  * representation of the given range inside 't'
  */
 char *
-text_duputf(Text *t, Range r) {
-	ulong	len = RLEN(r);
-	ulong	n;
-	char	*buf;
+text_duputf(Text *t, Range r)
+{
+	ulong   len = RLEN(r);
+	ulong   n;
+	char    *buf;
 
 	if(!len)
 		return strdup("");
@@ -323,6 +375,7 @@ text_duputf(Text *t, Range r) {
 	return buf;
 }
 
+
 /* Copy Range 'r' from 't', convert it to utf, store it
  * in 'buf', (which must have enough space allocated).
  * Returns the number of utf characters copied.
@@ -330,9 +383,9 @@ text_duputf(Text *t, Range r) {
 int
 text_copyutf(Text*t, Range r, char *buf)
 {
-	Rune	*rbuf;
-	int		rlen;
-	int		n;
+	Rune    *rbuf;
+	int     rlen;
+	int     n;
 
 	rlen = RLEN(r);
 	assert(rlen >= 0);
@@ -347,13 +400,15 @@ text_copyutf(Text*t, Range r, char *buf)
 	return n;
 }
 
+
 /****************************************************
 	Formatting text representing a directory
 ****************************************************/
 static void
-text_getdir(Text *t, char**names) {
-	Frame	*f;
-	char	*s;
+text_getdir(Text *t, char**names)
+{
+	Frame   *f;
+	char    *s;
 
 	f = &t->v->f;
 	s = columnate(Dx(f->r), f->maxtab, f->font, names);
@@ -364,28 +419,34 @@ text_getdir(Text *t, char**names) {
 	free(s);
 }
 
+
 /*
-* If 't' represents a directory, and doesn't have any modified text,
-* reformat the directory and return true.  Otherwise return false.
-*/
+ * If 't' represents a directory, and doesn't have any modified text,
+ * reformat the directory and return true.  Otherwise return false.
+ */
 bool
 text_refreshdir(Text*t)
 {
 	char**names;
 
-	if ( t->isbody && (names = data_names(t->data)) && undo_atmark(t) && t->v) {
+	if ( t->isbody && (names = data_names(t->data)) && undo_atmark(t) && t->v)
+	{
 		text_getdir(t, names);
 		return true;
-	} else {
+	}
+	else
+	{
 		return false;
 	}
 }
+
 
 /* Reformat 'd' (which must hold a directory) to fit nicely
  * in the smallest view displaying it.
  */
 void
-text_formatdir(Text *t, char**names) {
+text_formatdir(Text *t, char**names)
+{
 	if(!(t->v && names))
 		return;
 

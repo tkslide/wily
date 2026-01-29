@@ -10,7 +10,7 @@
 #endif
 #ifdef STDC_HEADERS
 #include <string.h>
-#endif /* STDC_HEADERS */
+#endif							 /* STDC_HEADERS */
 
 /*
  * use defines to rename X11 types Cursor, Font, Event
@@ -20,8 +20,8 @@
 #define Font xFont
 #define Event xEvent
 
-#if	defined(v10) || defined(HPUX)
-typedef	char*	caddr_t;
+#if defined(v10) || defined(HPUX)
+typedef char*   caddr_t;
 #endif
 
 #include <X11/Xlib.h>
@@ -33,26 +33,26 @@ typedef	char*	caddr_t;
 #undef Event
 
 /* Return a GCs for solid filling/strings/etc., segments/points, and tiling */
-extern GC	_getfillgc(Fcode, Bitmap*, unsigned long);
-extern GC	_getcopygc(Fcode, Bitmap*, Bitmap*, int*);
-extern GC	_getgc(Bitmap*, unsigned long, XGCValues *);
+extern GC   _getfillgc(Fcode, Bitmap*, unsigned long);
+extern GC   _getcopygc(Fcode, Bitmap*, Bitmap*, int*);
+extern GC   _getgc(Bitmap*, unsigned long, XGCValues *);
 
 /* convert between different bitmap depths */
-extern void	_ldconvert(char *, int, char *, int, int, int);
+extern void _ldconvert(char *, int, char *, int, int, int);
 
 /* balloc without zero init (which uses a gc!) */
-extern Bitmap	*_balloc(Rectangle, int);
+extern Bitmap   *_balloc(Rectangle, int);
 
 /* X Display for this application's connection */
-extern Display	*_dpy;
+extern Display  *_dpy;
 
 /* screen depth foreground and background for this application */
-extern unsigned long	_fgpixel, _bgpixel;
-extern XColor		_fgcolor, _bgcolor;
+extern unsigned long    _fgpixel, _bgpixel;
+extern XColor       _fgcolor, _bgcolor;
 
 /* indexed by log depth (0 <= ld <= 5), to give depth and planemask */
-extern int		_ld2d[];
-extern unsigned long	_ld2dmask[];
+extern int      _ld2d[];
+extern unsigned long    _ld2dmask[];
 
 /* libg.h defines:
  *   extern Bitmap screen;   -- Bitmap for application Window after xbinit()
@@ -77,17 +77,19 @@ extern unsigned long	_ld2dmask[];
  */
 
 /* values for bitmap flag field (see _getcopygc if change first two vals) */
-enum {
-	DP1=	0x1,	/* depth == 1 (ldepth == 0) */
-	BL1=	0x2,	/* black == 1 model */
-	SCR=	0x4,	/* on screen */
-	ZORG=	0x8,	/* r.min == Pt(0,0) */
-	SHIFT= 0x20,	/* !SCR & !ZORG */
-	CLIP=  0x40	/* r != clipr */
+enum
+{
+	DP1=    0x1,				 /* depth == 1 (ldepth == 0) */
+	BL1=    0x2,				 /* black == 1 model */
+	SCR=    0x4,				 /* on screen */
+	ZORG=   0x8,				 /* r.min == Pt(0,0) */
+	SHIFT= 0x20,				 /* !SCR & !ZORG */
+	CLIP=  0x40					 /* r != clipr */
 };
 
 /* values for return bltfunc arg of _getcopygc */
-enum {
+enum
+{
 	UseCopyArea,
 	UseCopyPlane,
 	UseFillRectangle

@@ -11,7 +11,8 @@ point(Bitmap *b, Point p, int v, Fcode f)
 
 	x = p.x;
 	y = p.y;
-	if(b->flag&SHIFT){
+	if(b->flag&SHIFT)
+	{
 		x -= b->r.min.x;
 		y -= b->r.min.y;
 	}

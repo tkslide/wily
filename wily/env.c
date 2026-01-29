@@ -8,26 +8,29 @@
 #include <sys/stat.h>
 
 typedef struct Abbrev Abbrev;
-struct Abbrev {
-	Path	env;
-	Stat	buf;
+struct Abbrev
+{
+	Path    env;
+	Stat    buf;
 };
 
 static struct Abbrev *abbrev = 0;
 static int nabbrev = 0, maxabbrev = 0;
 
-static bool	foundmatch	(char*dest, char*orig);
-static bool	contract		(char*dest, char*orig);
-static void	newenv		(char *env, Stat*buf);
-static Abbrev*	findstat		(Stat*buf);
+static bool foundmatch  (char*dest, char*orig);
+static bool contract        (char*dest, char*orig);
+static void newenv      (char *env, Stat*buf);
+static Abbrev*  findstat        (Stat*buf);
 
 void
-env_init(char **envp) {
-	char	*env, *ptr;
-	Stat	buf;
+env_init(char **envp)
+{
+	char    *env, *ptr;
+	Stat    buf;
 
 	/* Add environment variables */
-	while ( (env = *envp++)) {
+	while ( (env = *envp++))
+	{
 		if (! (ptr = strchr(env, '=')) )
 			continue;
 		*ptr ++ = 0;
@@ -37,69 +40,92 @@ env_init(char **envp) {
 	}
 }
 
+
 /* Copy shorter version of 'orig' into 'dest' */
 void
-pathcontract(char*dest, char *orig) {
-	if(orig[0]=='/' && contract(dest, orig)) {
-		;	/* we're done */
-	} else {
+pathcontract(char*dest, char *orig)
+{
+	if(orig[0]=='/' && contract(dest, orig))
+	{
+		;						 /* we're done */
+	}
+	else
+	{
 		strcpy(dest,orig);
 	}
 }
+
 
 /******************************************************
 	static functions
 ******************************************************/
 
 static bool
-foundmatch(char*dest, char*orig){
-	Stat	buf;
-	Abbrev	*ab;
+foundmatch(char*dest, char*orig)
+{
+	Stat    buf;
+	Abbrev  *ab;
 
-	if(!stat(orig,&buf) && (ab = findstat(&buf))){
+	if(!stat(orig,&buf) && (ab = findstat(&buf)))
+	{
 		sprintf(dest, "$%s", ab->env);
 		return true;
-	} else {
+	}
+	else
+	{
 		return false;
 	}
 }
 
-static bool
-contract(char*dest, char*orig) {
-	char*lastslash;
-	bool	retval;
 
-	if(foundmatch(dest, orig)) {
+static bool
+contract(char*dest, char*orig)
+{
+	char*lastslash;
+	bool    retval;
+
+	if(foundmatch(dest, orig))
+	{
 		return true;
-	} else {
+	}
+	else
+	{
 		lastslash = strrchr(orig,'/');
-		if(lastslash) {
+		if(lastslash)
+		{
 			*lastslash = '\0';
 			retval = contract(dest,orig);
 			*lastslash = '/';
-			if(retval) {
+			if(retval)
+			{
 				strcat(dest, lastslash);
 			}
 			return retval;
-		} else {
+		}
+		else
+		{
 			return false;
 		}
 	}
 }
 
+
 static void
-newenv(char *env, Stat*buf) {
+newenv(char *env, Stat*buf)
+{
 	Abbrev*new;
 	Abbrev*old;
 
 	/* "I told him we've already got one" Holy Grail */
-	if((old = findstat(buf))){
+	if((old = findstat(buf)))
+	{
 		if(strlen(env)<strlen(old->env))
 			strcpy(old->env, env);
 		return;
 	}
 
-	if (nabbrev == maxabbrev) {
+	if (nabbrev == maxabbrev)
+	{
 		maxabbrev = maxabbrev? maxabbrev*2 : maxabbrev + 2;
 		abbrev = srealloc(abbrev, maxabbrev * sizeof(*abbrev));
 	}
@@ -108,8 +134,10 @@ newenv(char *env, Stat*buf) {
 	new->buf = *buf;
 }
 
+
 static Abbrev*
-findstat(Stat*buf){
+findstat(Stat*buf)
+{
 	Abbrev*ab;
 
 	for(ab = abbrev; ab < abbrev + nabbrev; ab++)
@@ -117,4 +145,3 @@ findstat(Stat*buf){
 			return ab;
 	return 0;
 }
-

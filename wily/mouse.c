@@ -6,49 +6,56 @@
 #include "view.h"
 #include <ctype.h>
 
-static void		b2			(View *, Range, bool);
-static void		dobutton		(View *, Mouse *);
-static void		doscroll		(View *, Mouse *);
-static void		action		(View *, Mouse *, Range, ulong);
+static void     b2          (View *, Range, bool);
+static void     dobutton        (View *, Mouse *);
+static void     doscroll        (View *, Mouse *);
+static void     action      (View *, Mouse *, Range, ulong);
 
 /* PRE: a mouse button is down
  * POST: no mouse buttons down, we've probably done something.
  */
 void
-domouse(View	*v, Mouse *m) {
+domouse(View    *v, Mouse *m)
+{
 	assert(m->buttons);
 
-	if ( POINTINSCROLL(m->xy, v) ) {
+	if ( POINTINSCROLL(m->xy, v) )
+	{
 		if(v->scroll)
 			doscroll(v,m);
 		else
 			dobutton(v, m);
-	} else {
-		ulong	oldbuttons = m->buttons;
-		Range	r = vselect(v, m);
+	}
+	else
+	{
+		ulong   oldbuttons = m->buttons;
+		Range   r = vselect(v, m);
 
 		action(v, m, r, oldbuttons);
 	}
 }
+
 
 /******************************************************
 	static functions
 ******************************************************/
 
 static void
-dobutton(View *v, Mouse *orig) {
+dobutton(View *v, Mouse *orig)
+{
 	Mouse m;
-	Tile	*tile = view_tile(v);
+	Tile    *tile = view_tile(v);
 
 	assert(ISTAG(v));
 	assert(orig->buttons);
 
-	if(tile == wily)		/* can't move the main window this way */
+	if(tile == wily)			 /* can't move the main window this way */
 		return;
 
 	/* swap cursor, follow mouse until button state changes */
 	cursorswitch(&boxcursor);
-	do {
+	do
+	{
 		m = emouse();
 	} while(m.buttons == orig->buttons);
 	cursorswitch(cursor);
@@ -57,12 +64,14 @@ dobutton(View *v, Mouse *orig) {
 	if(m.buttons)
 		return;
 
-	if (distance(m.xy, orig->xy) < SMALLDISTANCE) {
+	if (distance(m.xy, orig->xy) < SMALLDISTANCE)
+	{
 		tile_grow(tile, orig->buttons);
 		cursorset(buttonpos(tile));
 	} else
-		tile_move(tile, m.xy);
+	tile_move(tile, m.xy);
 }
+
 
 /*
  * Some builtins should always be applied to the window where
@@ -70,11 +79,14 @@ dobutton(View *v, Mouse *orig) {
  *
  * BUG: Doesn't check for leading whitespace which *is* removed in run().
  */
-static char *locals[] = {
-	"Look", "Put", "Get", "Undo", "Redo", 0};
+static char *locals[] =
+{
+	"Look", "Put", "Get", "Undo", "Redo", 0
+};
 static bool
-islocal(char *s) {
-	char	**ptr;
+islocal(char *s)
+{
+	char    **ptr;
 
 	for (ptr =locals; *ptr; ptr++)
 		if (!strncmp(s, *ptr, strlen(*ptr)))
@@ -82,13 +94,15 @@ islocal(char *s) {
 	return false;
 }
 
+
 /* clicked button 2 in 'v' selecting 'r'.  'ischord' is true
  * if we also clicked button 1.
  */
 static void
-b2(View *v, Range r, bool ischord) {
-	char	*cmd,*arg;
-	View	*ls = last_selection;
+b2(View *v, Range r, bool ischord)
+{
+	char    *cmd,*arg;
+	View    *ls = last_selection;
 
 	r = view_expand(v, r, notcommand);
 	if(!RLEN(r))
@@ -96,8 +110,9 @@ b2(View *v, Range r, bool ischord) {
 
 	cmd = text_duputf(v->t, r);
 
-	if(ischord && ls  && RLEN(ls->sel) < 200) {
-		Range	rarg;
+	if(ischord && ls  && RLEN(ls->sel) < 200)
+	{
+		Range   rarg;
 
 		rarg = view_expand(ls, ls->sel, notfilename);
 		arg = text_duputf(ls->t, rarg);
@@ -106,7 +121,7 @@ b2(View *v, Range r, bool ischord) {
 		if(!islocal(cmd))
 			v = ls;
 	} else
-		arg = 0;
+	arg = 0;
 
 	if (!data_sendexec(view_data(v),cmd, arg))
 		run(v, cmd, arg);
@@ -116,46 +131,64 @@ b2(View *v, Range r, bool ischord) {
 		free(arg);
 }
 
+
 /*
  * Currently mouse is like 'm', originally we had 'oldbuttons'.  When
  * we're finished, v's display should be correct, and no mouse buttons
  * should be down.
  */
 static void
-action(View *v, Mouse *m, Range r, ulong oldbuttons) {
+action(View *v, Mouse *m, Range r, ulong oldbuttons)
+{
 	/* mouse button state has changed, possibly do something */
 	assert(m->buttons != oldbuttons);
 
-	if (oldbuttons&LEFT) {
-		enum {
-			Cancut = 1, Canpaste = 2		} state = Cancut | Canpaste;
+	if (oldbuttons&LEFT)
+	{
+		enum
+		{
+			Cancut = 1, Canpaste = 2
+		} state = Cancut | Canpaste;
 
-		while(m->buttons) {
-			if(m->buttons&MIDDLE) {
-				if (state&Cancut) {
+		while(m->buttons)
+		{
+			if(m->buttons&MIDDLE)
+			{
+				if (state&Cancut)
+				{
 					view_cut(v, v->sel);
 					state = Canpaste;
 				}
-			} else if ( m->buttons&RIGHT) {
-				if (state&Canpaste) {
+			}
+			else if ( m->buttons&RIGHT)
+			{
+				if (state&Canpaste)
+				{
 					view_paste(v);
 					state = Cancut;
 				}
 			}
 			*m = emouse();
 		}
-	} else if (oldbuttons & MIDDLE) {
-		if(m->buttons) {
-			if(m->buttons&LEFT)	/* chord */
+	}
+	else if (oldbuttons & MIDDLE)
+	{
+		if(m->buttons)
+		{
+			if(m->buttons&LEFT)	 /* chord */
 				b2(v,r,true);
-			while (m->buttons)	/* wait for button up */
+			while (m->buttons)	 /* wait for button up */
 				*m = emouse();
-		} else {
+		}
+		else
+		{
 			b2(v,r,false);
 		}
-	} else {
+	}
+	else
+	{
 		assert((oldbuttons&RIGHT));
-		if(m->buttons)	/* cancelled a b3 */
+		if(m->buttons)			 /* cancelled a b3 */
 			while (m->buttons)
 				*m = emouse();
 		else
@@ -163,19 +196,21 @@ action(View *v, Mouse *m, Range r, ulong oldbuttons) {
 	}
 }
 
+
 /* PRE:  'e' a mouse event in 'v', but not in v's frame, so probably in
  * the scrollbar.  'v' is a body frame.
  * POST:  we've tracked the mouse until all the buttons are down,
  * and have scrolled if we should have.
  */
 static void
-doscroll(View *v, Mouse	*m ) {
-	ulong	buttons;
-	ulong	timer;
-	ulong	type;
-	int		delay = DOUBLECLICK / SCROLLTIME;
-	bool		firstmouse;
-	Event	e;
+doscroll(View *v, Mouse *m )
+{
+	ulong   buttons;
+	ulong   timer;
+	ulong   type;
+	int     delay = DOUBLECLICK / SCROLLTIME;
+	bool        firstmouse;
+	Event   e;
 
 	assert(ptinrect(m->xy, v->r));
 	assert(v->scroll);
@@ -189,15 +224,20 @@ doscroll(View *v, Mouse	*m ) {
 
 	/* start waiting for timer events */
 	timer = etimer(0, SCROLLTIME);
-	do {
+	do
+	{
 		assert(type== timer || type == Emouse);
 
-		if(type==Emouse) {
-			if (firstmouse) {
+		if(type==Emouse)
+		{
+			if (firstmouse)
+			{
 				firstmouse = false;
 				view_scroll(v, m);
 			}
-		} else {
+		}
+		else
+		{
 			if(delay)
 				delay--;
 			else
@@ -212,4 +252,3 @@ doscroll(View *v, Mouse	*m ) {
 	while (m->buttons)
 		eread(Emouse, &e);
 }
-

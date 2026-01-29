@@ -13,7 +13,8 @@ ellipse(Bitmap *bp, Point p, int a, int b, int v, Fcode f)
 
 	x = p.x - a;
 	y = p.y - b;
-	if (bp->flag&SHIFT){
+	if (bp->flag&SHIFT)
+	{
 		x -= bp->r.min.x;
 		y -= bp->r.min.y;
 	}

@@ -4,7 +4,6 @@
 #include "libgint.h"
 #include <stdlib.h>
 
-
 Bitmap*
 balloc(Rectangle r, int ldepth)
 {
@@ -14,6 +13,7 @@ balloc(Rectangle r, int ldepth)
 	bitblt(b, r.min, b, r, Zero);
 	return b;
 }
+
 
 Bitmap*
 _balloc(Rectangle r, int ldepth)
@@ -36,7 +36,7 @@ _balloc(Rectangle r, int ldepth)
 	if (Dy(rx) == 0)
 		rx.max.y++;
 	id = (int) XCreatePixmap(_dpy, (Drawable)screen.id,
-	    Dx(rx), Dy(rx), _ld2d[ld]);
+		Dx(rx), Dy(rx), _ld2d[ld]);
 	b->ldepth = ldepth;
 	b->r = r;
 	b->clipr = r;
@@ -52,6 +52,7 @@ _balloc(Rectangle r, int ldepth)
 		b->flag |= SHIFT;
 	return b;
 }
+
 
 void
 bfree(Bitmap *b)

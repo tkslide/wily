@@ -1,16 +1,16 @@
 /* wily.c */
-extern char*filetools; 
+extern char*filetools;
 extern char*dirtools;
 
 /* global.c */
 extern bool show_dot_files;
 extern bool autoindent_enabled;
 extern View *last_selection;
-extern View	*last_focus;
+extern View *last_focus;
 extern char * notfilename, *notdoubleclick , *notcommand,
-		*notaddress, *notinclude;
-extern char*	whitespace;
-extern Path	wilydir;
+*notaddress, *notinclude;
+extern char*    whitespace;
+extern Path wilydir;
 
 /* icons.c */
 extern Cursor boxcursor;
@@ -22,4 +22,4 @@ extern Tile *wily;
 
 /* wily.c */
 extern int tagheight;
-extern int tabsize;	/* ../sam/libframe/frinit.c */
+extern int tabsize;				 /* ../sam/libframe/frinit.c */

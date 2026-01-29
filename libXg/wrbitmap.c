@@ -21,7 +21,7 @@ wrbitmap(Bitmap *b, int miny, int maxy, unsigned char *data)
 	h = maxy - miny;
 	inld = b->ldepth;
 	outld = (b->ldepth == 0) ? 0 : screen.ldepth;
-	px = 1<<(3-outld);	/* pixels per byte */
+	px = 1<<(3-outld);			 /* pixels per byte */
 	/* set l to number of bytes of data per scan line */
 	if(b->r.min.x >= 0)
 		offset = b->r.min.x % px;

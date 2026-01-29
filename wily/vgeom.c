@@ -5,16 +5,18 @@
 #include "wily.h"
 #include "view.h"
 
-static Rectangle	snap(View*v, Rectangle r);
-static Rectangle	resizebox(Rectangle r);
-static void		rfill(Rectangle r, Fcode f);
-static void		button_set(View *v);
-static void		setrects(View*v, Rectangle r);
+static Rectangle    snap(View*v, Rectangle r);
+static Rectangle    resizebox(Rectangle r);
+static void     rfill(Rectangle r, Fcode f);
+static void     button_set(View *v);
+static void     setrects(View*v, Rectangle r);
 
 void
-view_fillbutton(View*v, Fcode f){
+view_fillbutton(View*v, Fcode f)
+{
 	rfill(resizebox(v->r), f);
 }
+
 
 /*
 PRE: v->visible.p0 is correct.  The text which is currently
@@ -25,12 +27,13 @@ POST:  The frame is displaying everything it should,
 and v->visible.p1 is set.
 */
 void
-fill(View *v) {
-	Frame	*f = &v->f;
-	ulong	p; 	/* text position of last visible rune */
-	Rune	buf[FILLCHUNK];
-	int		n;
-	Text		*t = v->t;
+fill(View *v)
+{
+	Frame   *f = &v->f;
+	ulong   p;					 /* text position of last visible rune */
+	Rune    buf[FILLCHUNK];
+	int     n;
+	Text        *t = v->t;
 
 	/* view_invariants may not hold at this point */
 
@@ -39,7 +42,8 @@ fill(View *v) {
 
 	/* Add runes until we exhaust the text or fill the frame */
 	p = v->visible.p0 + f->nchars;
-	while (!frame_isfull(f) && (n = text_ncopy(t, buf, p, FILLCHUNK)) ) {
+	while (!frame_isfull(f) && (n = text_ncopy(t, buf, p, FILLCHUNK)) )
+	{
 		frinsert(f, buf, buf+n, f->nchars);
 		p += n;
 	}
@@ -48,8 +52,8 @@ fill(View *v) {
 
 	if(v->scroll)
 		scroll_set(v->scroll,  v->visible.p0,
-		    f->nchars, text_length(v->t)
-		    );
+			f->nchars, text_length(v->t)
+			);
 	else
 		button_set(v);
 
@@ -62,34 +66,41 @@ fill(View *v) {
 	assert(view_invariants(v));
 }
 
-int
-snapheight(View*v, int h) {
-	int	lines;
-	int	fh = v->f.font->height;
-	int	brdr = 2*INSET;
 
-	if (v->scroll) {
+int
+snapheight(View*v, int h)
+{
+	int lines;
+	int fh = v->f.font->height;
+	int brdr = 2*INSET;
+
+	if (v->scroll)
+	{
 		lines = (h - brdr) / fh;
 		if ((lines == 0) || (h < tagheight))
 			return 0;
 		else
 			return h;
 	} else
-		return brdr + fh;
+	return brdr + fh;
 }
+
 
 /* Try to redraw 'v' inside 'r' */
 void
-view_reshaped(View*v, Rectangle r) {
-	Frame	*f;
-	bool	need_refresh = (Dx(r) != Dx(v->r));
+view_reshaped(View*v, Rectangle r)
+{
+	Frame   *f;
+	bool    need_refresh = (Dx(r) != Dx(v->r));
 
 	assert(view_invariants(v));
 
 	r = snap(v,r);
 	setrects(v, r);
-	if (ISVISIBLE(v)) {
-		if (need_refresh && text_refreshdir(v->t)) {
+	if (ISVISIBLE(v))
+	{
+		if (need_refresh && text_refreshdir(v->t))
+		{
 			v->visible.p0 = v->sel.p0 = v->sel.p1 = 0;
 			frdelete(&v->f, 0, v->f.nchars);
 		}
@@ -116,76 +127,92 @@ view_reshaped(View*v, Rectangle r) {
 	}
 }
 
+
 /* Return point just after the last line in 'v' */
 int
-view_lastlinepos(View*v) {
-	Frame	*f = &v->f;
-	Point	p = frptofchar(f, f->nchars);
-	int	y =  p.y + f->font->height;
+view_lastlinepos(View*v)
+{
+	Frame   *f = &v->f;
+	Point   p = frptofchar(f, f->nchars);
+	int y =  p.y + f->font->height;
 
 	return MIN(y, f->r.max.y);
 }
 
+
 /* Return the amount by which 'v' could be squeezed */
 int
-view_stripwhitespace(View*v) {
-	Frame	*f;
-	int		blanklines;
+view_stripwhitespace(View*v)
+{
+	Frame   *f;
+	int     blanklines;
 
-	if(v && ISVISIBLE(v)) {
+	if(v && ISVISIBLE(v))
+	{
 		f = &v->f;
 		assert(Dy(v->r) >= f->maxlines * f->font->height);
 		blanklines = f->maxlines - f->nlines;
-		if(blanklines > 0) {
+		if(blanklines > 0)
+		{
 			return blanklines * f->font->height;
 		}
 	}
 	return 0;
 }
 
+
 static Rectangle
-snap(View*v, Rectangle r) {
+snap(View*v, Rectangle r)
+{
 	r.max.y = r.min.y + snapheight(v, Dy(r));
 	return  r;
 }
 
+
 /* Fill 'r' according to 'f' */
 static void
-rfill(Rectangle r, Fcode f) {
+rfill(Rectangle r, Fcode f)
+{
 	r = inset(r,2);
 	bitblt(&screen, r.min, &screen, r, f);
 }
 
+
 static Rectangle
-resizebox(Rectangle r) {
+resizebox(Rectangle r)
+{
 	r = inset(r, INSET);
 	r.max.x = r.min.x + SCROLLWIDTH;
 	return r;
 }
 
-static void
-button_set(View *v) {
-	Rectangle	r;
 
-	assert(ISTAG(v));	/* we're a tag */
+static void
+button_set(View *v)
+{
+	Rectangle   r;
+
+	assert(ISTAG(v));			 /* we're a tag */
 	r = resizebox(v->r);
 	border(&screen, r, 1, F);
 	if(data_isdirty(view_data(tile_body(v->tile))))
 		rfill(r, F);
 }
 
+
 /* Set the rectangles for 'v', v's frame and v's scrollbar.
  * Assumes that 'r' is already correct.
  * If we can be displayed, set up the frame and scrollbar.
  */
 static void
-setrects(View*v, Rectangle r) {
-	Frame	*f = &v->f;
-	Font		*ft = f->font;
-	Rectangle	scrollr, framer;
-	Bitmap	*b;
+setrects(View*v, Rectangle r)
+{
+	Frame   *f = &v->f;
+	Font        *ft = f->font;
+	Rectangle   scrollr, framer;
+	Bitmap  *b;
 
-	assert(Dx(r) >= MINWIDTH);	/* Or our tile is bizarre */
+	assert(Dx(r) >= MINWIDTH);	 /* Or our tile is bizarre */
 
 	scrollr = inset(r, INSET);
 	scrollr.max.x = scrollr.min.x + SCROLLWIDTH;
@@ -202,4 +229,3 @@ setrects(View*v, Rectangle r) {
 	frclear(f);
 	frinit(f, framer, ft, b);
 }
-

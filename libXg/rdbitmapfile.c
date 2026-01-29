@@ -33,11 +33,12 @@ rdbitmapfile(int fd)
 
 	miny = r.min.y;
 	maxy = r.max.y;
-	px = 1<<(3-ld);	/* pixels per byte */
+	px = 1<<(3-ld);				 /* pixels per byte */
 	/* set l to number of bytes of data per scan line */
 	if(r.min.x >= 0)
 		l = (r.max.x+px-1)/px - r.min.x/px;
-	else{	/* make positive before divide */
+	else						 /* make positive before divide */
+	{
 		t = (-r.min.x)+px-1;
 		t = (t/px)*px;
 		l = (t+r.max.x+px-1)/px;
@@ -48,12 +49,14 @@ rdbitmapfile(int fd)
 	data = (unsigned char *)malloc(CHUNK);
 	if(data == 0)
 		berror("rdbitmapfile malloc");
-	while(maxy > miny){
+	while(maxy > miny)
+	{
 		dy = maxy - miny;
 		if(dy*l > CHUNK)
 			dy = CHUNK/l;
 		n = dy*l;
-		if(read(fd, data, n) != n){
+		if(read(fd, data, n) != n)
+		{
 			free(data);
 			bfree(b);
 			berror("rdbitmapfile read");

@@ -21,8 +21,8 @@ frdelete(Frame *f, ulong p0, ulong p1)
 	n1 = _frfindbox(f, n0, p0, p1);
 	pt0 = _frptofcharnb(f, p0, n0);
 	pt1 = frptofchar(f, p1);
-	if(f->p0!=p0 || f->p1!=p1)	/* likely they ARE equal */
-		frselectp(f, F&~D);	/* can do better some day */
+	if(f->p0!=p0 || f->p1!=p1)	 /* likely they ARE equal */
+		frselectp(f, F&~D);		 /* can do better some day */
 	frselectf(f, pt0, pt1, 0);
 	if(n0 == f->nbox)
 		berror("off end in frdelete");
@@ -39,14 +39,17 @@ frdelete(Frame *f, ulong p0, ulong p1)
 	 *  region between pt0 and pt1 is clear
 	 */
 	b = &f->box[n1];
-	while(pt1.x!=pt0.x && n1<f->nbox){
+	while(pt1.x!=pt0.x && n1<f->nbox)
+	{
 		_frcklinewrap0(f, &pt0, b);
 		_frcklinewrap(f, &pt1, b);
-		if(b->nrune > 0){
+		if(b->nrune > 0)
+		{
 			n = _frcanfit(f, pt0, b);
 			if(n==0)
 				berror("_frcanfit==0");
-			if(n != b->nrune){
+			if(n != b->nrune)
+			{
 				_frsplitbox(f, n1, n);
 				b = &f->box[n1];
 			}
@@ -64,13 +67,15 @@ frdelete(Frame *f, ulong p0, ulong p1)
 		f->box[n0++] = f->box[n1++];
 		b++;
 	}
-	if(pt1.y != pt0.y){
+	if(pt1.y != pt0.y)
+	{
 		Point pt2;
 
 		pt2 = _frptofcharptb(f, 32767, pt1, n1);
 		if(pt2.y > f->r.max.y)
 			berror("frptofchar in frdelete");
-		if(n1 < f->nbox){
+		if(n1 < f->nbox)
+		{
 			int q0, q1, q2;
 
 			q0 = pt0.y+f->font->height;
@@ -80,10 +85,11 @@ frdelete(Frame *f, ulong p0, ulong p1)
 			bitblt(f->b, Pt(f->r.min.x, q0), f->b, Rect(f->r.min.x, q1, f->r.max.x, q2), S);
 			frselectf(f, Pt(pt2.x, pt2.y-(pt1.y-pt0.y)), pt2, 0);
 		} else
-			frselectf(f, pt0, pt2, 0);
+		frselectf(f, pt0, pt2, 0);
 	}
 	_frclosebox(f, n0, n1-1);
-	if(nn0>0 && f->box[nn0-1].nrune>=0 && ppt0.x-f->box[nn0-1].wid>=(int)f->left){
+	if(nn0>0 && f->box[nn0-1].nrune>=0 && ppt0.x-f->box[nn0-1].wid>=(int)f->left)
+	{
 		--nn0;
 		ppt0.x -= f->box[nn0].wid;
 	}

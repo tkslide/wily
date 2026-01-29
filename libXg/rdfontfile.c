@@ -14,6 +14,7 @@ skip(char *s)
 	return s;
 }
 
+
 Font *
 rdfontfile(char *name, int ldepth)
 {
@@ -29,7 +30,7 @@ rdfontfile(char *name, int ldepth)
 		return 0;
 	if (fstat(fd, &sbuf) < 0)
 	{
-Err0:
+		Err0:
 		close(fd);
 		return 0;
 	}
@@ -41,7 +42,7 @@ Err0:
 	close(fd);
 	if (i != sbuf.st_size)
 	{
-Err1:
+		Err1:
 		free(buf);
 		return 0;
 	}
@@ -54,7 +55,7 @@ Err1:
 	fnt->name = (char *)malloc(strlen(name)+1);
 	if (fnt->name==0)
 	{
-Err2:
+		Err2:
 		free(fnt->name);
 		free(fnt);
 		goto Err1;
@@ -73,14 +74,15 @@ Err2:
 	fnt->nsubf = 0;
 	fnt->subf = 0;
 
-	do {
+	do
+	{
 		min = strtol(s, &s, 0);
 		s = skip(s);
 		max = strtol(s, &s, 0);
 		s = skip(s);
 		if(*s==0 || min>=65536 || max>=65536 || min>max)
 		{
-Err3:
+			Err3:
 			ffree(fnt);
 			return 0;
 		}
@@ -116,6 +118,7 @@ Err3:
 	return fnt;
 }
 
+
 void
 ffree(Font *f)
 {
@@ -123,7 +126,8 @@ ffree(Font *f)
 	Cachesubf *c;
 	unsigned char *b;
 
-	for (i=0; i<f->nsubf; i++){
+	for (i=0; i<f->nsubf; i++)
+	{
 		c = f->subf+i;
 		if (c->f)
 			subffree(c->f);

@@ -18,13 +18,13 @@
 #include "text.h"
 #include <ctype.h>
 
-static void	setgap(Text *t, ulong p, int n);
+static void setgap(Text *t, ulong p, int n);
 
 #ifndef NDEBUG
 static Rune *
 findnull(Rune*start, Rune*end)
 {
-	Rune	*p;
+	Rune    *p;
 
 	for(p=start; p<end; p++)
 		if(!*p)
@@ -36,18 +36,20 @@ findnull(Rune*start, Rune*end)
 bool
 text_invariants(Text *t)
 {
-#ifndef NDEBUG
-	Rune	*p;
+	#ifndef NDEBUG
+	Rune    *p;
 
 	assert(t->gap.p1 >= t->gap.p0);
 	assert(t->gap.p1 <= t->alloced);
 	assert(t->length <= t->alloced);
 	assert(!(p=findnull(t->text, t->text + t->gap.p0)));
 	assert(!(p=findnull(t->text + t->gap.p1, t->text + t->alloced)));
-	assert( TEXT_ISTAG(t) || t->data);  /* if we're not a tag, we have data */
-#endif
+								 /* if we're not a tag, we have data */
+	assert( TEXT_ISTAG(t) || t->data);
+	#endif
 	return true;
 }
+
 
 /* Read the contents of 't' from 'fd', which should have 'len' bytes.
  * Return 0 for success, -1 for failure
@@ -55,16 +57,17 @@ text_invariants(Text *t)
 int
 text_read(Text *t, int fd, int len)
 {
-	int	desired, nread;
-	char	buf[BUFFERSIZE];
+	int desired, nread;
+	char    buf[BUFFERSIZE];
 	extern int utftotext_unconverted;
-	int	offset, end, stop;
+	int offset, end, stop;
 
 	/* Ensure we have enough rune space.  Do it one
 	 * block to avoid fragmentation
 	 */
 	desired = len + GAPSIZE;
-	if (t->alloced < desired) {
+	if (t->alloced < desired)
+	{
 		t->alloced = desired;
 		free(t->text);
 		t->text = salloc(t->alloced * sizeof(Rune));
@@ -73,7 +76,8 @@ text_read(Text *t, int fd, int len)
 	t->pos = 0;
 	offset = 0;
 
-	while (len > 0) {
+	while (len > 0)
+	{
 		desired = MIN(len, BUFFERSIZE - offset - 1);
 		nread = read(fd, buf + offset, desired);
 		if (nread <= 0)
@@ -81,7 +85,7 @@ text_read(Text *t, int fd, int len)
 		len -= nread;
 		stop = end = offset + nread;
 		buf[end] = '\0';
-		if (len > 0) /* if this is not the end of the file */
+		if (len > 0)			 /* if this is not the end of the file */
 			stop -= unfullutfbytes(buf, end);
 		t->length += utftotext(t->text+t->length, buf, buf + stop);
 
@@ -103,28 +107,33 @@ text_read(Text *t, int fd, int len)
 	return 0;
 }
 
+
 /**
  * Convert the runes in [r0, r1) to UTF and write to 'fd'.
  * Return 0 for success.
  **/
 static int
-utfwrite(Rune *r0, Rune *r1, int fd) {
-	char	buf[BUFFERSIZE+UTFmax];
-	Rune	*p;
-	char		*t;
-	int		nwrite, nwritten;
+utfwrite(Rune *r0, Rune *r1, int fd)
+{
+	char    buf[BUFFERSIZE+UTFmax];
+	Rune    *p;
+	char        *t;
+	int     nwrite, nwritten;
 
 	assert(r1 >= r0);
 	assert(fd >= 0);
 
 	p = r0;
-	while(p < r1) {
+	while(p < r1)
+	{
 		t = buf;
-		while(p <r1 && t < buf + BUFFERSIZE) {
+		while(p <r1 && t < buf + BUFFERSIZE)
+		{
 			t += runetochar(t, p++);
 		}
 		nwrite = t-buf;
-		for (t = buf; nwrite > 0; nwrite -= nwritten, t += nwritten) {
+		for (t = buf; nwrite > 0; nwrite -= nwritten, t += nwritten)
+		{
 			nwritten = write(fd, t, nwrite);
 			if (nwritten <= 0)
 				return -1;
@@ -133,37 +142,44 @@ utfwrite(Rune *r0, Rune *r1, int fd) {
 	return 0;
 }
 
+
 void
-gaptranslate (Range r, Range gap, Range *before, Range *after) {
-	Range NULLRANGE = {
-		0,0	};
+gaptranslate (Range r, Range gap, Range *before, Range *after)
+{
+	Range NULLRANGE =
+	{
+		0,0
+	};
 
 	/* Before the gap */
-	*before = (r.p0 < gap.p0) ? 
-	    range(r.p0, MIN(r.p1, gap.p0)) : 
-	    NULLRANGE;
+	*before = (r.p0 < gap.p0) ?
+		range(r.p0, MIN(r.p1, gap.p0)) :
+	NULLRANGE;
 	/* After the gap */
-	*after = (r.p1 > gap.p0) ? 
-	    range (MAX(gap.p1, r.p0 +  RLEN(gap)), r.p1 + RLEN(gap)) :
-	    NULLRANGE;
+	*after = (r.p1 > gap.p0) ?
+		range (MAX(gap.p1, r.p0 +  RLEN(gap)), r.p1 + RLEN(gap)) :
+	NULLRANGE;
 }
+
 
 /* Write section 'r' of 't' to 'fd'.  Return 0 for success */
 int
-text_write_range(Text*t, Range r, int fd) {
-	Range	b, a;	/* before, after the gap */
+text_write_range(Text*t, Range r, int fd)
+{
+	Range   b, a;				 /* before, after the gap */
 
 	gaptranslate(r, t->gap, &b, &a);
 	return utfwrite(t->text + b.p0, t->text + b.p1, fd) ||
-	    utfwrite(t->text + a.p0, t->text + a.p1, fd);
+		utfwrite(t->text + a.p0, t->text + a.p1, fd);
 }
+
 
 /* Fill 'buf' with (legal) range 'logical'. */
 void
 text_copy(Text *t, Range r, Rune *buf)
 {
-	Range	b,a;	/* before and after the gap */
-	ulong	bsize;
+	Range   b,a;				 /* before and after the gap */
+	ulong   bsize;
 
 	assert(text_invariants(t));
 	assert((r.p1 >= r.p0) && (r.p1 <= t->length));
@@ -175,10 +191,11 @@ text_copy(Text *t, Range r, Rune *buf)
 	memcpy(buf, t->text + a.p0, RLEN(a)*sizeof(Rune));
 }
 
+
 Text *
 text_alloc(Data *d, bool isbody)
 {
-	Text	*t;
+	Text    *t;
 
 	t = NEW(Text);
 	t->alloced = 0;
@@ -189,12 +206,13 @@ text_alloc(Data *d, bool isbody)
 	t->gap = nr;
 	t->data = d;
 	t->isbody = isbody;
-	t->v = 0;		/* to be assigned later */
+	t->v = 0;					 /* to be assigned later */
 	t->did = t->undone = t->mark = 0;
 	t->undoing = NoUndo;
 	t->needsbackup = false;
 	return t;
 }
+
 
 /* Replace data in range 'r' of 't' with 's'.  Update displays.
  * Return the range of the inserted text.
@@ -202,9 +220,9 @@ text_alloc(Data *d, bool isbody)
 Range
 text_replace(Text *t, Range r, Rstring s)
 {
-	ulong	rlen = RLEN(r);
-	ulong	rslen = RSLEN(s);
-	int		delta = rslen - rlen;
+	ulong   rlen = RLEN(r);
+	ulong   rslen = RSLEN(s);
+	int     delta = rslen - rlen;
 
 	assert(ROK(r) && RSOK(s) && r.p1 <= t->length);
 	assert(text_invariants(t));
@@ -225,8 +243,8 @@ text_replace(Text *t, Range r, Rstring s)
 
 	viewlist_replace(t->v, r, s);
 
-
-	if(t->data){
+	if(t->data)
+	{
 		if(TEXT_ISTAG(t))
 			tag_modified(t, r.p0);
 		else
@@ -239,6 +257,7 @@ text_replace(Text *t, Range r, Rstring s)
 	return r;
 }
 
+
 /* Clean up any resources which t uses.
  */
 void
@@ -249,6 +268,7 @@ text_free(Text *t)
 		free(t->text);
 }
 
+
 /************* static functions *********************/
 
 static void
@@ -256,27 +276,31 @@ movegap(Text *t, ulong p)
 {
 	assert(text_invariants(t));
 	/* move the gap to 'p' */
-	if (p < t->gap.p0) {
-		memmove(t->text + p + RLEN(t->gap), 
-		    t->text + p,
-		    (t->gap.p0 - p)*sizeof(Rune));
+	if (p < t->gap.p0)
+	{
+		memmove(t->text + p + RLEN(t->gap),
+			t->text + p,
+			(t->gap.p0 - p)*sizeof(Rune));
 		t->gap.p1 -= t->gap.p0 - p;
 		t->gap.p0 = p;
-	} else if (p > t->gap.p0) {
+	}
+	else if (p > t->gap.p0)
+	{
 		memmove (t->text + t->gap.p0,
-		    t->text + t->gap.p1,
-		    (p - t->gap.p0)*sizeof(Rune));
+			t->text + t->gap.p1,
+			(p - t->gap.p0)*sizeof(Rune));
 		t->gap.p1 = p + RLEN(t->gap);
 		t->gap.p0 = p;
 	}
 	assert(text_invariants(t));
 }
 
+
 /* Move the gap for 't' to 'p', ensure we can grow by at least 'n' */
 static void
 setgap(Text *t, ulong p, int n)
 {
-	int	extra;
+	int extra;
 
 	assert(text_invariants(t));
 	movegap(t,p);
@@ -293,9 +317,8 @@ setgap(Text *t, ulong p, int n)
 
 	/* Add this to the gap */
 	memmove (  t->text + t->gap.p1 + extra,
-	    t->text + t->gap.p1,
-	    (t->alloced - extra - t->gap.p1)*sizeof(Rune) );
+		t->text + t->gap.p1,
+		(t->alloced - extra - t->gap.p1)*sizeof(Rune) );
 	t->gap.p1 += extra;
 	assert(text_invariants(t));
 }
-

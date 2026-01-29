@@ -14,20 +14,21 @@
  * will have been frcleared, i.e. not usable
  */
 
-struct View {
-	Rectangle		r;		/* of whole view */
-	Text			*t;
-	Frame		f;
-	Range		visible, sel;		/* visible, selected area */
-	ulong		anchor;	/* where we most recently started typing */
-	Scroll		*scroll;	/* 0 for tag */
-	Tile			*tile;
-	View			*next;	/* list of views displaying same Data */
-	bool			selecting;	/* we're busy dragging out a selection */
-	bool			autoindent;	/* autoindent in this view? */
+struct View
+{
+	Rectangle       r;			 /* of whole view */
+	Text            *t;
+	Frame       f;
+	Range       visible, sel;	 /* visible, selected area */
+	ulong       anchor;			 /* where we most recently started typing */
+	Scroll      *scroll;		 /* 0 for tag */
+	Tile            *tile;
+	View            *next;		 /* list of views displaying same Data */
+	bool            selecting;	 /* we're busy dragging out a selection */
+	bool            autoindent;	 /* autoindent in this view? */
 };
-#define ISTAG(v) 	((v) && !(v)->scroll)
-#define ISBODY(v)	( (v) && (v)->scroll)
+#define ISTAG(v)    ((v) && !(v)->scroll)
+#define ISBODY(v)   ( (v) && (v)->scroll)
 #define ISVISIBLE(v) ( (v)->f.b!=0 )
 
 /* Return true if 'p' is contained in 'v's scrollbar */

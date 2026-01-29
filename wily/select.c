@@ -186,34 +186,38 @@ vselect(View *v, Mouse *m)
 	Range   sel;
 
 	/* ignore scroll-buttons */
-	if(m->buttons&SCROLLDOWN || m->buttons&SCROLLUP) return sel;
+	if (m->buttons&SCROLLDOWN) {
+                view_pagedown(v, true);
+        } else if (m->buttons&SCROLLUP) {
+                view_pagedown(v, false);
+        } else {
+                orig = p0 = p1  = frcharofpt(f, m->xy) + BASE(v);
 
-	orig = p0 = p1  = frcharofpt(f, m->xy) + BASE(v);
+                selecting = m->buttons&LEFT;
 
-	selecting = m->buttons&LEFT;
+                if (selecting)
+                {
+                        frselectp(f, F&~D);		 /*remove old highlighted bit */
+                        view_setlastselection(v);
+                        dclick(v, m->msec, &p0, &p1);
+                }
 
-	if (selecting)
-	{
-		frselectp(f, F&~D);		 /*remove old highlighted bit */
-		view_setlastselection(v);
-		dclick(v, m->msec, &p0, &p1);
-	}
+                sel = follow(v, orig, p0, p1, selecting, m);
 
-	sel = follow(v, orig, p0, p1, selecting, m);
+                if(selecting)
+                {
+                        v->sel = sel;
+                        v->anchor = sel.p1;
+                        f->p0 = pclipr(sel.p0, v->visible) - BASE(v);
+                        f->p1 = pclipr(sel.p1, v->visible) - BASE(v);
+                }
+                else
+                {
+                        frselectf2(f, frptofchar(f, sel.p0 -BASE(v) ), frptofchar(f, sel.p1 -BASE(v)), F&~D);
+                }
 
-	if(selecting)
-	{
-		v->sel = sel;
-		v->anchor = sel.p1;
-		f->p0 = pclipr(sel.p0, v->visible) - BASE(v);
-		f->p1 = pclipr(sel.p1, v->visible) - BASE(v);
-	}
-	else
-	{
-		frselectf2(f, frptofchar(f, sel.p0 -BASE(v) ), frptofchar(f, sel.p1 -BASE(v)), F&~D);
-	}
-
-	assert(view_invariants(v));
+                assert(view_invariants(v));
+        }
 
 	return sel;
 }

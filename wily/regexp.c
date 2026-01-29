@@ -886,7 +886,7 @@ bnewmatch(samRangeset *sp)
 	int  i;
 	if(sel.w[0].p1<0 || sp->w[0].p1>sel.w[0].w2 || (sp->w[0].p1==sel.w[0].w2 && sp->w[0].w2<sel.w[0].p1))
 								 /* note the reversal; p1<=w2 */
-			for(i = 0; i<NSUBEXP; i++)
+		for(i = 0; i<NSUBEXP; i++)
 	{
 		sel.w[i].p1 = sp->w[i].w2;
 		sel.w[i].w2 = sp->w[i].p1;

@@ -169,6 +169,9 @@ vselect(View *v, Mouse *m)
 	ulong	orig, p0, p1;
 	Range	sel;
 
+        /* ignore scroll-buttons */
+        if(m->buttons&SCROLLDOWN || m->buttons&SCROLLUP) return sel;
+
 	orig = p0 = p1  = frcharofpt(f, m->xy) + BASE(v);
 
 	selecting = m->buttons&LEFT;

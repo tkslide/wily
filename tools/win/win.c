@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <msg.h>
 
-
 #include <ctype.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -36,7 +35,7 @@ const int ttymode = 0600;
 const char intchar = ctrl('c');
 const char eofchar = ctrl('d');
 
-int	wilyfifo;
+int wilyfifo;
 Handle *handle;
 Id id;
 
@@ -68,19 +67,19 @@ void setslaveattr(void);
 #define stringize2(x) #x
 #define stringize(x) stringize2(x)
 #if defined(__GNUC__)
-	#define here " at " __FILE__ ":" stringize(__LINE__)
+#define here " at " __FILE__ ":" stringize(__LINE__)
 #else
-	#define here " at " __FILE__ ":" stringize(__LINE__)
+#define here " at " __FILE__ ":" stringize(__LINE__)
 #endif
 
-#define PROGRAMNAME		"win"
-#define VERSIONNAME		"%R%.%L% of %D%"
+#define PROGRAMNAME     "win"
+#define VERSIONNAME     "%R%.%L% of %D%"
 
-char programname[]	= PROGRAMNAME;
-char versioninfo[]	= PROGRAMNAME " " VERSIONNAME;
-char usageinfo[]	= "usage: " PROGRAMNAME " [-v] [-t tagname] [command [argument ...]]";
+char programname[]  = PROGRAMNAME;
+char versioninfo[]  = PROGRAMNAME " " VERSIONNAME;
+char usageinfo[]    = "usage: " PROGRAMNAME " [-v] [-t tagname] [command [argument ...]]";
 
-char whatinfo[]		= "@(#)" PROGRAMNAME " " VERSIONNAME;
+char whatinfo[]     = "@(#)" PROGRAMNAME " " VERSIONNAME;
 
 void
 main(int argc, char **argv)
@@ -94,18 +93,20 @@ main(int argc, char **argv)
 	/* parse arguments */
 	tagname = 0;
 	opterr = 0;
-	while ((c = getopt(argc, argv, "vt:")) != -1) {
-		switch (c) {
-		case 'v':
-			fprintf(stderr, "%s\n", versioninfo);
-			exit(0);
-		case 't':
-			tagname = optarg;
-			break;
-		default:
-			fprintf(stderr, "%s\n", usageinfo);
-			exit(1);
-			break;
+	while ((c = getopt(argc, argv, "vt:")) != -1)
+	{
+		switch (c)
+		{
+			case 'v':
+				fprintf(stderr, "%s\n", versioninfo);
+				exit(0);
+			case 't':
+				tagname = optarg;
+				break;
+			default:
+				fprintf(stderr, "%s\n", usageinfo);
+				exit(1);
+				break;
 		}
 	}
 
@@ -113,8 +114,8 @@ main(int argc, char **argv)
 	if (tagname == 0)
 		if (argv[optind] != 0)
 			tagname = gettagname(argv[optind]);
-		else
-			tagname = "+win";
+	else
+		tagname = "+win";
 
 	/* open pty and fork shell */
 	forkshell(&argv[optind]);
@@ -125,6 +126,7 @@ main(int argc, char **argv)
 	ipcloop();
 
 }
+
 
 /*
  * error(fmt, ...):
@@ -143,6 +145,7 @@ error(const char *fmt, ...)
 	fprintf(stderr, "\n");
 }
 
+
 /*
  * getshell():
  *
@@ -160,7 +163,8 @@ getshell(void)
 		path = "/bin/sh";
 
 	shell = malloc(strlen(path) + 1);
-	if (shell == 0) {
+	if (shell == 0)
+	{
 		error("malloc() failed" here);
 		exit(1);
 	}
@@ -169,6 +173,7 @@ getshell(void)
 
 	return shell;
 }
+
 
 /*
  * flatlist(v):
@@ -186,26 +191,30 @@ flatlist(char **v)
 	size_t i;
 
 	len = strlen(v[0]);
-	for (i = 1; v[i] != 0; ++i) {
+	for (i = 1; v[i] != 0; ++i)
+	{
 		++len;
 		len += strlen(v[i]);
 	}
 
 	s = malloc(len + 1);
-	if (s == 0) {
+	if (s == 0)
+	{
 		error("malloc() failed" here);
 		exit(1);
 	}
 
 	s[0] = 0;
 	strcat(s, v[0]);
-	for (i = 1; v[i] != 0; ++i) {
+	for (i = 1; v[i] != 0; ++i)
+	{
 		strcat(s, " ");
 		strcat(s, v[i]);
 	}
 
 	return s;
 }
+
 
 /*
  * execshell(argv):
@@ -219,10 +228,13 @@ execshell(char **argv)
 	char *arg0, *arg1, *arg2;
 
 	arg0 = getshell();
-	if (*argv == 0) {
+	if (*argv == 0)
+	{
 		arg1 = "-i";
 		arg2 = 0;
-	} else {
+	}
+	else
+	{
 		arg1 = "-c";
 		arg2 = flatlist(argv);
 	}
@@ -231,6 +243,7 @@ execshell(char **argv)
 	error("execl(%s, ...) failed" here, arg0);
 	exit(1);
 }
+
 
 /*
  * sigexit(sig)
@@ -242,6 +255,7 @@ sigexit(int sig)
 {
 	exit(0);
 }
+
 
 /*
  * sigchld(sig)
@@ -255,6 +269,7 @@ sigchld(int sig)
 	if (wait(0) == shellpid)
 		exit(0);
 }
+
 
 /*
  * forkshell(argv):
@@ -272,57 +287,61 @@ forkshell(char **argv)
 {
 	openmaster();
 
-	switch (shellpid = fork()) {
+	switch (shellpid = fork())
+	{
 
-	case -1:
+		case -1:
 
-		error("fork() failed" here);
-		exit(1);
-
-	case 0:
-
-		signal(SIGCHLD, SIG_DFL);
-		signal(SIGINT,  SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
-		signal(SIGTSTP, SIG_IGN);
-		signal(SIGTTIN, SIG_IGN);
-		signal(SIGTTOU, SIG_IGN);
-
-		close(master);
-
-		if (setsid() < 0) {
-			error("setsid() failed" here);
+			error("fork() failed" here);
 			exit(1);
-		}
 
-		openslave();
-		setslaveattr();
+		case 0:
+
+			signal(SIGCHLD, SIG_DFL);
+			signal(SIGINT,  SIG_DFL);
+			signal(SIGQUIT, SIG_DFL);
+			signal(SIGTSTP, SIG_IGN);
+			signal(SIGTTIN, SIG_IGN);
+			signal(SIGTTOU, SIG_IGN);
+
+			close(master);
+
+			if (setsid() < 0)
+			{
+				error("setsid() failed" here);
+				exit(1);
+			}
+
+			openslave();
+			setslaveattr();
 
 		#if defined(TIOCSCTTY)
-		/* e.g., on Digital UNIX */
-		ioctl(slave, TIOCSCTTY, (void *) 0);
+			/* e.g., on Digital UNIX */
+			ioctl(slave, TIOCSCTTY, (void *) 0);
 		#endif
 
-		if(dup2(slave, 0) < 0 || dup2(slave, 1) < 0 || dup2(slave, 2) < 0) {
-			error("dup2() failed" here);
-			exit(1);
-		}
-		close(slave);
+			if(dup2(slave, 0) < 0 || dup2(slave, 1) < 0 || dup2(slave, 2) < 0)
+			{
+				error("dup2() failed" here);
+				exit(1);
+			}
+			close(slave);
 
-		putenv("TERM=win");
+			putenv("TERM=win");
 
-		execshell(argv);
+			execshell(argv);
 
-	default:
+		default:
 
-		signal(SIGHUP,  sigexit);
-		signal(SIGINT,  sigexit);
-		signal(SIGQUIT, sigexit);
-		signal(SIGTERM, sigexit);
-		signal(SIGCHLD, sigchld);
+			signal(SIGHUP,  sigexit);
+			signal(SIGINT,  sigexit);
+			signal(SIGQUIT, sigexit);
+			signal(SIGTERM, sigexit);
+			signal(SIGCHLD, sigchld);
 
 	}
 }
+
 
 /*
  * ipcinit(tagname):
@@ -335,7 +354,8 @@ ipcinit(char *tagname)
 	char *msg;
 
 	wilyfifo = client_connect();
-	if (wilyfifo < 0) {
+	if (wilyfifo < 0)
+	{
 		error("client_connect() failed" here);
 		exit(1);
 	}
@@ -343,18 +363,21 @@ ipcinit(char *tagname)
 	handle = rpc_init(wilyfifo);
 
 	msg = rpc_new(handle, tagname, &id, 0);
-	if (msg != 0) {
+	if (msg != 0)
+	{
 		error("rpc_new() failed" here ": %s", msg);
 		exit(1);
 	}
 
 	msg = rpc_attach(handle, id, WEexec|WEreplace|WEdestroy);
-	if (msg != 0) {
+	if (msg != 0)
+	{
 		error("rpc_attach() failed" here ": %s", msg);
 		exit(1);
 	}
 
 }
+
 
 /*
  * ipcloop():
@@ -367,7 +390,8 @@ ipcloop(void)
 	fd_set readfds;
 	int nready;
 
-	for (;;) {
+	for (;;)
+	{
 
 		while (!rpc_wouldblock(handle))
 			handlemsg();
@@ -376,7 +400,8 @@ ipcloop(void)
 		FD_SET(wilyfifo, &readfds);
 		FD_SET(master, &readfds);
 		nready = select(FD_SETSIZE, &readfds, 0, 0, 0);
-		if (nready < 0) {
+		if (nready < 0)
+		{
 			error("select() failed" here);
 			exit(1);
 		}
@@ -384,13 +409,15 @@ ipcloop(void)
 			handleshelloutput();
 		else if (FD_ISSET(wilyfifo, &readfds))
 			handlemsg();
-		else {
+		else
+		{
 			error("select() returned in error" here);
 			exit(1);
 		}
 
 	}
 }
+
 
 /*
  * getlength():
@@ -404,12 +431,14 @@ getlength(void)
 	char *msg;
 
 	msg = rpc_goto(handle, &id, &r, strdup(":,"), 0);
-	if (msg != 0) {
+	if (msg != 0)
+	{
 		error("rpc_goto() failed " here ": %s", msg);
 		exit(1);
 	}
 	return r.p1;
 }
+
 
 /*
  * gettagname(shorttagname):
@@ -424,7 +453,8 @@ gettagname(char *shorttagname)
 	char *tagname;
 
 	tagname = malloc(strlen(shorttagname) + 2);
-	if (tagname == 0) {
+	if (tagname == 0)
+	{
 		error("malloc() failed" here);
 		exit(1);
 	}
@@ -433,6 +463,7 @@ gettagname(char *shorttagname)
 
 	return tagname;
 }
+
 
 /*
  * handleshelloutput():
@@ -447,7 +478,8 @@ handleshelloutput(void)
 	char *msg;
 
 	nread = read(master, buf, BUFSIZ);
-	if (nread < 0) {
+	if (nread < 0)
+	{
 		error("read() failed in shellinput()" here);
 		exit(1);
 	}
@@ -457,13 +489,15 @@ handleshelloutput(void)
 
 	buf[nread] = '\0';
 	msg = rpc_replace(handle, id, range(outputpoint, outputpoint), buf);
-	if (msg != 0) {
+	if (msg != 0)
+	{
 		error("rpc_replace() failed" here ": %s", msg);
 		exit(1);
 	}
 
 	shelloutput = true;
 }
+
 
 /*
  * isbuiltin(s):
@@ -487,6 +521,7 @@ isbuiltin(char *cmd)
 		isupper(*first);
 }
 
+
 /*
  * handleexec(m):
  *
@@ -500,7 +535,8 @@ handleWEexec(Msg *m)
 	char *cmd;
 	char *msg;
 
-	if (isbuiltin(m->s)) {
+	if (isbuiltin(m->s))
+	{
 		rpc_bounce(handle, m);
 		return;
 	}
@@ -511,7 +547,8 @@ handleWEexec(Msg *m)
 
 	addnewline = (m->s[nbytes - 1] != '\n');
 	cmd = malloc(nbytes + addnewline + 1);
-	if (cmd == 0) {
+	if (cmd == 0)
+	{
 		error("malloc() failed" here);
 		exit(1);
 	}
@@ -520,13 +557,15 @@ handleWEexec(Msg *m)
 		strcat(cmd, "\n");
 
 	msg = rpc_replace(handle, id, range(length, length), cmd);
-	if (msg != 0) {
+	if (msg != 0)
+	{
 		error("rpc_replace() failed " here ": %s", msg);
 		exit(1);
 	}
 
 	free(cmd);
 }
+
 
 /*
  * handleshellinput(m):
@@ -557,7 +596,8 @@ handleshellinput(Msg *m)
 	lastpoint = m->r.p0 + utflen(m->s) + 1;
 
 	buf = malloc(UTFmax * (lastpoint - outputpoint + 1));
-	if (buf == 0) {
+	if (buf == 0)
+	{
 		error("malloc() failed" here);
 		exit(1);
 	}
@@ -565,7 +605,8 @@ handleshellinput(Msg *m)
 	rpc_read(handle, id, range(outputpoint, lastpoint), buf);
 
 	len = strlen(buf);
-	if (write(master, buf, len) != len) {
+	if (write(master, buf, len) != len)
+	{
 		error("write() failed" here);
 		exit(1);
 	}
@@ -575,6 +616,7 @@ handleshellinput(Msg *m)
 	outputpoint = lastpoint;
 
 }
+
 
 /*
  * handleWEreplace(m):
@@ -586,7 +628,8 @@ handleWEreplace(Msg *m)
 {
 	length = length - RLEN(m->r) + utflen(m->s);
 
-	if (shelloutput) {
+	if (shelloutput)
+	{
 
 		shelloutput = false;
 
@@ -595,26 +638,29 @@ handleWEreplace(Msg *m)
 		#if 0
 		{
 			/*
-             * This doesn't work. It's an idea for implementing scrolling
-             * on output. What we need is msg.c to execute view_show()
-             * but not view_select() or view_warp(). However, making that
-             * modification would case view_show() to happen even if you
-             * are not setting dot. What we need to do is separate the
-             * functions show, select, and warp.
+			 * This doesn't work. It's an idea for implementing scrolling
+			 * on output. What we need is msg.c to execute view_show()
+			 * but not view_select() or view_warp(). However, making that
+			 * modification would case view_show() to happen even if you
+			 * are not setting dot. What we need to do is separate the
+			 * functions show, select, and warp.
 			 */
 			char *msg;
 			char buf[100];
 			Range r;
 			sprintf(buf, ":#%lu", outputpoint);
 			msg = rpc_goto(handle, &id, &r, strdup(buf), 0);
-			if (msg != 0) {
+			if (msg != 0)
+			{
 				error("rpc_goto() failed " here ": %s", msg);
 				exit(1);
 			}
 		}
 		#endif
 
-	} else {
+	}
+	else
+	{
 
 		if (outputpoint > m->r.p0)
 			outputpoint = outputpoint - RLEN(m->r) + utflen(m->s);
@@ -626,6 +672,7 @@ handleWEreplace(Msg *m)
 
 }
 
+
 /*
  * handlemsg():
  *
@@ -634,26 +681,29 @@ handleWEreplace(Msg *m)
 void
 handlemsg(void)
 {
-	Msg	m;
+	Msg m;
 
-	if (rpc_event(handle, &m) != 0) {
+	if (rpc_event(handle, &m) != 0)
+	{
 		error("rpc_event() failed" here);
 		exit(1);
 	}
 
-	switch (m.t) {
-	case WEdestroy:
-		exit(0);
-	case WEexec:
-		handleWEexec(&m);
-		break;
-	case WEreplace:
-		handleWEreplace(&m);
-		break;
-	default:
-		error("unexpected message type" here);
+	switch (m.t)
+	{
+		case WEdestroy:
+			exit(0);
+		case WEexec:
+			handleWEexec(&m);
+			break;
+		case WEreplace:
+			handleWEreplace(&m);
+			break;
+		default:
+			error("unexpected message type" here);
 	}
 }
+
 
 /*
  * openmaster():
@@ -664,28 +714,20 @@ handlemsg(void)
 void
 openmaster(void)
 {
-    int slave_fd;
-    static char name_buf[64]; // Buffer to store slave path
+	int slave_fd;
+	static char name_buf[64];	 // Buffer to store slave path
 
-    /* openpty handles posix_openpt, grantpt, and unlockpt in one call */
-    if (openpty(&master, &slave_fd, name_buf, NULL, NULL) < 0) {
-        error("openpty() failed");
-        exit(1);
-    }
+	/* openpty handles posix_openpt, grantpt, and unlockpt in one call */
+	if (openpty(&master, &slave_fd, name_buf, NULL, NULL) < 0)
+	{
+		error("openpty() failed");
+		exit(1);
+	}
 
-    /*
-       openpty opens the slave side for you.
-       If your existing logic only needs the name:
-    */
-    slavename = name_buf;
+	slavename = name_buf;
 
-    /*
-       Close the slave_fd if you only intended to open the master here,
-       otherwise keep it for use in your child process.
-    */
-    close(slave_fd);
+	close(slave_fd);
 }
-
 
 
 /*
@@ -697,7 +739,8 @@ void
 openslave(void)
 {
 	slave = open(slavename, O_RDWR);
-	if (slave < 0) {
+	if (slave < 0)
+	{
 		error("open() failed" here);
 		exit(1);
 	}
@@ -710,6 +753,7 @@ openslave(void)
 	ioctl(slave, I_PUSH, "ldterm");
 	#endif
 }
+
 
 /*
  * setslaveattr()
@@ -731,7 +775,8 @@ setslaveattr(void)
 	}
 	#endif
 
-	if (tcgetattr(slave, &attr) < 0) {
+	if (tcgetattr(slave, &attr) < 0)
+	{
 		error("tcgetattr() failed" here);
 		exit(1);
 	}
@@ -745,7 +790,8 @@ setslaveattr(void)
 	attr.c_cc[VINTR] = intchar;
 	attr.c_cc[VEOF]  = eofchar;
 
-	if (tcsetattr(slave, TCSANOW, &attr) < 0) {
+	if (tcsetattr(slave, TCSANOW, &attr) < 0)
+	{
 		error("tcsetattr() failed" here);
 		exit(1);
 	}

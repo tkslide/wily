@@ -14,6 +14,10 @@ See [Original README](README.orig) for copyright, permissions etc.
 [Introduction to Wily](http://www.cs.yorku.ca/~oz/wily/intro.html)
 
 
+## Changes
+- Compilable with C23 gcc
+- Added scrolling with the mouse wheel
+- Removed the version notice in the tagline (because I know it's Wily and I need room there)
 
 [1] Or broken, but at least it compiles on my relatively modern Linux... WIP, anyway.
 Praise the original author, blame me, m'kay?

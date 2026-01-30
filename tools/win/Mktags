@@ -1,5 +1,6 @@
+#! /usr/bin/env rc
 if ( ~ $#* 0 ) {
-	echo >[1=2] 'usage: mktags [-v] file ...'
+	echo >[1=2] 'usage: Mktags [-v] file ...'
 	exit 1
 }
 

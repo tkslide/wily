@@ -1,3 +1,4 @@
+#!/usr/bin/env rc
 if ( ! ~ $#* 1 ) {
 	echo >[1=2] 'usage: Man [-v] [options] title ...'
 	exit 1
@@ -9,7 +10,10 @@ if ( ~ $1 -v ) {
 	exit 0
 }
 
+# name = last element of argv
 name = `{ echo $*($#*) }
-man $* >[2=1] | col -bx | wreplace -c '+Man '^$name^':,'
+
+#man $* >[2=1] | col -bx | wreplace -c '+Man '^$name^':,'
+man $* >[2=1] | col -bx | wreplace -b -c ':,'
 
 exit

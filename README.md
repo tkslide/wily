@@ -24,6 +24,7 @@ See [Original README](README.orig) for copyright, permissions etc.
 ## Work in Progress
 - Re-enabling `win` and other tools.
 - Python3 integration(?)
+- "poor man's `plumber`" - xdg-open integration
 
 [1] Or broken, but at least it compiles on my relatively modern Linux... WIP, anyway.
 Praise the original author, blame me, m'kay?

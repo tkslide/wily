@@ -18,7 +18,7 @@ char *readfd(int);
 #define STRINGIZE2(x) #x
 #define STRINGIZE(x) STRINGIZE2(x)
 #ifdef __GNUC__
-	#define here " at " __FILE__ ":" STRINGIZE(__LINE__) " in " __FUNCTION__ "()"
+	#define here " at " __FILE__ ":" STRINGIZE(__LINE__) 
 #else
 	#define here " at " __FILE__ ":" STRINGIZE(__LINE__)
 #endif

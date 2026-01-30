@@ -2,14 +2,17 @@
 #include <libc.h>
 #include <msg.h>
 
-#include <string.h>
+
+#include <ctype.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <pty.h>
+#include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <signal.h>
-#include <ctype.h>
-
+#include <string.h>
+#include <unistd.h>
 #include <unistd.h>
 #include <sys/types.h>
 #ifdef HAVE_SYS_SELECT_H
@@ -65,7 +68,7 @@ void setslaveattr(void);
 #define stringize2(x) #x
 #define stringize(x) stringize2(x)
 #if defined(__GNUC__)
-	#define here " at " __FILE__ ":" stringize(__LINE__) " in " __FUNCTION__ "()"
+	#define here " at " __FILE__ ":" stringize(__LINE__)
 #else
 	#define here " at " __FILE__ ":" stringize(__LINE__)
 #endif
@@ -112,10 +115,10 @@ main(int argc, char **argv)
 			tagname = gettagname(argv[optind]);
 		else
 			tagname = "+win";
-	
+
 	/* open pty and fork shell */
 	forkshell(&argv[optind]);
-	
+
 	/* handle ipc */
 	ipcinit(tagname);
 	outputpoint = length = getlength();
@@ -151,7 +154,7 @@ char *
 getshell(void)
 {
 	char *path, *shell;
-	
+
 	path = getenv("SHELL");
 	if (path == 0)
 		path = "/bin/sh";
@@ -161,16 +164,16 @@ getshell(void)
 		error("malloc() failed" here);
 		exit(1);
 	}
-	
+
 	strcpy(shell, path);
-	
+
 	return shell;
 }
 
 /*
  * flatlist(v):
  *
- * Return a space-separated flattened representation of the 
+ * Return a space-separated flattened representation of the
  * string list v.
  *
  * Return value is a pointer to malloc()-ed storage.
@@ -187,20 +190,20 @@ flatlist(char **v)
 		++len;
 		len += strlen(v[i]);
 	}
-			
+
 	s = malloc(len + 1);
 	if (s == 0) {
 		error("malloc() failed" here);
 		exit(1);
 	}
-		
+
 	s[0] = 0;
 	strcat(s, v[0]);
 	for (i = 1; v[i] != 0; ++i) {
 		strcat(s, " ");
 		strcat(s, v[i]);
 	}
-	
+
 	return s;
 }
 
@@ -214,7 +217,7 @@ void
 execshell(char **argv)
 {
 	char *arg0, *arg1, *arg2;
-	
+
 	arg0 = getshell();
 	if (*argv == 0) {
 		arg1 = "-i";
@@ -223,8 +226,8 @@ execshell(char **argv)
 		arg1 = "-c";
 		arg2 = flatlist(argv);
 	}
-			
-	execl(arg0, arg0, arg1, arg2, 0);
+
+	execl(arg0, arg0, arg1, arg2, (char *)0);
 	error("execl(%s, ...) failed" here, arg0);
 	exit(1);
 }
@@ -260,46 +263,46 @@ sigchld(int sig)
  * In the master: set signal handlers.
  * In the child: set signal handlers; close the master pty;
  * start a new process group; open the slave pty; make the slave
- * the controlling terminal (if open() did not already); set the 
- * attributes of the slave; put "TERM=win" into the environment; 
+ * the controlling terminal (if open() did not already); set the
+ * attributes of the slave; put "TERM=win" into the environment;
  * exec the shell.
  */
 void
 forkshell(char **argv)
 {
 	openmaster();
-	
+
 	switch (shellpid = fork()) {
-	
+
 	case -1:
-	
+
 		error("fork() failed" here);
 		exit(1);
-		
+
 	case 0:
-	
+
 		signal(SIGCHLD, SIG_DFL);
 		signal(SIGINT,  SIG_DFL);
 		signal(SIGQUIT, SIG_DFL);
 		signal(SIGTSTP, SIG_IGN);
 		signal(SIGTTIN, SIG_IGN);
 		signal(SIGTTOU, SIG_IGN);
-		
+
 		close(master);
-		
+
 		if (setsid() < 0) {
 			error("setsid() failed" here);
 			exit(1);
 		}
-		
+
 		openslave();
 		setslaveattr();
-	
+
 		#if defined(TIOCSCTTY)
 		/* e.g., on Digital UNIX */
 		ioctl(slave, TIOCSCTTY, (void *) 0);
 		#endif
-		
+
 		if(dup2(slave, 0) < 0 || dup2(slave, 1) < 0 || dup2(slave, 2) < 0) {
 			error("dup2() failed" here);
 			exit(1);
@@ -311,13 +314,13 @@ forkshell(char **argv)
 		execshell(argv);
 
 	default:
-	
+
 		signal(SIGHUP,  sigexit);
 		signal(SIGINT,  sigexit);
 		signal(SIGQUIT, sigexit);
 		signal(SIGTERM, sigexit);
 		signal(SIGCHLD, sigchld);
-		
+
 	}
 }
 
@@ -330,27 +333,27 @@ void
 ipcinit(char *tagname)
 {
 	char *msg;
-	
+
 	wilyfifo = client_connect();
 	if (wilyfifo < 0) {
 		error("client_connect() failed" here);
 		exit(1);
 	}
-	
+
 	handle = rpc_init(wilyfifo);
-	
+
 	msg = rpc_new(handle, tagname, &id, 0);
 	if (msg != 0) {
 		error("rpc_new() failed" here ": %s", msg);
 		exit(1);
 	}
-	
+
 	msg = rpc_attach(handle, id, WEexec|WEreplace|WEdestroy);
 	if (msg != 0) {
 		error("rpc_attach() failed" here ": %s", msg);
 		exit(1);
 	}
-	
+
 }
 
 /*
@@ -368,7 +371,7 @@ ipcloop(void)
 
 		while (!rpc_wouldblock(handle))
 			handlemsg();
-			
+
 		FD_ZERO(&readfds);
 		FD_SET(wilyfifo, &readfds);
 		FD_SET(master, &readfds);
@@ -385,7 +388,7 @@ ipcloop(void)
 			error("select() returned in error" here);
 			exit(1);
 		}
-			
+
 	}
 }
 
@@ -399,7 +402,7 @@ getlength(void)
 {
 	Range r;
 	char *msg;
-	
+
 	msg = rpc_goto(handle, &id, &r, strdup(":,"), 0);
 	if (msg != 0) {
 		error("rpc_goto() failed " here ": %s", msg);
@@ -419,13 +422,13 @@ char *
 gettagname(char *shorttagname)
 {
 	char *tagname;
-	
+
 	tagname = malloc(strlen(shorttagname) + 2);
 	if (tagname == 0) {
 		error("malloc() failed" here);
 		exit(1);
 	}
-	
+
 	sprintf(tagname, "+%s", shorttagname);
 
 	return tagname;
@@ -442,23 +445,23 @@ handleshelloutput(void)
 	char buf[BUFSIZ + 1];
 	int nread;
 	char *msg;
-	
+
 	nread = read(master, buf, BUFSIZ);
 	if (nread < 0) {
 		error("read() failed in shellinput()" here);
 		exit(1);
 	}
-	
+
 	if (nread == 0)
 		exit(0);
-		
+
 	buf[nread] = '\0';
 	msg = rpc_replace(handle, id, range(outputpoint, outputpoint), buf);
 	if (msg != 0) {
 		error("rpc_replace() failed" here ": %s", msg);
 		exit(1);
 	}
-		
+
 	shelloutput = true;
 }
 
@@ -474,9 +477,9 @@ isbuiltin(char *cmd)
 {
 	char *whitespace = " \t\v\n";
 	char *first;
-	
+
 	first = cmd + strspn(cmd, whitespace);
-	
+
 	return
 		*first == '|' ||
 		*first == '<' ||
@@ -496,16 +499,16 @@ handleWEexec(Msg *m)
 	int addnewline;
 	char *cmd;
 	char *msg;
-	
+
 	if (isbuiltin(m->s)) {
 		rpc_bounce(handle, m);
 		return;
 	}
-	
+
 	nbytes = strlen(m->s);
 	if (nbytes == 0)
 		return;
-		
+
 	addnewline = (m->s[nbytes - 1] != '\n');
 	cmd = malloc(nbytes + addnewline + 1);
 	if (cmd == 0) {
@@ -515,21 +518,21 @@ handleWEexec(Msg *m)
 	strcpy(cmd, m->s);
 	if (addnewline)
 		strcat(cmd, "\n");
-			
+
 	msg = rpc_replace(handle, id, range(length, length), cmd);
 	if (msg != 0) {
 		error("rpc_replace() failed " here ": %s", msg);
 		exit(1);
 	}
-		
+
 	free(cmd);
 }
 
 /*
  * handleshellinput(m):
  *
- * Send everything from the output point to the last newline 
- * or ctrl-d in the message m to the shell, and adjust the 
+ * Send everything from the output point to the last newline
+ * or ctrl-d in the message m to the shell, and adjust the
  * output point.
  */
 void
@@ -549,7 +552,7 @@ handleshellinput(Msg *m)
 		last = lastintchar;
 	if (lasteofchar != 0 && (last == 0 || last < lasteofchar))
 		last = lasteofchar;
-		
+
 	*last = '\0';
 	lastpoint = m->r.p0 + utflen(m->s) + 1;
 
@@ -558,21 +561,21 @@ handleshellinput(Msg *m)
 		error("malloc() failed" here);
 		exit(1);
 	}
-		
+
 	rpc_read(handle, id, range(outputpoint, lastpoint), buf);
-	
+
 	len = strlen(buf);
 	if (write(master, buf, len) != len) {
 		error("write() failed" here);
 		exit(1);
 	}
-	
+
 	free(buf);
-	
+
 	outputpoint = lastpoint;
 
 }
-		
+
 /*
  * handleWEreplace(m):
  *
@@ -584,11 +587,11 @@ handleWEreplace(Msg *m)
 	length = length - RLEN(m->r) + utflen(m->s);
 
 	if (shelloutput) {
-	
+
 		shelloutput = false;
-		
+
 		outputpoint = m->r.p0 - RLEN(m->r) + utflen(m->s);
-		
+
 		#if 0
 		{
 			/*
@@ -610,19 +613,19 @@ handleWEreplace(Msg *m)
 			}
 		}
 		#endif
-	
+
 	} else {
-	
+
 		if (outputpoint > m->r.p0)
 			outputpoint = outputpoint - RLEN(m->r) + utflen(m->s);
 
-		if (m->r.p0 + utflen(m->s) > outputpoint && 
+		if (m->r.p0 + utflen(m->s) > outputpoint &&
 			(strchr(m->s, '\n') || strchr(m->s, intchar) || strchr(m->s, eofchar)))
 			handleshellinput(m);
 	}
 
 }
-		
+
 /*
  * handlemsg():
  *
@@ -655,89 +658,35 @@ handlemsg(void)
 /*
  * openmaster():
  *
- * Open the master end of a pty; determine the name of 
+ * Open the master end of a pty; determine the name of
  * the slave end but do not open it.
  */
 void
 openmaster(void)
 {
-	#if HAVE__GETPTY
+    int slave_fd;
+    static char name_buf[64]; // Buffer to store slave path
 
-	/* e.g., on IRIX */
-	
-	{
-		extern char *_getpty();
+    /* openpty handles posix_openpt, grantpt, and unlockpt in one call */
+    if (openpty(&master, &slave_fd, name_buf, NULL, NULL) < 0) {
+        error("openpty() failed");
+        exit(1);
+    }
 
-		slavename = _getpty(&master, O_RDWR, ttymode, 0);
-		if (slavename == 0) {
-			error("_getpty() failed" here);
-			exit(1);
-		}
-	}
+    /*
+       openpty opens the slave side for you.
+       If your existing logic only needs the name:
+    */
+    slavename = name_buf;
 
-	#elif HAVE_DEV_PTMX
-	
-	/* e.g., on Digital UNIX or Solaris */
-
-	{
-		extern char *ptsname();
-		extern int grantpt();
-		extern int unlockpt();
-		
-		master = open("/dev/ptmx", O_RDWR);
-		if (master < 0) {
-			error("open() failed" here);
-			exit(1);
-		}
-		if (grantpt(master) < 0) {
-			error("grantpt() failed" here);
-			exit(1);
-		}
-		if (unlockpt(master) < 0) {
-			error("unlockpt() failed" here);
-			exit(1);
-		}
-		
-		fchmod(master, ttymode);
-
-		slavename = ptsname(master);
-		if (slavename == 0) {
-			error("ptsname() failed" here);
-			exit(1);
-		}				
-
-	}
-
-	#else
-	
-	/* e.g., on BSD */
-
-	{
-		static char name[]= "/dev/ptyXX";
-		char *c1, *c2;
-
-		master = -1;
-		c1 = "pqrstuvwxyzABCDE";
-		do {
-			c2 = "0123456789abcdef";
-			do {
-				sprintf(name, "/dev/pty%c%c", *c1, *c2);
-				master = open(name, O_RDWR);
-			} while (master < 0 && *++c2 != 0);
-		} while (master < 0 && *++c1 != 0);
-		if (master < 0) {
-			error("unable to open master pty" here);
-			exit(1);
-		}
-		
-		fchmod(master, ttymode);
-		
-		sprintf(name, "/dev/tty%c%c", *c1, *c2);
-		slavename = name;
-	}
-
-	#endif
+    /*
+       Close the slave_fd if you only intended to open the master here,
+       otherwise keep it for use in your child process.
+    */
+    close(slave_fd);
 }
+
+
 
 /*
  * openslave():
@@ -746,15 +695,15 @@ openmaster(void)
  */
 void
 openslave(void)
-{	
+{
 	slave = open(slavename, O_RDWR);
 	if (slave < 0) {
 		error("open() failed" here);
 		exit(1);
 	}
-	
+
 	fchmod(slave, ttymode);
-		
+
 	#if HAVE_SYS_PTEM_H
 	/* e.g., on Solaris */
 	ioctl(slave, I_PUSH, "ptem");
@@ -772,7 +721,7 @@ setslaveattr(void)
 {
 	struct termios attr;
 	int i;
-	
+
 	#if defined(TIOCSETD) && defined(TERMIODISC)
 	/* e.g., on Ultrix */
 	{

@@ -1,14 +1,15 @@
 # 9term
 CC=gcc
-WILY=$(h)/src/wily
+WILY=../..
 BINDIR=$(h)/obj/sun4d/wily
-CFLAGS=-g -Wall -I. -I$(WILY)/include -I$(WILY)/sam/include -I$(BINDIR)
-LIBS=-L$(BINDIR)/libmsg -lmsg -lsocket -lnsl -lintl
+CFLAGS  = -g -O -I../.. -I../../include -I./../sam/include -DHAVE_LIBNSL=1 -DHAVE_LIBSOCKET=1 -DHAVE_DEV_PTMX=1 -DHAVE_SYS_PTEM_H=1 -lnsl  
+#../../libmsg/libmsg.a  ../../libXg/libXg.a
+LIBS=-L../../libmsg -lmsg -lnsl 
 
 TARGETS=	Wgoto Wexec Wins 
 OBJECTS=$(TARGETS:%=%.o)
 
-$(TARGETS):
+$(TARGETS): *.c
 
 Wins:	Wins.o
 	gcc -o Wins Wins.o $(LIBS) 

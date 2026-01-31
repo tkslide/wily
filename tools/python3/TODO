@@ -1,17 +1,17 @@
 1. To implement, to match the old module's functionality
-        [x] win
+        [x] bounce
+        [x] eventwouldblock
+        [x] read
+        [x] run
+        [x] attach
+        [x] event
+        [x] getname
+        [x] gettools
+        [x] goto
         [x] list
-        [ ] event
-        [ ] eventwouldblock
-        [ ] bounce
-        [ ] attach
-        [ ] setname
-        [ ] getname
-        [ ] settools
-        [ ] gettools
-        [ ] read
-        [ ] replace
-        [ ] run
-        [ ] goto
+        [x] replace
+        [x] setname
+        [x] settools
+        [x] win
 
 2. Compile everything with 'CFLAGS+='-fPIC' by default.

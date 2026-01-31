@@ -3,7 +3,7 @@ VPATH=@srcdir@
 CC=@CC@
 RANLIB=@RANLIB@
 INCLUDES=$(srcdir)/../include
-CFLAGS=@CFLAGS@ -I.. -I$(INCLUDES)
+CFLAGS=@CFLAGS@ -I.. -I$(INCLUDES) -fPIC
 LIB=libframe.a
 OBJS=frbox.o frdelete.o frdraw.o frinit.o frinsert.o frptofchar.o\
 	frselect.o frstr.o frutil.o misc.o

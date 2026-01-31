@@ -22,6 +22,5 @@ wreplace: wreplace.o
 wreplace.o: wreplace.c
 	$(CC) -c  -I../../include -I../.. -DGNU $<
 
-
 clean:
 	@rm -f *.o win wgoto wreplace

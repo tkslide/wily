@@ -3,7 +3,7 @@ VPATH=@srcdir@
 CC=@CC@
 RANLIB=@RANLIB@
 INCLUDES=$(srcdir)/../include
-CFLAGS=@CFLAGS@ -I.. -I$(INCLUDES) @X_CFLAGS@
+CFLAGS=@CFLAGS@ -I.. -I$(INCLUDES) @X_CFLAGS@ -fPIC
 LIB=libXg.a
 OBJS=arc.o arith.o balloc.o bitblt.o bitbltclip.o border.o bscreenrect.o\
 	circle.o clipline.o clipr.o copymasked.o cursorset.o cursorswitch.o\

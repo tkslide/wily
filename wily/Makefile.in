@@ -11,7 +11,7 @@ CC=@CC@
 RANLIB=@RANLIB@
 INCLUDES= -I.. -I$(srcdir)/../include @X_CFLAGS@
 OPTS=-DNDEBUG
-CFLAGS= @CFLAGS@ $(OPTS) $(INCLUDES)
+CFLAGS= @CFLAGS@ $(OPTS) $(INCLUDES) -fPIC
 TARGET=wily
 OBJECTS= env.o include.o label.o file.o msg.o data.o line.o\
 	vgeom.o vsearch.o vshow.o \

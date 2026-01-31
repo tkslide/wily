@@ -4,7 +4,7 @@
 #include <libg.h>
 #include <msg.h>
 #include <signal.h>
-#include <sys/limits.h>
+#include <limits.h>
 
 volatile bool control_c = false;
 
@@ -47,7 +47,7 @@ map_file(const char* file, Handle* q, const char* title){
 	}
 
 	sprintf(filename,"%s/%s", cwd, file);
-	if (rpc_new(q, filename, &id)){
+	if (rpc_new(q, filename, &id, 0)){
 		fprintf(stderr, "rpc_new(q, %s, 0, id) fails\n", filename);
 		return false;
 	}
@@ -71,7 +71,7 @@ map_stream(int fd, Handle* q, const char* title){
 		sprintf(winname, "+%s", title);
 	}
 
-	if (rpc_new(q, winname, &id)){
+	if (rpc_new(q, winname, &id, 0)){
 		fprintf(stderr, "rpc_new(q, %s, 0, id) fails\n", winname);
 		return false;
 	}

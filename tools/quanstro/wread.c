@@ -4,7 +4,7 @@
 #include <libg.h>
 #include <msg.h>
 #include <signal.h>
-#include <sys/limits.h>
+#include <limits.h>
 
 volatile bool control_c = false;
 
@@ -12,7 +12,7 @@ enum {
 	BLOCK = 8 * 1024
 };
 
-void exits(const char*whine){
+void q_exits(const char*whine){
 	if (*whine){
 		fprintf(stderr, "%s\n", whine);
 		exit(1);
@@ -42,7 +42,7 @@ const char* read_buf(Handle *h, long id, long len){
 			return s;
 		}
 		delta=strlen(&buf[BLOCK-1]);
-		write(1, buf, BLOCK+delta);
+		if( write(1, buf, BLOCK+delta)); /* ignore return code */
 	}
 	R.p0 = p;
 	R.p1 = len;
@@ -51,7 +51,7 @@ const char* read_buf(Handle *h, long id, long len){
 		return s;
 	}
 	delta=strlen(&buf[len-p]);
-	write(1, buf, R.p1 - R.p0 + delta);	/* wrong! */
+	if (write(1, buf, R.p1 - R.p0 + delta));	/* wrong! */
 	return 0;
 }
 
@@ -68,12 +68,12 @@ main(int c, char**v){
 	c--;
 	v++;
 	if (c != 1){
-		exits("usage: wread <windowid>");
+		q_exits("usage: wread <windowid>");
 	}
 
 	id = strtoul(*v, &r, 0);
 	if (*r){
-		exits("doesn't look integerish");
+		q_exits("doesn't look integerish");
 	}
 
 	signal(SIGHUP, catch);
@@ -83,13 +83,13 @@ main(int c, char**v){
 
 	fd = client_connect();
 	if (-1 == fd){
-		exits("can't open wilyfifo");
+		q_exits("can't open wilyfifo");
 	}
 	h = rpc_init(fd);
 	
 	s=rpc_goto(h, (Id*)&id, &R, (char*)":$", false);
 	if (s){
-		exits(s);
+		q_exits(s);
 	}
 
 	read_buf(h, id, R.p1);

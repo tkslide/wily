@@ -4,7 +4,7 @@
 #include <libg.h>
 #include <msg.h>
 #include <signal.h>
-#include <sys/limits.h>
+#include <limits.h>
 
 volatile bool control_c = false;
 
@@ -14,7 +14,7 @@ catch(int sig){
 	control_c = true;
 }
 
-void exits(const char*whine){
+void q_exits(const char*whine){
 	if (*whine){
 		fprintf(stderr, "%s\n", whine);
 		exit(1);
@@ -57,12 +57,12 @@ main(int c, char**v){
 	c--;
 	v++;
 	if (c != 1){
-		exits("usage: wattach <windowid>");
+		q_exits("usage: wattach <windowid>");
 	}
 
 	id = strtoul(*v, &r, 0);
 	if (*r){
-		exits("doesn't look integerish");
+		q_exits("doesn't look integerish");
 	}
 
 	signal(SIGHUP, catch);
@@ -72,13 +72,13 @@ main(int c, char**v){
 
 	fd = client_connect();
 	if (-1 == fd){
-		exits("can't open wilyfifo");
+		q_exits("can't open wilyfifo");
 	}
 	h = rpc_init(fd);
 
 	s = rpc_attach(h, id, WEexec | WEgoto | WEreplace | WEdestroy);
 	if (s){
-		exits(s);
+		q_exits(s);
 	}
 
 	while (0 == rpc_event(h,&m)){

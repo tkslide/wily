@@ -4,7 +4,7 @@
 #include <libg.h>
 #include <msg.h>
 #include <signal.h>
-#include <sys/limits.h>
+#include <limits.h>
 
 volatile bool control_c = false;
 

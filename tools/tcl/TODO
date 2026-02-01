@@ -5,3 +5,22 @@ Working:
         [x] wnew
         [x] wtktest
         [x] wtools
+
+Tcl functions:
+        wily [function]
+        [x] init
+        [x] isconnected
+        [x] list
+        [x] new
+        [ ] attach
+        [x] setname
+        [x] name
+        [x] settools
+        [x] read
+        [ ] replace
+        [x] exec
+        [x] goto
+        [x] length
+        [ ] wouldblock
+        [ ] event
+        [ ] bounce

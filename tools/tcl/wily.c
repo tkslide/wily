@@ -201,7 +201,7 @@ static int wrpc_attach(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   emsg = rpc_attach(h, (Id)id, WEexec | WEgoto | WEdestroy | WEreplace);
 
   if (emsg != 0) {
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(emsg, -1));
+    //Tcl_SetObjResult(interp, Tcl_NewStringObj(emsg, -1));
     return TCL_ERROR;
   }
 

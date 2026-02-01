@@ -270,13 +270,29 @@ static int wrpc_read(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   char *emsg;
   Range r;
   char *p;
-  int n;
+  long n, n0, n1;
 
-  if (chk(interp, objc, objv, 4, "read needs id, begin and end", &id) != TCL_OK)
-    return TCL_ERROR;
+  if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 1, objv, "read needs id, begin and end");
+        return TCL_ERROR;
+  }
+    if (Tcl_GetLongFromObj(interp, objv[1], &n) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Tcl_GetLongFromObj(interp, objv[2], &n0) != TCL_OK) {
+        return TCL_ERROR;
+    }
+    if (Tcl_GetLongFromObj(interp, objv[3], &n1) != TCL_OK) {
+        return TCL_ERROR;
+    }
 
+    id = (Id)n;
+    r.p0 = n0;
+    r.p1 = n1;
+    /*
   r.p0 = Tcl_GetInt(interp, Tcl_GetString(objv[2]), &n) != TCL_OK ? -1 : n; //XXX
   r.p1 = Tcl_GetInt(interp, Tcl_GetString(objv[3]), &n) != TCL_OK ? -1 : n; //XXX
+                                                                            */
 
   if (r.p0 < 0 || r.p1 < 0 || r.p0 > r.p1) {
     Tcl_SetResult(interp, "strange numbers", TCL_STATIC);

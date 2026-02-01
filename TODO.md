@@ -1,4 +1,10 @@
-Project tree
+## TODO
+- Update Makefile{,.in} 
+- Revise the documentation and tools
+- Proper installation routine?
+- Document changes
+
+##Project tree
 ```
 . .......................... Main directory
 |-- Doc .................... Documentation - in revision

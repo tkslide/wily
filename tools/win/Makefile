@@ -1,5 +1,8 @@
 CC	= gcc
 CFLAGS	= 
+prefix = /usr/local
+exec_prefix = ${prefix}
+bindir = $(exec_prefix)/bin
 
 all: win wgoto wreplace
 
@@ -24,3 +27,8 @@ wreplace.o: wreplace.c
 
 clean:
 	@rm -f *.o win wgoto wreplace
+
+install: 
+	@cp win $(bindir)
+	@cp wgoto $(bindir)
+	@cp wreplace $(bindir)

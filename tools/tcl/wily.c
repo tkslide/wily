@@ -264,16 +264,15 @@ static int wrpc_read(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   long id;
   char *emsg;
   Range r;
-  char *p;
   int p0, p1;
+  unsigned char *p; // Use unsigned char for binary data
+  int bytes_to_read;
 
-  /* 1. Check argument count */
   if (objc != 4) {
     Tcl_WrongNumArgs(interp, 1, objv, "id begin end");
     return TCL_ERROR;
   }
 
-  /* 2. Parse arguments safely from Objects */
   if (Tcl_GetLongFromObj(interp, objv[1], &id) != TCL_OK ||
       Tcl_GetIntFromObj(interp, objv[2], &p0) != TCL_OK ||
       Tcl_GetIntFromObj(interp, objv[3], &p1) != TCL_OK) {
@@ -282,33 +281,28 @@ static int wrpc_read(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
 
   r.p0 = p0;
   r.p1 = p1;
+  bytes_to_read = UTFmax * RLEN(r);
 
   if (r.p0 < 0 || r.p1 < 0 || r.p0 > r.p1) {
     Tcl_SetObjResult(interp, Tcl_NewStringObj("strange numbers", -1));
     return TCL_ERROR;
   }
 
-  /* 3. Allocation */
-  p = malloc(UTFmax * RLEN(r));
+  p = (unsigned char *)malloc(bytes_to_read);
   if (p == NULL) {
     Tcl_SetObjResult(interp, Tcl_NewStringObj("malloc fails", -1));
     return TCL_ERROR;
   }
 
-  /* 4. Execute RPC */
-  emsg = rpc_read(h, (Id)id, r, p);
+  emsg = rpc_read(h, (Id)id, r, (char *)p);
   if (emsg != 0) {
     free(p);
     Tcl_SetObjResult(interp, Tcl_NewStringObj(emsg, -1));
     return TCL_ERROR;
   }
 
-  /*
-   * 5. Return the result.
-   * Using TCL_DYNAMIC tells Tcl to take ownership of the 'p' pointer
-   * and call free() when it's done.
-   */
-  Tcl_SetResult(interp, p, TCL_DYNAMIC);
+  Tcl_SetObjResult(interp, Tcl_NewByteArrayObj(p, bytes_to_read));
+  free(p);
   return TCL_OK;
 }
 

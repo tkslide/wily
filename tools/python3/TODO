@@ -1,4 +1,4 @@
-1. To implement, to match the old module's functionality
+[ ] To implement, to match the old module's functionality
         [x] bounce
         [x] eventwouldblock
         [x] read
@@ -14,4 +14,6 @@
         [x] settools
         [x] win
 
-2. Compile everything with 'CFLAGS+='-fPIC' by default.
+[>] Compile everything with 'CFLAGS+='-fPIC' by default.
+[ ] Reimplement shell tool in Python
+        [x] Man

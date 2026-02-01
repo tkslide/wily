@@ -1,0 +1,12 @@
+#! /usr/bin/env python3
+
+import wily
+from sys import argv 
+from subprocess import check_output
+
+if len(argv) > 1:
+    man_for = argv[-1]
+    c = wily.Connection()
+    w = c.win(f'+Wman {man_for}', 0)
+    out = check_output(['man', argv[-1]])
+    c.replace(w,0,0, out.decode('utf-8'))

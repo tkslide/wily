@@ -1,0 +1,241 @@
+= Wily Messaging Interface
+http://www.cs.su.oz.au/~gary/[Gary Capell]
+v0.11.0 April 1996
+
+== The Msg Struct
+
+This is the "in-memory" representation of the messages which flow
+between Wily and remote programs. The representation of messages as they
+flow across the network is deliberately hidden.
+
+....
+struct Msg {
+        Mtype   t;
+        Id      m;      /* message */
+        Id      w;      /* window */    
+        Range   r;
+        uchar   flag;
+        char    *s;
+};
+....
+
+s is a null-terminated UTF string, and must be a complete UTF sequence.
+
+t identifies the type of the message. The possible values of t are
+enumerated in the next section.
+
+m identifies the message within a sequence of messages.
+
+w identifies a particular window.
+
+r specifies a contiguous set of runes within a window. The range r.p0,
+r.p1 means all the characters with offset not less than r.p0, and
+strictly less than r.p1
+
+flag is used to modify the meaning of some types of message, and can be
+used to hold a true/false value, or a bit mask.
+
+The client sends request messages to Wily. For every request message,
+Wily sends back either a reply message (if the request was fulfilled
+successfully) or an error message. In either case, the message sent in
+response will have the same message id (m.m) as the request message.
+Each reply message has a Mtype value one greater than the corresponding
+request message.
+
+Wily may also send event messages to the client, if the client has asked
+for them.
+
+== The Mtype enum
+
+For each of the message types defined, there is a brief description, and
+an indication of which fields of the Msg struct are significant for this
+type of message.
+
+The names of request messages start with WM, those of response messages
+with WR, and those of events with WE
+
+=== Requests/Responses
+
+WRerror(s)::
+  Message type returned by wily if there’s an error in decoding or
+  fulfilling some request. s contains an error message.
+WMlist::
+  Asks wily to send a list of windows currently displayed.
+WRlist(s)::
+  s contains a list of lines terminated by newlines. Each line contains
+  a name and an id (as a textual number) separated by whitespace.
+WMnew(s,flag), WRnew(w)::
+  Asks wily to create a window with a given label (which may be an
+  existing file). The new window will be treated as a normal file, with
+  backups kept for it, If and only if flag is set.
+  +
+  w is set to the id of the newly created window.
+WMattach(w,flag), WRattach::
+  Set the event mask for w to flag. Used to start or stop the flow of
+  events for a particular window. See the _Events_ section for details
+  on what values the mask can have.
+WMsetname(w,s), WRsetname::
+  Change w’s name to s.
+WMsettools(w,s), WRsettools::
+  Change the tools for this window. Tools are simply words appearing in
+  the tag of a window, after the window name and before the ’pipe’
+  symbol. They are (will be) automatically maintained, i.e. they will be
+  replaced if accidentally deleted.
+WMread(w,r),WRread(s)::
+  Read the text from w in range r.
+  +
+  s is the requested text, as a UTF string.
+WMreplace(w,r,s), WRreplace::
+  Replace the text from w in range r with UTF string s
+WMexec(w,s),WRexec::
+  Act as if s had been clicked with B2 in w. Note that this can be used
+  to access Wily’s built in functions.
+WMgoto(w,r,flag,s), WRgoto(w,r)::
+  Act as if s had been clicked with b3 in w at r, possibly opening a
+  file or directory, or searching for some combination of line address,
+  character address or regular expression. If and only if flag is set do
+  we select the range found, and set "dot". In either case, we return
+  the window and text range to which we would have jumped.
+  +
+  This request will return an error if it tries to search for something
+  which isn’t there.
+  +
+  The response message contains the window and range we went to.
+WMfencepost::
+  Not used for any message. Receiving a message with Mtype greater than
+  WMfencepost indicates some horrible error.
+
+=== Events
+
+These are the messages sent by Wily to clients who request to be
+notified of events in a particular window using WMattach
+
+The event types are used to form a mask to be given as a parameter to
+the WMattach request. For example, to request only exec and goto events,
+set m.f = WEexeclatexmath:[$|$]WEgoto before sending message m
+
+WEexec(w,s)::
+  s was selected with B2 somewhere in w
+WEgoto(w,r,s)::
+  s was selected with B3 at r in w
+WEdestroy(w)::
+  w has been destroyed.
+WEreplace(w,r,s)::
+  The text at r in w was replaced by s Note that insertion. and deletion
+  are simply special cases of replacement .
+WEfencepost::
+  Never actually used. Any message with Mtype greater than WEfencepost
+  is a request or response. Any message with Mtype less than WEfencepost
+  is an event.
+
+If a client is sent an event which it doesn’t want to use, it can send
+the event back to wily. Wily will act on the event, but not send a
+confirmation back to the client.
+
+== Establishing a Connection
+
+Simply call client_connect(), which returns a file descriptor open for
+reading and writing to Wily, or a negative number if there’s been some
+error.
+
+Wily and client programs both use the environment variable $WILYFIFO to
+establish communications, and Wily sets this variable for any children
+it creates.
+
+== Packing and Unpacking Messages
+
+int msg_size (Msg *m);::
+  Returns the size of buffer that will be needed to "flatten" m
+void msg_flatten (Msg*m, char*buf);::
+  "Flatten" m into buf, which must have enough storage space allocated.
+ulong msg_bufsize (char*buf);::
+  Returns the total size of the flattened message starting at buf.
+  Assumes that at least HSIZE bytes are stored in buf.
+  +
+  A useful macro is
+  +
+....
+#define FULLMSG(ptr,n) ( (n) >= HSIZE && (n) >= msg_bufsize(ptr) )
+....
+int msg_init (Msg*m, char*buf);::
+  The reverse of msg_flatten. Fills in the fields of ’m’ using the flat
+  representation starting at buf Msg_init assumes that buf holds the
+  complete message. m-latexmath:[$>$]s will point to an area within buf,
+  but buf itself is not modified.
+void msg_print (Msg *m);::
+  Print a human-readable form of m to stderr
+
+== RPC-style interface
+
+These functions aren’t necessary to interact with Wily. However, they
+are convenient, and provide some type-checking to help make sure you
+send the right messages.
+
+=== Opening, Closing and Checking the RPC interface
+
+Handle* rpc_init (int fd);::
+  Create a new RPC handle to use file descriptor fd, which was probably
+  returned from client_connect
+Bool rpc_isconnected(Handle*h);::
+  Indicate whether or not h is still connected.
+  +
+  If the RPC library starts receiving gibberish messages, it will cut
+  the connection, and will return a "not connected" error message for
+  every request.
+void rpc_free(Handle*h);::
+  Release any resources used by h, and free h itself.
+
+=== Requests
+
+If there’s any sort of failure, all of these functions return a pointer
+to an error message, which is stored in a static buffer and only
+guaranteed to remain valid until the next rpc_* function is called.
+After a failure, it’s possible that the connection to wily has been
+lost. This should be checked using rpc_isconnected
+
+If successful, these functions return NULL.
+
+char* rpc_list (Handle*h, char **bufptr);::
+  If successful, allocates a string, stores the window list in the
+  string, and stores a pointer to the string in bufptr. Don’t forget to
+  free(*bufptr) when you’re finished.
+char* rpc_new (Handle*h, char *s, Id*id);::
+  Create window with name s, setting id if successful.
+char* rpc_attach (Handle*h, Id w, ushort mask);::
+  Request events associated with w and matching event mask. This will
+  fail if w doesn’t exist, or is already sending its events somewhere
+  else.
+char* rpc_detach (Handle*h, Id w);::
+  Cancel request for events associated with w
+char* rpc_setname (Handle*h, Id w, char *s);::
+  Set the name of w to s
+char* rpc_settools (Handle*h, Id w, char *);::
+  Set the tools section of w to s
+char* rpc_read (Handle*h, Id w, Range r, char*buf);::
+  Read range r from w into buf, which must have enough space (UTFmax *
+  RLEN(r)). Fails if r is not contained in window w
+char* rpc_replace (Handle*h, Id w, Range r, char*s);::
+  Replace range r in w with UTF string s
+char* rpc_exec (Handle*h, Id w , char *s);::
+  Cause Wily to act as though s were selected in w with button 2.
+char* rpc_goto (Handle*h, Id *w , Range *r, char*s, Bool setdot);::
+  Make Wily act as though s were selected in w with button 3.
+  +
+  Sets w and r with the window and range found by the search operation.
+  Actually jumps to and selects some text if and only if setdot is true.
+  This request will return an error if it tries to search for something
+  which isn’t there.
+
+=== Events
+
+int rpc_event (Handle*h, Msg *m);::
+  Block until an event is received by h and fill in m. Returns 0 for
+  success, -1 for failure. After a successful call to rpc_event,
+  m-latexmath:[$>$]s will need to be freed.
+char *rpc_bounce(Handle *h, Msg *m)::
+  Returns m, which must be an event filled in by rpc_event, back to
+  wily, and frees m-latexmath:[$>$]s. Useful for events which we receive
+  but we’d rather wily took the default action on.
+Bool rpc_wouldblock(Handle*h);::
+  Returns true if rpc_event would block. Only useful if your program is
+  reading from other input sources as well. (e.g. see win.c)

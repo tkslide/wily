@@ -1,0 +1,93 @@
+= Wily/Python Interface
+http://www.cs.su.oz.au/~gary/[Gary Capell]
+v0.11.0 April 1996
+
+== Connection
+
+=== Creating
+
+....
+import wily
+con = wily.connection()
+....
+
+=== Attributes None
+
+=== Methods
+
+win(name)::
+  Returns a new window, with the given name
+list()::
+  Returns a list of wins representing the windows currently open in
+  wily.
+event()::
+  Returns the next Event. Note that this function will block until it
+  receives an event.
+event_wouldblock()::
+  Indicates whether event() would block.
+
+== win
+
+=== Creating
+
+win objects are returned by connection.win(name) or as part of
+connection.list()
+
+=== Attributes
+
+id::
+  window id
+name::
+  name
+dot::
+  a (from,to) tuple representing the currently selected portion of the
+  window.
+
+=== Methods
+
+attach()::
+  Request events for this window.
+detach()::
+  Cancel request for events for this window.
+setname(s)::
+  Set the name of this window.
+settools(s)::
+  Set the toolbar for this window.
+read((from,to))::
+  Read some range from this window.
+  +
+  Called with a tuple representing the range to read, returns a UTF
+  string.
+replace((from,to),s)::
+  Replace some range of window with some other text.
+  +
+  Called with a tuple representing the range to replace, and a string to
+  replace it with. Insertion and deletion are special cases of replace,
+  with null range or replacement string respectively.
+run(s)::
+  Execute some text in this window. Makes wily act as if s had been
+  selected with button 2 in this window. This can be used to access
+  Wily’s built-in functions. For example, to delete w, call w.run("Del")
+goto(s)::
+  "Goto" some text in this window. Makes wily act as if s had been
+  selected with button 3 in this window. This can be used to open a new
+  window, or search for some regular expression. Returns a win if the
+  Goto resulted in a successful search in this window.
+
+== Event
+
+=== Attributes
+
+id::
+  of the window the event occurred in
+t::
+  Message type: one of wily.GOTO, wily.EXEC or wily.REPLACE.
+r::
+  (from,to) tuple
+s::
+  string
+
+=== Methods
+
+returnevent::
+  Send this event back to Wily to interpret

@@ -1,0 +1,420 @@
+= Wily User Manual
+http://www.cs.su.oz.au/~gary/[Gary Capell]
+v0.12.7 June 1996
+
+== Invocation, Environment variables
+
+wily [-d] [-v] [-f font] [-F fixedfont] [-t tabsize][file name...]
+
+-d::
+  Enable debugging output
+-v::
+  Print version number and exit
+-f font::
+  (or X resource p9font) set the default proportional font.
+-F font::
+  (or X resource p9fixed) set the monospace font.
+-t tabsize::
+  set the maximum width of tabs (as multiple of the width of the
+  character ’0’) for the proportional font. Defaults to 4.
+-T tabsize::
+  set the maximum width of tabs (as multiple of the width of the
+  character ’0’) for the monospace font. Defaults to 8.
+file name...::
+  Start wily with the named files and directories open.
+
+=== Environment variables
+
+SHELL::
+  External commands are sent to the shell for evaluation.
+HISTORY::
+  If set, commands are written to this file before execution.
+WILYBAK::
+  Wily uses $WILYBAK or $HOME/.wilybak as the directory for backups.
+WILYFIFO, DISPLAY, TMPDIR::
+  Wily communicates with some other programs using a fifo at a
+  well-known location.
+  +
+  The name of the fifo will be $WILYFIFO if this variable is set,
+  otherwise it will be /tmp/wilyUSER$DISPLAY, where USER is calculated
+  from the password file. If $TMPDIR is defined, it is used instead of
+  /tmp.
+  +
+  Wily also sets $WILYFIFO so any children it creates will know how to
+  talk to it.
+
+== Appearance
+
+foo
+
+=== Scrollbars and scrolling
+
+Scrollbars are proportional, i.e. the size and position of the
+scrollbar’s "thumb" indicates the size and position of the visible
+portion of the text.
+
+Each of the three mouse buttons does something different when clicked in
+the scrollbar.
+
+The _right_ mouse button moves the text next to the mouse pointer _up_
+to the top of the window. The _left_ mouse button moves the text at the
+top of the window _down_ so it is next to the pointer. Both of these
+rules have the effect that clicking near the top of the scrollbar causes
+small movements, and clicking near the bottom causes large movements.
+
+The _middle_ button moves the visible part of the text to a point in the
+text proportional to how far down the scrollbar the pointer is. That is,
+clicking at the bottom of the scrollbar with button 2 jumps to the end
+of the text, clicking at the top of the scrollbar with button 2 jumps to
+the beginning of the text.
+
+All of these movements repeat if the mouse button is held down in the
+scroll bar.
+
+The _PageUp_ and _PageDown_ keys scroll up or down by about half a page.
+The _Home_ and _End_ keys scroll to the top or bottom of the file.
+
+=== Context
+
+All text in wily has a _context_, which is just the name of a directory
+associated with that text.
+
+For text in a window, the context is the name of the window, up to and
+including the last /. So if three windows have the names
+/usr/gary/+Errors, /usr/gary/guide and /usr/gary/, they will all have
+the same context: /usr/gary/. Note that the context need not be a
+directory which actually exists.
+
+For column tags and the top-level tag, the context is the name of the
+directory where wily was started.
+
+When text is _executed_, wily uses the context of the text as the
+directory in which to run the program.
+
+Output from the command will appear in the window
+latexmath:[$\{$]contextlatexmath:[$\}$]/+Errors.
+
+When trying to _Goto_ some text, the text will be interpreted relative
+to its context. For example, the text foo.c:14 in a window with context
+/usr/gary/src/fish/ will be interpreted to mean the address
+/usr/gary/src/fish/foo.c:14
+
+== Mouse actions
+
+=== Double-click
+
+Double-clicking with the left mouse button can select a word, a line, or
+the text delimited by quotation marks, braces, brackets or parentheses.
+
+=== Selection expansion
+
+A null selection (single click) with the middle or right mouse button
+will be expanded to some of the surrounding text.
+
+A click inside an existing selection will be expanded to that selection.
+
+This means you can select (with the left button) some complicated
+command once, and click the middle button inside this selection many
+times to execute the command repeatedly.
+
+This rule is also helpful when searching through multiple occurrences of
+a piece of text, as clicking with the right button in the most recently
+found instance searches for the next instance.
+
+A click that is not inside an existing selection will be expanded
+depending on which mouse button was used. Clicks with the middle button
+are expanded to select commands, i.e. strings of alphanumeric
+characters, latexmath:[$|$], latexmath:[$>$] or latexmath:[$<$]. Clicks
+with the right button are expanded to select addresses, i.e. strings of
+alphanumeric characters, :, ",".
+
+=== Combinations of Mouse Buttons (mouse chords)
+
+Pressing more than one mouse button at a time is called a mouse chord,
+and can be used for some special short cuts.
+
+=== Cut,Paste mouse chords
+
+To cut some text into the clipboard, select the text with the left
+button, and _while holding it down_, click the middle button. The
+selected text will be cut from the window and copied to the clipboard.
+
+Similarly, select some text with the left mouse button, and while
+holding it down also click the right button, and the selected text will
+be replaced by the contents of the clipboard. The clipboard will be
+unaltered.
+
+Note that so long as you hold the left button down, you can alternately
+cut and paste the selected text by pressing the middle and right
+buttons. A cut immediately followed by a paste in this way leaves the
+file unmodified.
+
+=== Execute with argument
+
+A command can be called with an argument using another mouse chord.
+Sweep the command with the middle button, and while holding it down,
+click the left button. The command is invoked with the text most
+recently selected with the left button as argument. For example, one
+might select main.c with the left button, then chord the middle and left
+buttons on the word wc to run wc main.c.
+
+When an argument is selected in this manner, the context of the argument
+becomes the context of the command. One idiom is to select some text in
+one window, and Look for it in another window using this chord.
+
+== Execute
+
+If text is selected with the middle mouse button, it is executed.
+
+If you press the middle button in some text, then decide you _don’t_
+want to execute it, press the right mouse button to abort.
+
+If the text is the name of one of the builtin functions, that function
+will be executed.
+
+If the text begins with latexmath:[$|$], latexmath:[$>$] or
+latexmath:[$<$], the most recent selection will be piped through the
+command, piped to the command, or replaced by the output of the command,
+respectively.
+
+The command is executed by $SHELL -c command [argument]. If $SHELL is
+not defined, /bin/sh is used.
+
+Standard output from the command will appear in a window in wily.
+Standard input for the command will be from /dev/null.
+
+The main wily tag indicates which programs are currently running.
+
+Wily tends to be more useful if . is in $PATH
+
+=== Builtin Functions
+
+These commands are looked for first. Some of them operate differently if
+called with an argument (using the Middle/Left mouse chord).
+
+Put,Get,Putall::
+  Put and Get write the window to disk, or fetch from disk,
+  respectively. If called with an argument, they will use the argument
+  this as the filename, instead of the name of the window.
+  +
+  Putall writes all dirty files to disk.
+New, Del::
+  Create a new window, or delete a window, respectively. If New is
+  called with an argument, it will use the argument as the name of a
+  file to create.
+Look::
+  Searches in the window containing Look for literal text: either the
+  argument, if it is given one, or the current selection in the window
+  containing Look
+Undo, Redo::
+  Undo or redo an action. With an argument, undo(redo) until the window
+  reflects the state of the file on disk.
+Newcol, Delcol::
+  Create or delete a column
+Cut, Paste, Snarf::
+  Cut the currently selected text to the X selection buffer, replace the
+  currently selected text with the X selection buffer, or copy the
+  currently selected text to the X selection buffer, respectively.
+  +
+  The _currently selected text_ is defined as the selection in the most
+  recently selected window. This should be indicated by that window
+  having a slightly thicker border.
+Quit::
+  Exit wily. Any dirty files will be backed up.
+Kill::
+  Kill some process which was started from wily. Kill must be given as
+  an argument the name of the process to kill. The topmost tag always
+  contains the list of long-running programs started from within wily.
+  To kill one of these, click in the name of the process in the tag,
+  then do a middle/left mouse chord in ’Kill’.
+Font::
+  Toggle between fixed and proportional fonts. Depending on where Font
+  is clicked, changes the font for a window, a column, or for all the
+  windows on the screen.
+Dotfiles::
+  Toggles whether or not dot files are displayed in directories.
+  Directories will not be re-read automatically, though.
+Anchor::
+  Puts an address in the tag of the most recently selected window. The
+  address is from the current position to ’.’. This can be used to
+  select large chunks of text. Click at the beginning position, execute
+  Anchor, click at the end position, then click with the right mouse
+  button in the address in the tag. The anchor may also be used as a
+  bookmark.
+Split::
+  Split the most recently selected window into two. Editing actions in
+  one window will be visible in the other.
+
+== Goto Text
+
+Wily will attempt to _goto_ text selected with the right mouse button.
+What this means depends on the text selected.
+
+The _goto_ operation used with B3 is polymorphic in that it recognises
+three different patterns:
+
+name::
+  If name is a file or directory, open it, otherwise search for the
+  literal name
+:address::
+  Search for address in the current window, where the form of an address
+  is defined below.
+file:address::
+  Open file and search in it for address
+
+=== Addresses
+
+Wily uses the address and regular expression code from
+http://plan9.bell-labs.com/plan9/doc/sam.html[Sam] . Please refer to the
+http://plan9.bell-labs.com/magic/man2html/1/sam[Sam manual] for a better
+explanation.
+
+The following description was cut and pasted from the
+http://plan9.bell-labs.com/magic/man2html/1/sam[Sam manual]
+
+==== Simple Addresses
+
+#n::
+  The empty string after character n; #0 is the beginning of the file.
+n::
+  Line n; 0 is the beginning of the file.
+/regexp/ ?regexp? ::
+  The substring that matches the regular expression, found by looking
+  toward the end (/) or beginning (?) of the file, and if necessary
+  continuing the search from the other end to the starting point of the
+  search. The matched substring may straddle the starting point. When
+  entering a pattern containing a literal question mark for a backward
+  search, the question mark should be specified as a member of a class.
+$::
+  The null string at the end of the file.
+.::
+  Dot. The current selection in a window.
+
+==== Compound Addresses
+
+In the following, a1 and a2 are addresses.
+
+a1+a2 ::
+  The address a2 evaluated starting at the end of a1.
+a1-a2 ::
+  The address a2 evaluated looking in the reverse direction starting at
+  the beginning of a1.
+a1,a2::
+  The substring from the beginning of a1 to the end of a2. If a1 is
+  missing, 0 is substituted. If a2 is missing, $ is substituted.
+a1;a2 ::
+  Like a1,a2 but with a2 evaluated at the end of, and dot set to, a1.
+
+The operators + and - are high precedence, while , and ; are low
+precedence.
+
+In both + and - forms, if a2 is a line or character address with a
+missing number, the number defaults to 1. If a1 is missing, . is
+substituted. If both a1 and a2 are present and distinguishable, + may be
+elided. a2 may be a regular expression; if it is delimited by ?’s, the
+effect of the + or - is reversed.
+
+It is an error for a compound address to represent a malformed
+substring. Some useful idioms: a1+- %(a1-+) selects the line containing
+the end (beginning) of a1. 0/regexp/ locates the first match of the
+expression in the file. (The form 0;// sets dot unnecessarily.)
+./regexp/// finds the second following occurrence of the expression, and
+.,/regexp/ extends dot.
+
+=== Cursor Warping
+
+After a successful search, the text that was found is highlighted, and
+the cursor is warped there, so that to search for the next instance of
+the search text, no cursor movement is required, it is only necessary to
+click the rightmost mouse button again.
+
+Window re-arranging operations warp the cursor to the resize box of the
+window that moved, so the move can be easily refined.
+
+== Miscellaneous
+
+=== Window Reshaping
+
+Wily windows are placed automatically using heuristics. Hopefully most
+of the time the window will be placed somewhere useful. However, windows
+and columns can be moved and reshaped. The resize box (the little box on
+the far left of the tag) of a pane or a column may be manipulated to
+move or reshape a window.
+
+Dragging the resize box (with any mouse button) moves the column or
+window to the desired location.
+
+Clicking in a pane’s button with different mouse buttons has these
+different effects:
+
+Left button::
+  the window grows a bit, first taking up any blank space in the column
+Middle button::
+  Every window except the desired one is shrunk so that only their tags
+  are visible, leaving more space for the desired window.
+Right button::
+  The window expands to take up the whole column, obscuring all the
+  other windows in that column. Clicking with any mouse button in the
+  window’s resize box will undo this effect.
+
+=== Back-up files
+
+Whenever a window is to be deleted which represents a file and which
+contains text which hasn’t been written to disk, a backup is made. This
+is an experimental alternative to the familiar (and often-annoying)
+`‘̈`are you _sure_ you want to close this window?`‘̈` dialog. A warning
+message is printed when this happens, alerting the user, and allowing
+her to easily recover the modified file, or compare the old and new
+files.
+
+This seems not only quicker but safer than forcing a dialog, as
+occasionally the user might give the wrong answer to a dialog, whereas
+with this system a backup is always there.
+
+Backup files are kept in directory $WILYBAK if it exists, or
+$HOME/.wilybak. In this directory the file TOC is a table of contents
+showing what real file each backup file maps to.
+
+=== Remote Control
+
+A programming interface is provided to wily, for writing more complex
+programs such as mailers, news readers, terminals, code browsers, etc.
+See the link:msg.html[Wily Message Interface guide] for more details.
+
+=== Fonts
+
+(Taken from font(4))
+
+External fonts are described by a plain text file that can be read using
+_rdfontfile_. The format of the file is a header followed by any number
+of subfont range specifications. The header contains two numbers: the
+height and the ascent. The height is the inter-line spacing and the
+ascent is the distance from the top of the line to the baseline. These
+numbers are chosen to display consistently all the subfonts of the font.
+A subfont range specification contains two numbers and a font name. The
+numbers are the inclusive range of characters covered by the subfont,
+and name specifies the name of an X font suitable for _getsubfont_. The
+minimum number of a covered range is mapped to the first defined
+character of the corresponding subfont. Each field must be followed by
+some white space. Each numeric field may be C-format decimal, octal, or
+hexadecimal.
+
+Here is the start of the font file the author uses for a monospace font:
+
+....
+17      14
+0x0000  0x00FF  lucm.latin1.9
+0x0100  0x017E  lucm.latineur.9
+0x0180  0x01F0  matty.latinext.9
+0x0250  0x02E9  lucm.ipa.9
+0x0300  0x0308  matty.gendiacritics.9
+0x0370  0x0372  matty.greekpunc.9
+0x0386  0x03F5  lucm.greek.9
+0x0400  0x0475  misc.cyrillic.9
+....
+
+=== Entering non-ASCII characters
+
+Refer to the Plan 9
+http://plan9.bell-labs.com/magic/man2html/6/keyboard[keyboard(6)] manual
+page, which is _mostly_ how it works in wily.

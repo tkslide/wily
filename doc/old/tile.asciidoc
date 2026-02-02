@@ -1,0 +1,940 @@
+= tile.nw
+
+== A New Window Management Scheme for Wily
+
+=== Goals
+
+. Generalization of code for both column and row management.
+. Help take care of some stuff-locating code (such as finding the stuff
+under a mouse click).
+. Adding and immediately deleting a window should not change the
+placement of the remaining windows.
+
+[#NWD1]##
+
+=== Data Structures
+
+==== Tiles
+
+Central to the new window management system is the _tile_. The tile
+contains the minimum amount of information necessary to rearrange the
+elements of
+#tile%20list%3Etile%20list%3C/a%3E%20to%20which%20it%20belongs.%0AThis%20information%20consists%20of:%0A%0A%3Cpre%3E%3Ca%20name=[[.dfn]#<data
+structures>=#] *(link:#NWtil7-tilA-1[U->])* *[Dlink:#NWD6[->]]* typedef
+struct Tile Tile; struct Tile \{ link:#NWD2[_<tile elements>_] };
+
+[#NWD2]##
+
+. The starting and ending location of the tile in screen coordinates
+(this could be either the `x` or `y` coordinate). The terms "min" and
+"max" are used for consistency with the definition of `Rectangle`.
++
+....
+<tile elements>= (<-U) [D->]
+int min, max;
+....
++
+[#NWD3]##
+. The minimum size of the tile. As a special case, non-positive tiles
+sizes are permitted for hidden tiles (this is explained in detail
+elsewhere).
++
+....
+<tile elements>+= (<-U) [<-D->]
+int base;
+....
++
+[#NWD4]##
+. The size increment of the tile. This is the amount by which the tile
+must grow. For example, text windows need to grow by the height of the
+font they display.
++
+....
+<tile elements>+= (<-U) [<-D->]
+int step;
+....
++
+[#NWD5]##
+. A pointer to the enclosing tile list.
++
+....
+<tile elements>+= (<-U) [<-D]
+TileList* list;
+....
+
+Instead of putting a pointer to a tile in all the windows and columns,
+we simply insist that the first element in a window or column is a tile
+[#NWD6]##s##tructure. This way, `(struct tile *) windowptr` makes sense.
+[#tile list]##
+
+==== Tile Lists
+
+Tiles are strewn out in lists. Instead of using linked lists, I have
+chosen to use arrays, but that is just an implementation detail.
+TileLists need a rectangle to determine where its tiles go.
+
+....
+<data structures>+= (U->) [<-D]
+struct TileList {
+        <tile list elements>
+};
+....
+
+[#NWD7]##T##he tile list consists of
+
+A tile structures (since tile lists are themselves tiles). Note that
+`self` is not used in anywhere in the tile code, as the the tile list
+may be a member of a super-tile-list running the other way.
+
+....
+<tile list elements>= (<-U) [D->]
+Tile self;
+....
+
+[#NWD8]##
+
+The array of tiles it contains.
+
+....
+<tile list elements>+= (<-U) [<-D->]
+Tile **tiles;
+....
+
+[#NWD9]##
+
+The range to which the tile list elements are limited.
+
+....
+<tile list elements>+= (<-U) [<-D->]
+int min, max;
+....
+
+[#NWDA]##
+
+The number of tiles currently in the array, and the maximum size of the
+tile array.
+
+....
+<tile list elements>+= (<-U) [<-D->]
+ushort count, maxtiles;
+....
+
+[#NWDB]##
+
+`hidden` is used to determine how many tiles are hidden "to the left of"
+the tiles actually displayed (as a result of a B3, for instance).
+
+....
+<tile list elements>+= (<-U) [<-D]
+ushort hidden;
+....
+
+[#NWDC]#}#;
+
+....
+<typedefs>= (U->)
+typedef struct TileList TileList;
+....
+
+=== Operations
+
+There really are only a few operations that involve tiles.
+
+. Adding a tile to a tile list (e.g., as a result of a New), either
+arbitrarily or near a desired location.
+. Removing a tile from its tile list (e.g., as a result of a Del).
+. Moving a tile within a tile list. This might look better than simply
+deleting and adding it, especially if the tile is not really moving
+(i.e., it is just growing or shrinking).
+. Making a tile big enough to be visible (necessary to make sure that
+new output is visible, for instance).
+. Locating a tile in a tile list given a location (to figure out where
+typing should go).
+. Growing a tile "some" (for B1 clicks), "lots" (for B2 clicks), or "way
+lots" (for B3 clicks).
+. Resizing. This should only occur as a result of wily's X window being
+resized.
+
+The only policy that tiles and tile collections are responsible for is
+how to handle B1, B2, and B3 clicks, and what to do when a window is
+deleted. The operator to add a tile will take hints as to where to place
+a tile (with respect to a location).
+
+==== Growing a Tile
+
+[#NWDD]##G##rowing a tile proceeds in two simple steps: Make the tile
+the desired size, and then push everything else out of the way. *With a
+B3, it would also be desirable to mark everything else as hidden instead
+of adjusting the windows unnecessarily).*
+
+Since the tile growth is rather blind at times, `tile_list_reshaped` is
+called without a specific "untouchable" tile, thereby fixing a prior
+bug.
+
+....
+<public tile functions>= (U->) [D->]
+void
+tile_grow(Tile *tile, Growth grow) {
+        TileList *list = tile->list;
+        <tile_grow locals>
+
+        <tile consistency checks>
+
+        switch (grow) {
+        case Gsome:
+                <grow tile a little>
+                break;
+        case Gmost:
+                <grow tile lots>
+                break;
+        case Gall:
+                <grow tile way lots>
+                break;
+        default:
+                assert(grow != grow);
+        }
+        tile_list_reshaped(list, 0);
+}
+....
+
+....
+<public function declarations>= (U->) [D->]
+void tile_grow(Tile *, Growth);
+....
+
+[#NWDE]#*This is probably too small*, especially when a column is being
+grown, but it will work for now. Also, *it does not check boundary
+conditions.*#
+
+....
+<grow tile a little>= (<-U)
+tile->min -= tile->step;
+tile->max += tile->step;
+....
+
+[#NWDF]##T##he B2 implementation of this code relies slightly on the way
+`tile_list_reshaped` is currently implemented, as it relies on it not to
+hide any windows until it has tried shrinking them all. Since this is
+good user interface policy anyhow, this assumption presents little
+problem.
+
+....
+<grow tile lots>= (<-U)
+space = list->min;
+for (i = list->hidden; i < list->count; i++) {
+        if (list->tiles[i] == tile) {
+                tile->min = space;
+                space = 0;
+                continue;
+        }
+        space += list->tiles[i]->base;
+}
+tile->max = list->max - space;
+....
+
+....
+<tile_grow locals>= (<-U)
+int i, space;
+....
+
+To grow a tile way lots, the remaining tiles are added to the "hidden"
+list. For the moment, the tiles are added in order by simply swapping
+the selected tile to the end of the array, but *heuristics should be
+added* so that the "least hidden" tile is the one the user [#NWDG]##i##s
+most likely to want to see next.
+
+A little trickery here -- the code only counts up to `count - 1`. This
+is because the tile being expanded way lots gets swapped to the end
+position in the array during the loop. If the tile being expanded is
+already at the end, then there is no problem. Of course, *if the caller
+called with an array where `tile` was not in `list`, then there is a
+problem.*
+
+....
+<grow tile way lots>= (<-U)
+for (i = list->hidden; i < list->count - 1; i++) {
+        if (list->tiles[i] == tile) {
+                list->tiles[i] = list->tiles[list->count - 1];
+                list->tiles[list->count - 1] = tile;
+                continue;
+        }
+        list->tiles[i]->min = list->tiles[i]->max;
+}
+list->hidden = list->count - 1;
+tile->min = list->min;
+tile->max = list->max;
+....
+
+[#NWDH]##
+
+==== Locating a Tile
+
+This funtion simply relies on `index_for_place` to find the right tile
+and then looks the tile up in the array.
+
+....
+<public tile functions>+= (U->) [<-D->]
+Tile *
+point2tile(TileList *list, int spot) {
+        int i = index_for_place(list, spot);
+
+        check_list_consistency(list);
+
+        return (i >= 0) ? list->tiles[i] : 0;
+}
+....
+
+....
+<public function declarations>+= (U->) [<-D->]
+Tile *point2tile(TileList *, int);
+....
+
+[#NWDI]##
+
+==== Making a Tile Visible
+
+*As a gross heuristic,* the tile size is set to `base`+3`step`. If there
+is not enough room for that, make the tile simply take the whole list
+over. Of course, if the tile is already showing, there is no reason to
+expand it.
+
+....
+<public tile functions>+= (U->) [<-D->]
+void
+tile_show(Tile *tile) {
+        TileList *list;
+
+        <tile consistency checks>
+        list = tile->list;
+        check_list_consistency(list);
+
+        if (TILESIZE(tile) == 0) {
+                <expose the hidden tile tile>
+        }
+        if (TILESIZE(tile) >= tile->base + tile->step)
+                return;
+        tile->max = tile->min + tile->base + 3 * tile->step;
+        if (tile->max > list->max) {
+                tile->max = list->max;
+                tile->min = tile->max - (tile->base + 3 * tile->step);
+                if (tile->min < list->min)
+                        tile->min = list->min;
+        }
+        tile_list_reshaped(list, tile);
+}
+....
+
+....
+<public function declarations>+= (U->) [<-D->]
+void tile_show(Tile *);
+....
+
+[#NWDJ]##H##idden tiles present a small problem -- they first must be
+"unhidden" so they can be displayed. *For lack of a better place to put
+it,*, the tile is added at the end of the tile list. +Errors windows
+probably belong at the bottom anyhow.
+
+....
+<expose the hidden tile tile>= (<-U)
+int i;
+
+for (i = 0; i < list->count && tile != list->tiles[i]; i++)
+        ;
+while (++i < list->count)
+        list->tiles[i-1] = list->tiles[i];
+list->tiles[i] = tile;
+list->hidden--;
+....
+
+[#NWDK]##
+
+==== Moving a Tile Within a Tile List
+
+*Just add and delete it for now.*
+
+....
+<public tile functions>+= (U->) [<-D->]
+void
+tile_move(Tile *tile) {
+        tile_del(tile);
+        tile_add(tile->list, tile);
+}
+....
+
+....
+<public function declarations>+= (U->) [<-D->]
+void tile_move(Tile *);
+....
+
+[#NWDL]##
+
+==== Adding a Tile to a Tile List
+
+This function uses the minimum coordinate of the new tile to determine
+where it should go. *What if the caller doesn't care?* If the caller
+does not know how large it wants the tile, it should specify a tile with
+a size of 0.
+
+....
+<public tile functions>+= (U->) [<-D->]
+void
+tile_add(TileList *list, Tile *tile) {
+        <local variables for adding a tile>
+
+        <tile consistency checks>
+        check_list_consistency(list);
+
+        <make sure tile shape is reasonable>
+        <determine where to place the new tile in the list>
+        <add the tile to the list>
+        tile->list = list;
+        tile_list_reshaped(list, tile);
+}
+....
+
+....
+<public function declarations>+= (U->) [<-D->]
+void tile_add(TileList *, Tile *);
+....
+
+[#NWDM]##T##he tile location must be constrained to its collection. If
+the tile is so deformed after this reshaping that its size exceeds the
+bounds of its container, it is simply shrunk to zero size.
+
+....
+<make sure tile shape is reasonable>= (<-U)
+assert(tile->min < tile->max);
+if (tile->min < list->min) {
+        tile->max += list->min - tile->min;
+        tile->min = list->min;
+}
+if (tile->max > list->max) {
+        tile->max = list->max;
+}
+if (tile->max - tile->min < tile->base)
+        tile->min = tile->max = 0;
+....
+
+[#NWDN]##T##o determine where the tile should go in the list, we perform
+a binary search on the tiles in the tile list to find the tile
+containing `tile->min`. This will be useful enough to warrant a separate
+function. The program must then determine whether the new tile will go
+before or after the tile it is being placed on. The tile is placed so
+that the tile it is supplanting is moved as little as possible.
+
+....
+<determine where to place the new tile in the list>= (<-U)
+if (list->count == list->hidden) {
+        i = list->hidden;
+        tile->min = list->min;
+        tile->max = list->max;
+} else {
+        i = index_for_place(list, tile->min);
+        if ((<distance to move current tile up>) < 
+                        (<distance to move current tile down>)) {
+                i++;
+        }
+}
+....
+
+....
+<local variables for adding a tile>= (<-U) [D->]
+ushort i;
+....
+
+[#NWDO]##M##oving a tile up means just moving it by the distance from
+its bottom to the desired top of the new window. Figuring out how far a
+tile down would move down is more complicated, but essentially works out
+to the distance from the top of the displaced tile to the bottom of the
+new tile.
+
+....
+<distance to move current tile up>= (<-U)
+list->tiles[i]->max - tile->min
+....
+
+....
+<distance to move current tile down>= (<-U)
+tile->max - list->tiles[i]->min
+....
+
+[#NWDP]##O##nce we know where in the array the tile goes, the other
+tiles need to be shuffled out of the way.
+
+....
+<add the tile to the list>= (<-U)
+<make sure tile list has room for one more>
+for (j = ++list->count; j > i; j--)
+        list->tiles[j] = list->tiles[j-1];
+list->tiles[i] = tile;
+....
+
+....
+<local variables for adding a tile>+= (<-U) [<-D]
+ushort j;
+....
+
+[#NWDQ]##
+
+==== Removing a Tile from a List
+
+This is pretty dull, actually -- the remaining elements of the tile list
+are shuffled down in the array, and then the tiles are resized to fit
+the new tile list.
+
+One bug found: I was passing `tile` into `tile_list_reshaped`, of all
+the silly things.
+
+....
+<public tile functions>+= (U->) [<-D->]
+void
+tile_del(Tile *tile) {
+        TileList *list = tile->list;
+        int i;
+
+        for (i = 0; i < list->count; i++) {
+                if (list->tiles[i] == tile) {
+                        while (++i < list->count) {
+                                list->tiles[i-1] = list->tiles[i];
+                        }
+                        list->count--;
+                        tile_list_reshaped(list, 0);
+                        return;
+                }
+        }
+        assert(0);
+}
+....
+
+....
+<public function declarations>+= (U->) [<-D->]
+void tile_del(Tile *);
+....
+
+==== Adjusting tile sizes
+
+When there is not enough room for the collection's tiles as they stand,
+this function is called to fix the tiles. The `tile` argument is used to
+indicate the tile that should not be adjusted. [#NWDR]##S##pecifying a
+`tile` of zero prevents any tile from being treated as special.
+
+Adjusting the tiles, then, is split into two phases -- adjusting the
+tiles above `tile`, and adjusting those below it. `tileidx` is used in
+the next chunk of code. It is initially set to a location not in the
+tile list.
+
+....
+<public tile functions>+= (U->) [<-D->]
+void
+tile_list_reshaped(TileList *list, Tile *tile) {
+        int i;
+        int tileidx = -1;
+        <tile_list_reshaped locals>
+
+        if (!tile)
+                adjust_sizes_in_range(list, list->hidden, list->count,
+                                list->max - list->min);
+        else {
+                <tile consistency checks>
+
+                for (i = 0; list->tiles[i] != tile; i++) {
+                        assert(i < list->count);
+                }
+                tileidx = i;
+                adjust_sizes_in_range(list, list->hidden, i, tile->min - list->min);
+                adjust_sizes_in_range(list, i + 1, list->count, list->max - tile->max);
+        }
+        <repair tile locations>
+        check_list_consistency(list);
+}
+....
+
+....
+<public function declarations>+= (U->) [<-D->]
+void tile_list_reshaped(TileList *, Tile *);
+....
+
+[#NWDS]##O##nce the tiles all fit, their locations must be updated
+(`adjust_sizes_in_range` does not do this). This is merely a matter of
+sticking the tiles end-to-end.
+
+....
+<repair tile locations>= (<-U)
+for (prevmax = list->min, i = list->hidden; i < list->count; i++) {
+        if (i != tileidx) {
+                list->tiles[i]->max -= list->tiles[i]->min - prevmax;
+                list->tiles[i]->min = prevmax;
+        }
+        prevmax = list->tiles[i]->max;
+}
+....
+
+....
+<tile_list_reshaped locals>= (<-U)
+int prevmax;
+....
+
+The tiles in a particular range are adjusted through a simple series of
+steps. Note that this only adjusts the _sizes_ of the tiles -- _it does
+not adjust the tiles' locations_.
+
+Bugs found:
+
+. The expansion code was seriously broken. Rethinking it in terms of
+computing an amount to shrink the tile dramatically simplified and
+improved the code.
+. The expansion code did not work when there were no tiles to adjust.
+Optimizing out an empty range is probably worthwhile anyhow.
+
+....
+<static tile functions>= (U->) [D->]
+static void
+adjust_sizes_in_range(TileList *list, int start, int max, int available) {
+        <local variables for tile adjustment>
+
+        if (start == max)
+                return;
+
+        <determine amount of space needed>
+        if (0 && needed < 0) {
+                <expand tiles to fill slack>
+                return;
+        }
+        <shrink tiles until space available>
+}
+....
+
+[#NWDU]##D##etermining the space required is easy -- determine the
+difference between the heights of the tiles and the collection they
+appear in.
+
+....
+<determine amount of space needed>= (<-U)
+needed = -available;
+for (i = start; i < max; i++)
+        needed += TILESIZE(list->tiles[i]);
+....
+
+....
+<local variables for tile adjustment>= (<-U)
+int i;
+int needed;
+....
+
+[#NWDV]##A##t this point, tiles are shrunk in a fairly arbitrary manner.
+The tile at the top gets shrunk first, and on down until the necessary
+space has been acquired. *Tiles should be removed from view completely
+if adequate space is not available.*
+
+*A small ugly here -- there may be a gap right before the "fixed" tile.*
+
+....
+<shrink tiles until space available>= (<-U)
+for (i = start; needed && i < max; i++) {
+        int base = list->tiles[i]->base;
+        int step = list->tiles[i]->step;
+        int shrink = TILESIZE(list->tiles[i]) - base;
+
+        shrink = ((shrink - base) / step) * step + base;
+        if (shrink > needed)
+                shrink = needed;
+        needed -= shrink;
+        list->tiles[i]->max -= shrink;
+}
+....
+
+[#NWDW]##F##or the moment, expanding to fill a gap is handled is a
+relatively arbitrary manner -- the last tile is grown to fill the gap.
+*What about any fuzz?*
+
+....
+<expand tiles to fill slack>= (<-U)
+list->tiles[max-1]->max -= needed;
+....
+
+=== Useful Macros
+
+[#NWDX]##
+
+==== Accessing Tile Elements
+
+Abstracting access via tile structures can very much simplify the code.
+The first one returns the tile representing the column in the global
+column list. The second one returns the column in which a window
+resides. It is not actually defined as a macro in order to improve type
+checking.
+
+....
+<public function declarations>+= (U->) [<-D->]
+#define COLTILE(t)      (&(t)->tiles.self)
+static Col *WINCOL(Win *w) {return (Col *) w->tile.list;}
+....
+
+[#NWDY]##
+
+==== Iteration
+
+There is no reason that every file dealing with tile lists need care
+about the internals of the list. This also substantially helps if the
+algorithm needs to be rearranged.
+
+....
+<public function declarations>+= (U->) [<-D->]
+#define FOR_ALL_TILES(t, l)\
+{ int __fral;\
+        for (__fral = 0; __fral < (l)->count && (t = (l)->tiles[__fral]); __fral++)
+#define FOR_ALL_SHOWING_TILES(t, l)\
+{ int __fral;\
+        for (__fral = (l)->hidden; __fral < (l)->count && (t = (l)->tiles[__fral]); __fral++)
+#define END_ALL }
+....
+
+[#NWDZ]##
+
+==== Computing a Tile's Height
+
+This is a trivial computation, but occurs frequently enough to warrant
+its own macro.
+
+....
+<public function declarations>+= (U->) [<-D->]
+#define TILESIZE(tile)  ((tile)->max - (tile)->min)
+....
+
+[#NWDa]##
+
+=== Internal Functions
+
+==== TileList Management
+
+For the moment, the only code we have to worry about is the stuff that
+makes sure adding a tile goes cleanly. The array in the tile list grows
+exponentially. It never shrinks, as it should never get very large
+anyhow.
+
+....
+<make sure tile list has room for one more>= (<-U)
+if (list->count == list->maxtiles) {
+        list->maxtiles *= 2;
+        list->tiles = realloc(list->tiles, list->maxtiles * sizeof(list->tiles[0]));
+}
+....
+
+==== Finding a Tile
+
+Finding a tile given a location is useful on at least a couple of
+occassions. This function returns the index of the tile in the supplied
+list, or -1 if no such tile exists. [#NWDb]##T##his is a little
+extra-clever because we can search through the tiles binarily instead of
+just slogging through them linearly. We see that this terminates
+because, on every iteration, either `start` is increased by at least 1
+or `end` is decreased by at least one (because of C's rounding,
+`start + (end - start / 2` is always less than `start + (end - start)`).
+
+....
+<static tile functions>+= (U->) [<-D]
+static int
+index_for_place(TileList *list, int spot) {
+        int start = list->hidden;
+        int end = list->count;
+        int mid;
+        Tile *tile;
+
+        while (start < end) {
+                mid  = start + (end - start) / 2;
+                tile = list->tiles[mid];
+                if (spot < tile->min)
+                        end = mid;
+                else if (spot > tile->max)
+                        start = mid + 1;
+                else
+                        return mid;
+        }
+        return -1;
+}
+....
+
+[#NWDc]##
+
+=== Assertions
+
+There will be some useful assertions to make at various points in the
+code. Some are catastrophic, others are merely aeshetic problems.
+
+....
+<public tile functions>+= (U->) [<-D]
+void
+check_tile_consistency(Tile *tile) {
+        <tile consistency checks>
+}
+
+void
+check_list_consistency(TileList *list) {
+        int i;
+        Tile *t;
+
+        <tile list consistency checks>
+        FOR_ALL_TILES(t, list) {
+                check_tile_consistency(t);
+        } END_ALL;
+}
+....
+
+....
+<public function declarations>+= (U->) [<-D]
+void check_list_consistency(TileList *);
+....
+
+[#NWDd]##
+
+Catastrophic problems include:
+
+. The tile list is null.
++
+....
+<tile list consistency checks>= (<-U) [D->]
+assert(list);
+....
++
+[#NWDe]##
+. There are more tiles than there is space for them.
++
+....
+<tile list consistency checks>+= (<-U) [<-D->]
+assert(list->count <= list->maxtiles);
+....
++
+[#NWDf]##
+. There are hidden tiles but no visible tiles.
++
+....
+<tile list consistency checks>+= (<-U) [<-D->]
+assert(list->count == 0 || list->count > list->hidden);
+....
++
+[#NWDg]##
+. The first or last element of the tile list is off-screen.
++
+....
+<tile list consistency checks>+= (<-U) [<-D->]
+assert(list->count == 0 || list->tiles[list->hidden]->min >= list->min);
+assert(list->count == 0 || list->tiles[list->count - 1]->max <= list->max);
+....
++
+[#NWDh]##
+. The `max` edge of one tile is not equal to the `min` edge of the
+following tile.
++
+....
+<tile list consistency checks>+= (<-U) [<-D]
+for (i = list->hidden + 1; i < list->count; i++)
+        assert(list->tiles[i-1]->max == list->tiles[i]->min);
+....
++
+[#NWDi]##
+. The tile's tag is not at `tile.r.min`.
+. The tile's tag is wider than the tile.
+. The information in `struct tile` is not consistent with the
+information in the enclosing structure.
+. The tile has negative height.
++
+....
+<tile consistency checks>= (<-U <-U <-U <-U <-U)
+assert(tile->min <= tile->max);
+....
+
+The code is ugly if:
+
+. The right side of the rightmost column should be equal to
+`screen.r.max.y`.
+. The bottom of the bottommost window is further than
+[#NWDj]#`font->height`# above `screen.r.max.x`.
+. The tile's tag is narrower than the tile.
+
+=== Slamming It All Together
+
+Not much cleverness here....
+
+....
+<tiletypedef.h>=
+<typedefs>
+....
+
+....
+<tiletype.h>=
+<data structures>
+....
+
+....
+<tileproto.h>=
+<public function declarations>
+....
+
+....
+<tile.c>=
+#include "wily.h"
+
+<static tile functions>
+<public tile functions>
+....
+
+* link:#NWDP[_<add the tile to the list>_]: link:#NWDL[U1],
+link:#NWDP[D2]
+* link:#NWD1[_<data structures>_]: link:#NWD1[D1], link:#NWD6[D2],
+link:#NWtil7-tilA-1[U3]
+* link:#NWDU[_<determine amount of space needed>_]: link:#NWDT[U1],
+link:#NWDU[D2]
+* link:#NWDN[_<determine where to place the new tile in the list>_]:
+link:#NWDL[U1], link:#NWDN[D2]
+* link:#NWtil7-disY-1[_<distance to move current tile down>_]:
+link:#NWDN[U1], link:#NWtil7-disY-1[D2]
+* link:#NWDO[_<distance to move current tile up>_]: link:#NWDN[U1],
+link:#NWDO[D2]
+* link:#NWDW[_<expand tiles to fill slack>_]: link:#NWDT[U1],
+link:#NWDW[D2]
+* link:#NWDJ[_<expose the hidden tile `tile`>_]: link:#NWDI[U1],
+link:#NWDJ[D2]
+* link:#NWDE[_<grow `tile` a little>_]: link:#NWDD[U1], link:#NWDE[D2]
+* link:#NWDF[_<grow `tile` lots>_]: link:#NWDD[U1], link:#NWDF[D2]
+* link:#NWDG[_<grow `tile` way lots>_]: link:#NWDD[U1], link:#NWDG[D2]
+* link:#NWtil7-locX-1[_<local variables for adding a tile>_]:
+link:#NWDL[U1], link:#NWtil7-locX-1[D2], link:#NWtil7-locX-2[D3]
+* link:#NWtil7-locZ-1[_<local variables for tile adjustment>_]:
+link:#NWDT[U1], link:#NWtil7-locZ-1[D2]
+* link:#NWDa[_<make sure tile list has room for one more>_]:
+link:#NWDP[U1], link:#NWDa[D2]
+* link:#NWDM[_<make sure tile shape is reasonable>_]: link:#NWDL[U1],
+link:#NWDM[D2]
+* link:#NWtil7-pubS-1[_<public function declarations>_]:
+link:#NWtil7-pubS-1[D1], link:#NWtil7-pubS-2[D2],
+link:#NWtil7-pubS-3[D3], link:#NWtil7-pubS-4[D4],
+link:#NWtil7-pubS-5[D5], link:#NWtil7-pubS-6[D6],
+link:#NWtil7-pubS-7[D7], link:#NWDX[D8], link:#NWDY[D9],
+link:#NWDZ[D10], link:#NWtil7-pubS-B[D11], link:#NWtil7-tilB-1[U12]
+* link:#NWDD[_<public tile functions>_]: link:#NWDD[D1], link:#NWDH[D2],
+link:#NWDI[D3], link:#NWDK[D4], link:#NWDL[D5], link:#NWDQ[D6],
+link:#NWDR[D7], link:#NWDc[D8], link:#NWtil7-til6-1[U9]
+* link:#NWDS[_<repair tile locations>_]: link:#NWDR[U1], link:#NWDS[D2]
+* link:#NWDV[_<shrink tiles until space available>_]: link:#NWDT[U1],
+link:#NWDV[D2]
+* link:#NWDT[_<static tile functions>_]: link:#NWDT[D1], link:#NWDb[D2],
+link:#NWtil7-til6-1[U3]
+* link:#NWDi[_<tile consistency checks>_]: link:#NWDD[U1],
+link:#NWDI[U2], link:#NWDL[U3], link:#NWDR[U4], link:#NWDc[U5],
+link:#NWDi[D6]
+* link:#NWD2[_<tile elements>_]: link:#NWD1[U1], link:#NWD2[D2],
+link:#NWD3[D3], link:#NWD4[D4], link:#NWD5[D5]
+* link:#NWDd[_<tile list consistency checks>_]: link:#NWDc[U1],
+link:#NWDd[D2], link:#NWDe[D3], link:#NWDf[D4], link:#NWDg[D5],
+link:#NWDh[D6]
+* link:#NWD7[_<tile list elements>_]: link:#NWD6[U1], link:#NWD7[D2],
+link:#NWD8[D3], link:#NWD9[D4], link:#NWDA[D5], link:#NWDB[D6]
+* link:#NWtil7-til6-1[_<tile.c>_]: link:#NWtil7-til6-1[D1]
+* link:#NWtil7-**tK-1[_<`tile_grow` locals>_]: link:#NWDD[U1],
+link:#NWtil7-**tK-1[D2]
+* link:#NWtil7-**tT-1[_<`tile_list_reshaped` locals>_]: link:#NWDR[U1],
+link:#NWtil7-**tT-1[D2]
+* link:#NWtil7-tilB-1[_<tileproto.h>_]: link:#NWtil7-tilB-1[D1]
+* link:#NWDj[_<tiletypedef.h>_]: link:#NWDj[D1]
+* link:#NWtil7-tilA-1[_<tiletype.h>_]: link:#NWtil7-tilA-1[D1]
+* link:#NWDC[_<typedefs>_]: link:#NWDC[D1], link:#NWDj[U2]

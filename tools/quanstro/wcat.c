@@ -25,34 +25,33 @@ catch(int sig){
 	control_c = true;
 }
 
-bool
-map_file(const char* file, Handle* q, const char* title){
-	char* p;
-	char filename[PATH_MAX+1];
-	char cwd[PATH_MAX+1];
-	Id id;
+bool map_file(const char* file, Handle* q, const char* title) {
+    // Increase size to hold CWD + / + FILE + Null Terminator
+    char filename[ (PATH_MAX * 2) + 2 ];
+    char cwd[PATH_MAX + 1];
+    Id id;
 
-	if (!title){
-		if (*file == '/'){
-			strcpy(filename, file);
-		} else {
-			p = getcwd(cwd, PATH_MAX);
-			if (!p){
-				fprintf(stderr, "can't get cwd()");
-				return false;
-			}
-		}
-	} else {
-		sprintf(filename, "+%s", title);
-	}
+    if (title) {
+        snprintf(filename, sizeof(filename), "+%s", title);
+    }
+    else if (file[0] == '/') { // Check the first character of the string
+        snprintf(filename, sizeof(filename), "%s", file);
+    }
+    else {
+        if (!getcwd(cwd, sizeof(cwd))) {
+            perror("getcwd");
+            return false;
+        }
+        snprintf(filename, sizeof(filename), "%s/%s", cwd, file);
+    }
 
-	sprintf(filename,"%s/%s", cwd, file);
-	if (rpc_new(q, filename, &id, 0)){
-		fprintf(stderr, "rpc_new(q, %s, 0, id) fails\n", filename);
-		return false;
-	}
-	fprintf(stderr, "%d\n", id);
-	return true;
+    if (rpc_new(q, filename, &id, 0)) {
+        fprintf(stderr, "rpc_new(q, %s, 0, id) fails\n", filename);
+        return false;
+    }
+
+    fprintf(stderr, "ID: %d\n", id);
+    return true;
 }
 
 bool
@@ -113,7 +112,7 @@ main(int c, char**v){
 		e("can't open wilyfifo");
 	}
 	h = rpc_init(fd);
-	
+
 	status = true;
 	taetig = false;
 	title = 0;

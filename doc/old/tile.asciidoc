@@ -1,4 +1,4 @@
-= tile.nw
+= tile
 
 == A New Window Management Scheme for Wily
 
@@ -430,7 +430,7 @@ if (list->count == list->hidden) {
         tile->max = list->max;
 } else {
         i = index_for_place(list, tile->min);
-        if ((<distance to move current tile up>) < 
+        if ((<distance to move current tile up>) <
                         (<distance to move current tile down>)) {
                 i++;
         }

@@ -78,9 +78,6 @@ products.
 
 ==== Modern Aesthetics
 
-image:http://www.cs.su.oz.au/~gary/wily/p2.gif[Wily windows, Unicode
-text propotionally spaced,width=798,height=264]
-
 The screen is divided into columns, which are divided into windows. A
 window may represent a file, a directory, or the output from some
 program. The screen, columns and windows each have a narrow horizontal

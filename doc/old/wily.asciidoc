@@ -2,26 +2,13 @@
 
 == Wily
 
-image:cartoon.gif[Silly Cartoon,width=352,height=249] +
-[.small]#http://www.cs.su.oz.au/~gary/[_Gary Capell_]#
-
 === This document
-
- +
-link:#appearance[Appearance&#44; Unicode] - link:#mouse[Mouse Actions] -
-link:#example[Example] - link:#extensions[Extensions] -
-link:#implementation[Implementation] - link:#availability[Availability]
-- link:#History[History] -
 
 === Other documents
 
-* image:../image/new.gif[new!] link:../wily2/index.html[Preview of new
-Wily homepage] +
-* link:onepage.html[One Page Users Manual]
-* link:user.html[Users Manual]
-* link:pythonpaper.html[Wily + Python > Emacs + Lisp?]
-* link:msg.html[Programmers Manual]
-* link:AcmeVsWily.html[Differences between Acme and Wily]
+* link:user.asciidoc[Users Manual]
+* link:pythonpaper.asciidoc[Wily + Python > Emacs + Lisp?]
+* link:msg.asciidoc[Programmers Manual]
 
 === Note for Sydney-ites
 
@@ -55,8 +42,6 @@ Unix, rather than coping with other editors. Wily and Acme have a small
 but growing number of addicts.
 
 === [#appearance]#Appearance#
-
-image:example.gif[image,width=798,height=264]
 
 Wily appears as one or more vertical columns, divided into windows of
 scrolling text. Each column or window is headed by a thin horizontal

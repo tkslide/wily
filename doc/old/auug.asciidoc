@@ -25,7 +25,11 @@ products.
 
 == The Interface
 
-This is a sketch of the interface, for details refer to or .
+This is a sketch of the interface, for details refer to
+link:user.asciidoc[User Manual]
+or
+link:wily.asciidoc[Wily paper]
+.
 
 === Why Wily?
 

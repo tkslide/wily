@@ -53,32 +53,32 @@ static bool iscon(void) {
  *	check we are connected to wily.
  *	if anything fails then set the result string
  */
-static int chk(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
-               int argswanted, char *usage, Id *id) {
 
-  int n;
-  char *filename;
+static int get_id(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
+               int argswanted, const char *usage, int *id) {
 
-  if (objc < argswanted) {
-    Tcl_SetResult(interp, usage, TCL_STATIC);
-    return TCL_ERROR;
-  }
-
-  if (iscon() == false) {
-    Tcl_SetResult(interp, "not connected", TCL_STATIC);
-    return TCL_ERROR;
-  }
-
-  filename = Tcl_GetString(objv[1]);
-  if (id != 0) {
-    if (Tcl_GetInt(interp, filename, &n) != TCL_OK) {
-      Tcl_SetResult(interp, "arg doesn't look like id", TCL_STATIC);
-      return TCL_ERROR;
+    if (objc < argswanted) {
+        Tcl_WrongNumArgs(interp, 1, objv, usage);
+        return TCL_ERROR;
     }
-    *id = n;
-  }
-  return TCL_OK;
+
+    if (!iscon()) {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("not connected", -1));
+        return TCL_ERROR;
+    }
+
+    if (id != NULL) {
+        int n;
+        if (Tcl_GetIntFromObj(interp, objv[1], &n) != TCL_OK) {
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("argument is not a valid ID", -1));
+            return TCL_ERROR;
+        }
+        *id = n;
+    }
+
+    return TCL_OK;
 }
+
 
 static int wrpc_init(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   int fd;
@@ -145,34 +145,29 @@ static int wrpc_list(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
 }
 
 static int wrpc_name(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
+  Id id;
   char *p;
   char *emsg;
   char *t;
   char *s;
 
-  /* 1. Use the modern argument checker */
-  if (objc != 2) {
-    Tcl_WrongNumArgs(interp, 1, objv, "id");
+  if (get_id(interp, objc, objv, 2, "name needs id", &id) !=
+      TCL_OK)
     return TCL_ERROR;
-  }
 
   emsg = rpc_list(h, &p);
   if (emsg != 0) {
-    /* 2. Modern error result */
     Tcl_SetObjResult(interp, Tcl_NewStringObj(emsg, -1));
     return TCL_ERROR;
   }
 
-  /* Get the ID string we are looking for from the Tcl Object */
   char *searchId = Tcl_GetString(objv[1]);
 
   t = strtok(p, "\n");
   while (t != 0 && (s = strchr(t, '\t')) != 0) {
     *s++ = '\0';
 
-    /* s is the ID from the list, t is the name */
     if (strcmp(searchId, s) == 0) {
-      /* 3. Success: Set the result using the modern API */
       Tcl_SetObjResult(interp, Tcl_NewStringObj(t, -1));
       free(p);
       return TCL_OK;
@@ -186,22 +181,17 @@ static int wrpc_name(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
 }
 
 static int wrpc_attach(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-  long id;
+  Id id;
   char *emsg;
 
-  if (objc != 2) {
-    Tcl_WrongNumArgs(interp, 1, objv, "id");
+  if (get_id(interp, objc, objv, 2, "name needs id", &id) !=
+      TCL_OK)
     return TCL_ERROR;
-  }
-
-  if (Tcl_GetLongFromObj(interp, objv[1], &id) != TCL_OK) {
-    return TCL_ERROR;
-  }
 
   emsg = rpc_attach(h, (Id)id, WEexec | WEgoto | WEdestroy | WEreplace);
 
   if (emsg != 0) {
-    //Tcl_SetObjResult(interp, Tcl_NewStringObj(emsg, -1));
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(emsg, -1));
     return TCL_ERROR;
   }
 
@@ -233,10 +223,11 @@ static int wrpc_setname(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Id id;
   char *emsg;
 
-  if (chk(interp, objc, objv, 3, "setname needs id and new_text", &id) !=
+  if (get_id(interp, objc, objv, 3, "setname needs id and new_text", &id) !=
       TCL_OK)
     return TCL_ERROR;
 
+  //emsg = rpc_setname(h, id, Tcl_GetString(objv[2])); // XXX
   emsg = rpc_setname(h, id, Tcl_GetString(objv[2])); // XXX
   if (emsg != 0) {
     Tcl_SetResult(interp, emsg, TCL_VOLATILE);
@@ -249,19 +240,21 @@ static int wrpc_settools(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Id id;
   char *emsg;
 
-  if (chk(interp, objc, objv, 3, "settools needs id and new text", &id) !=
+  if (get_id(interp, objc, objv, 3, "settools needs id and new text", &id) !=
       TCL_OK)
     return TCL_ERROR;
 
-  emsg = rpc_settools(h, id, Tcl_GetString(objv[2])); // XXX
+  //emsg = rpc_settools(h, id, Tcl_GetString(objv[2])); // XXX
+  emsg = rpc_setname(h, id, Tcl_GetString(objv[2])); // XXX
   if (emsg != 0) {
     Tcl_SetResult(interp, emsg, TCL_VOLATILE);
     return TCL_ERROR;
   }
   return TCL_OK;
 }
+
 static int wrpc_read(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-  long id;
+  Id id;
   char *emsg;
   Range r;
   int p0, p1;
@@ -272,8 +265,11 @@ static int wrpc_read(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Tcl_WrongNumArgs(interp, 1, objv, "id begin end");
     return TCL_ERROR;
   }
+  if (get_id(interp, objc, objv, 3, "settools needs id begin and end", &id) !=
+      TCL_OK)
+    return TCL_ERROR;
 
-  if (Tcl_GetLongFromObj(interp, objv[1], &id) != TCL_OK ||
+  if ( /* Tcl_GetLongFromObj(interp, objv[1], &id) != TCL_OK || */
       Tcl_GetIntFromObj(interp, objv[2], &p0) != TCL_OK ||
       Tcl_GetIntFromObj(interp, objv[3], &p1) != TCL_OK) {
     return TCL_ERROR;
@@ -312,7 +308,7 @@ static int wrpc_replace(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Range r;
   int n;
 
-  if (chk(interp, objc, objv, 5, "replace needs id, begin, end and new text",
+  if (get_id(interp, objc, objv, 5, "replace needs id, begin, end and new text",
           &id) != TCL_OK)
     return TCL_ERROR;
 
@@ -338,7 +334,7 @@ static int wrpc_exec(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Id id;
   char *emsg;
 
-  if (chk(interp, objc, objv, 3, "exec needs id and command", &id) != TCL_OK)
+  if (get_id(interp, objc, objv, 3, "exec needs id and command", &id) != TCL_OK)
     return TCL_ERROR;
 
   emsg = rpc_exec(h, id, Tcl_GetString(objv[2])); // XXX
@@ -355,7 +351,7 @@ static int wrpc_goto(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Range r;
   int b;
 
-  if (chk(interp, objc, objv, 4, "goto needs id, string and flag", &id) !=
+  if (get_id(interp, objc, objv, 4, "goto needs id, string and flag", &id) !=
       TCL_OK)
     return TCL_ERROR;
 
@@ -383,7 +379,7 @@ static int wrpc_length(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   char *emsg;
   Range r;
 
-  if (chk(interp, objc, objv, 2, "length needs id", &id) != TCL_OK)
+  if (get_id(interp, objc, objv, 2, "length needs id", &id) != TCL_OK)
     return TCL_ERROR;
 
   emsg = rpc_goto(h, &id, &r, ":$", false);
@@ -398,7 +394,7 @@ static int wrpc_length(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
 
 static int wrpc_wouldblock(Tcl_Interp *interp, int objc,
                            Tcl_Obj *const objv[]) {
-  if (chk(interp, objc, objv, 1, "wouldblock needs no args", 0) != TCL_OK)
+  if (get_id(interp, objc, objv, 1, "wouldblock needs no args", 0) != TCL_OK)
     return TCL_ERROR;
 
   Tcl_SetResult(interp, rpc_wouldblock(h) == false ? "1" : "0", TCL_STATIC);
@@ -406,7 +402,8 @@ static int wrpc_wouldblock(Tcl_Interp *interp, int objc,
 }
 
 static int wrpc_event(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-  if (chk(interp, objc, objv, 1, "event needs no args", 0) != TCL_OK)
+
+  if (get_id(interp, objc, objv, 1, "event needs no args", 0) != TCL_OK)
     return TCL_ERROR;
 
   if (rpc_event(h, &m) == -1) {
@@ -421,7 +418,7 @@ static int wrpc_event(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     // sprintf(interp->result, "WMexec\t%ld\t%s", (long)m.w, m.s);
     listPtr = Tcl_NewListObj(0, NULL);
     Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewLongObj((long)m.w));
-    Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewLongObj((long)m.s));
+    Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewStringObj((char*)m.s, -1 ));
     Tcl_SetObjResult(interp, listPtr);
     break;
   case WEgoto:
@@ -456,7 +453,7 @@ static int wrpc_event(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
 }
 
 static int wrpc_bounce(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-  if (chk(interp, objc, objv, 1, "bounce needs no args", 0) != TCL_OK)
+  if (get_id(interp, objc, objv, 1, "bounce needs no args", 0) != TCL_OK)
     return TCL_ERROR;
 
   if (haveevent != true) {

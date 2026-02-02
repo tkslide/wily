@@ -1,12 +1,14 @@
 #!wtcl
-#
-#	$Header: /u/cvs/wtcl/wname,v 1.1.1.1 1996/11/12 21:28:10 cvs Exp $
-#
 wily init
 
-if [expr $argc != 2] {
-	puts "usage: $argv0 <id> <name>"
+puts $argc
+if [expr $argc < 1 || $argc > 2] {
+	puts "usage: $argv0 <id> [<new name>"
 	exit 1
 }
 
-wily name [lindex $argv 0] [lindex $argv 1]
+if [expr $argc == 2 ] {
+        wily setname [lindex $argv 0] [lindex $argv 1]
+} else {
+        puts [ wily name [lindex $argv 0] ]
+}

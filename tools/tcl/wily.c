@@ -2,6 +2,7 @@
 
 #include <u.h>
 #include <libc.h>
+#include <limits.h>
 #include <msg.h>
 #include <string.h>
 #include <tcl.h>
@@ -17,13 +18,6 @@ typedef struct {
   char *name;
   WCmdProc *proc; // This now expects the Object-based signature
 } WCmd;
-/*
-typedef struct WCmd WCmd;
-struct WCmd {
-  char *name;
-  int (*proc)(Tcl_Interp *, int, char **);
-};
-*/
 
 /*
  *	the handle to wily.  should be 0 if not connected
@@ -55,30 +49,30 @@ static bool iscon(void) {
  */
 
 static int get_id(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[],
-               int argswanted, const char *usage, int *id) {
+                  int argswanted, const char *usage, int *id) {
 
-    if (objc < argswanted) {
-        Tcl_WrongNumArgs(interp, 1, objv, usage);
-        return TCL_ERROR;
+  if (objc < argswanted) {
+    Tcl_WrongNumArgs(interp, 1, objv, usage);
+    return TCL_ERROR;
+  }
+
+  if (!iscon()) {
+    Tcl_SetObjResult(interp, Tcl_NewStringObj("not connected", -1));
+    return TCL_ERROR;
+  }
+
+  if (id != NULL) {
+    int n;
+    if (Tcl_GetIntFromObj(interp, objv[1], &n) != TCL_OK) {
+      Tcl_SetObjResult(interp,
+                       Tcl_NewStringObj("argument is not a valid ID", -1));
+      return TCL_ERROR;
     }
+    *id = n;
+  }
 
-    if (!iscon()) {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("not connected", -1));
-        return TCL_ERROR;
-    }
-
-    if (id != NULL) {
-        int n;
-        if (Tcl_GetIntFromObj(interp, objv[1], &n) != TCL_OK) {
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("argument is not a valid ID", -1));
-            return TCL_ERROR;
-        }
-        *id = n;
-    }
-
-    return TCL_OK;
+  return TCL_OK;
 }
-
 
 static int wrpc_init(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   int fd;
@@ -116,31 +110,37 @@ static int wrpc_isconnected(Tcl_Interp *interp, int objc,
 }
 
 static int wrpc_list(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
-  char *p;
-  char *emsg;
-  char *t;
-  char *s;
+  char *b;
+  char *err;
 
-  if (objc > 1) {
-    Tcl_AppendResult(interp, "list requires no arguments", TCL_STATIC);
+  if (get_id(interp, objc, objv, 1, "list requires no arguments", 0) != TCL_OK)
     return TCL_ERROR;
-  }
-  emsg = rpc_list(h, &p);
-  if (emsg != 0) {
-    Tcl_SetResult(interp, emsg, TCL_VOLATILE);
+
+  if ((err = rpc_list(h, &b))) {
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(err, -1));
     return TCL_ERROR;
   }
 
-  /*
-   *	we trust p to be in a reasonable condition
-   */
-  t = strtok(p, "\n");
-  while (t != 0 && (s = strchr(t, '\t')) != 0) {
-    s++;
-    Tcl_AppendElement(interp, s);
-    t = strtok(0, "\n");
+  Tcl_Obj *listPtr = Tcl_NewListObj(0, NULL);
+
+  char *line = strtok(b, "\n");
+  while (line != NULL) {
+
+    char *tab = strchr(line, '\t');
+    if (tab) {
+      *tab = '\0';
+      char *part1 = line;
+      char *part2 = tab + 1;
+
+      char joined[512];
+      snprintf(joined, sizeof(joined), "%s - %s", part1, part2);
+      Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewStringObj(joined, -1));
+    }
+    line = strtok(NULL, "\n");
   }
-  free(p);
+
+  free(b);
+  Tcl_SetObjResult(interp, listPtr);
   return TCL_OK;
 }
 
@@ -151,8 +151,7 @@ static int wrpc_name(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   char *t;
   char *s;
 
-  if (get_id(interp, objc, objv, 2, "name needs id", &id) !=
-      TCL_OK)
+  if (get_id(interp, objc, objv, 2, "name needs id", &id) != TCL_OK)
     return TCL_ERROR;
 
   emsg = rpc_list(h, &p);
@@ -184,8 +183,7 @@ static int wrpc_attach(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Id id;
   char *emsg;
 
-  if (get_id(interp, objc, objv, 2, "name needs id", &id) !=
-      TCL_OK)
+  if (get_id(interp, objc, objv, 2, "name needs id", &id) != TCL_OK)
     return TCL_ERROR;
 
   emsg = rpc_attach(h, (Id)id, WEexec | WEgoto | WEdestroy | WEreplace);
@@ -227,8 +225,7 @@ static int wrpc_setname(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
       TCL_OK)
     return TCL_ERROR;
 
-  //emsg = rpc_setname(h, id, Tcl_GetString(objv[2])); // XXX
-  emsg = rpc_setname(h, id, Tcl_GetString(objv[2])); // XXX
+  emsg = rpc_setname(h, id, Tcl_GetString(objv[2]));
   if (emsg != 0) {
     Tcl_SetResult(interp, emsg, TCL_VOLATILE);
     return TCL_ERROR;
@@ -244,8 +241,7 @@ static int wrpc_settools(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
       TCL_OK)
     return TCL_ERROR;
 
-  //emsg = rpc_settools(h, id, Tcl_GetString(objv[2])); // XXX
-  emsg = rpc_setname(h, id, Tcl_GetString(objv[2])); // XXX
+  emsg = rpc_setname(h, id, Tcl_GetString(objv[2]));
   if (emsg != 0) {
     Tcl_SetResult(interp, emsg, TCL_VOLATILE);
     return TCL_ERROR;
@@ -269,8 +265,7 @@ static int wrpc_read(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
       TCL_OK)
     return TCL_ERROR;
 
-  if ( /* Tcl_GetLongFromObj(interp, objv[1], &id) != TCL_OK || */
-      Tcl_GetIntFromObj(interp, objv[2], &p0) != TCL_OK ||
+  if ( Tcl_GetIntFromObj(interp, objv[2], &p0) != TCL_OK ||
       Tcl_GetIntFromObj(interp, objv[3], &p1) != TCL_OK) {
     return TCL_ERROR;
   }
@@ -309,20 +304,18 @@ static int wrpc_replace(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   int n;
 
   if (get_id(interp, objc, objv, 5, "replace needs id, begin, end and new text",
-          &id) != TCL_OK)
+             &id) != TCL_OK)
     return TCL_ERROR;
 
-  r.p0 =
-      Tcl_GetInt(interp, Tcl_GetString(objv[2]), &n) != TCL_OK ? -1 : n; // XXX
-  r.p1 =
-      Tcl_GetInt(interp, Tcl_GetString(objv[3]), &n) != TCL_OK ? -1 : n; // XXX
+  r.p0 = Tcl_GetInt(interp, Tcl_GetString(objv[2]), &n) != TCL_OK ? -1 : n;
+  r.p1 = Tcl_GetInt(interp, Tcl_GetString(objv[3]), &n) != TCL_OK ? -1 : n;
 
   if (r.p0 < 0 || r.p1 < 0 || r.p0 > r.p1) {
     Tcl_SetResult(interp, "strange numbers", TCL_STATIC);
     return TCL_ERROR;
   }
 
-  emsg = rpc_replace(h, id, r, Tcl_GetString(objv[4])); // XXX
+  emsg = rpc_replace(h, id, r, Tcl_GetString(objv[4]));
   if (emsg != 0) {
     Tcl_SetResult(interp, emsg, TCL_VOLATILE);
     return TCL_ERROR;
@@ -337,7 +330,7 @@ static int wrpc_exec(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   if (get_id(interp, objc, objv, 3, "exec needs id and command", &id) != TCL_OK)
     return TCL_ERROR;
 
-  emsg = rpc_exec(h, id, Tcl_GetString(objv[2])); // XXX
+  emsg = rpc_exec(h, id, Tcl_GetString(objv[2]));
   if (emsg != 0) {
     Tcl_SetResult(interp, emsg, TCL_VOLATILE);
     return TCL_ERROR;
@@ -355,11 +348,9 @@ static int wrpc_goto(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
       TCL_OK)
     return TCL_ERROR;
 
-  // XXX
   if (Tcl_GetBoolean(interp, Tcl_GetString(objv[3]), &b) != TCL_OK)
     b = 0;
 
-  // XXX
   emsg = rpc_goto(h, &id, &r, Tcl_GetString(objv[2]), b != 0 ? true : false);
   if (emsg != 0) {
     Tcl_SetResult(interp, emsg, TCL_VOLATILE);
@@ -415,15 +406,13 @@ static int wrpc_event(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Tcl_Obj *listPtr = Tcl_NewListObj(0, NULL);
   switch (m.t) {
   case WEexec:
-    // sprintf(interp->result, "WMexec\t%ld\t%s", (long)m.w, m.s);
     listPtr = Tcl_NewListObj(0, NULL);
     Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewLongObj((long)m.w));
-    Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewStringObj((char*)m.s, -1 ));
+    Tcl_ListObjAppendElement(interp, listPtr,
+                             Tcl_NewStringObj((char *)m.s, -1));
     Tcl_SetObjResult(interp, listPtr);
     break;
   case WEgoto:
-    // sprintf(interp->result, "WMgoto\t%ld\t%ld\t%ld\t%s", (long)m.w, m.r.p0,
-    // m.r.p1, m.s);
     listPtr = Tcl_NewListObj(0, NULL);
     Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewLongObj((long)m.w));
     Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewLongObj((long)m.r.p0));
@@ -432,12 +421,9 @@ static int wrpc_event(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Tcl_SetObjResult(interp, listPtr);
     break;
   case WEdestroy:
-    //  sprintf(interp->result, "WMdestory\t%ld", (long)m.w);
     Tcl_SetObjResult(interp, Tcl_NewLongObj((long)m.w));
     break;
   case WEreplace:
-    // sprintf(interp->result, "WMreplace\t%ld\t%ld\t%ld\t%s", (long)m.w,
-    // m.r.p0, m.r.p1, m.s);
     listPtr = Tcl_NewListObj(0, NULL);
     Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewLongObj((long)m.w));
     Tcl_ListObjAppendElement(interp, listPtr, Tcl_NewLongObj((long)m.r.p0));
@@ -503,8 +489,6 @@ static int Wily(ClientData clientdata, Tcl_Interp *interp, int objc,
 }
 
 extern int Wily_Init(Tcl_Interp *interp) {
-  // Tcl_CreateCommand(interp, "wily", Wily, (ClientData)0, (Tcl_CmdDeleteProc
-  // *)0);
   Tcl_CreateObjCommand(interp, "wily", Wily, (ClientData)0, NULL);
   return TCL_OK;
 }

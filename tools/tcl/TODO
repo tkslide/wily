@@ -1,7 +1,7 @@
 Working:
-        [ ] wattach
+        [x] wattach
         [x] wlist
-        [ ] wname
+        [x] wname
         [x] wnew
         [x] wtktest
         [x] wtools
@@ -12,15 +12,15 @@ Tcl functions:
         [x] isconnected
         [x] list
         [x] new
-        [ ] attach
+        [x] attach
         [x] setname
         [x] name
         [x] settools
         [x] read
-        [ ] replace
+        [x] replace
         [x] exec
         [x] goto
         [x] length
-        [ ] wouldblock
-        [ ] event
-        [ ] bounce
+        [x] wouldblock
+        [x] event
+        [x] bounce

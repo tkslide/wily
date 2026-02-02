@@ -2,14 +2,21 @@
 #
 #	$Header: /u/cvs/wtcl/wtktest,v 1.1 1996/11/12 23:34:01 cvs Exp $
 #
-wily init
+if { [ catch {wily init} ] } {
+        puts stderr "Could not connect to wily instance. Is the editor running"
+        exit 1
+}
 proc cmd {name} {
 	set id [lindex [wily list] 0]
-	wily exec $id $name
+        if { [catch {wily exec $id $name} ] } {
+                puts stderr "RPC connection to wily broken."
+                exit 1
+        }
 }
-	
-button	.quit -text Quit -command {cmd Quit}
+
+button	.quit -text Quit -command { cmd Quit }
 button .putall -text Putall -command {cmd Putall}
 button .font -text Font -command {cmd Font }
+button .newcol -text {New column} -command {cmd Newcol }
 
-pack .quit .putall .font -side left
+pack .quit .putall .font .newcol -side left

@@ -2,9 +2,9 @@ SHELL=/bin/sh
 srcdir=@srcdir@
 VPATH=@srcdir@
 
-SUBDIRS=libXg libframe libmsg wily
+SUBDIRS=libXg libframe libmsg wily tools/tcl tools/win
 
-all:	wily/wily win
+all:	wily/wily
 
 wily/wily: libXg/libXg.a libframe/libframe.a libmsg/libmsg.a
 	cd wily; $(MAKE) $(MFLAGS)
@@ -14,9 +14,6 @@ libframe/libframe.a:
 	cd libframe; $(MAKE) $(MFLAGS) all
 libmsg/libmsg.a:
 	cd libmsg; $(MAKE) $(MFLAGS) all
-
-win: win
-	cd tools/win; $(MAKE) $(MFLAGS) all
 
 install:	all
 	cd wily; $(MAKE) $(MFLAGS) install
@@ -29,7 +26,7 @@ nuke:
 	for i in $(SUBDIRS); do \
 		(cd $$i; $(MAKE) $(MFLAGS) $@); \
 	done
-	-rm -f wily.* config.cache config.h config.log config.status Makefile wily/wily tools/win/win tools/win/wgoto tools/win/wreplace 
+	-rm -f wily.* config.cache config.h config.log config.status Makefile wily/wily tools/win/win tools/win/wgoto tools/win/wreplace
 
 
 distclean: nuke

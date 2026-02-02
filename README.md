@@ -35,6 +35,6 @@ See [Original README](README.orig) for copyright, permissions etc.
 
 [1] Or broken, but at least it compiles on my relatively modern Linux... WIP, anyway.
 Praise the original author, blame me, m'kay?
-[2] ... and the even cooler kids get (Acme2K)[https://github.com/karahobny/acme2k]
+[2] ... and the even cooler kids get [Acme2K](https://github.com/karahobny/acme2k)
 
 

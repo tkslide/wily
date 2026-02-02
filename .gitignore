@@ -13,8 +13,4 @@ config.h
 config.status
 configure.ac
 autom4te.cache/
-tools/win/win
-tools/win/wgoto
-tools/win/wreplace
 tools/win/Tags
-

@@ -1,5 +1,3 @@
-/*	$Header: /u/cvs/wtcl/wtk.c,v 1.1.1.1 1996/11/12 21:28:10 cvs Exp $	*/
-
 #include	<tcl.h>
 #include	<tk.h>
 #include	"wtcl.h"

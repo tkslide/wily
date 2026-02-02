@@ -1,7 +1,4 @@
 #!wtcl
-#
-#	$Header: /u/cvs/wtcl/wlist,v 1.2 1996/11/12 23:34:00 cvs Exp $
-#
 wily init
 foreach i [wily list] {
 	set name [wily name $i]

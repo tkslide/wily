@@ -1,7 +1,4 @@
 #!wtk
-#
-#	$Header: /u/cvs/wtcl/wtktest,v 1.1 1996/11/12 23:34:01 cvs Exp $
-#
 if { [ catch {wily init} ] } {
         puts stderr "Could not connect to wily instance. Is the editor running"
         exit 1

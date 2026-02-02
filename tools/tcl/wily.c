@@ -1,5 +1,3 @@
-/*	$Header: /u/cvs/wtcl/wily.c,v 1.2 1996/11/12 23:33:58 cvs Exp $	*/
-
 #include <u.h>
 #include <libc.h>
 #include <limits.h>

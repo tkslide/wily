@@ -9,7 +9,7 @@
 . .......................... Main directory
 |-- doc .................... Documentation - in revision
 |   |-- announce ...........
-|   |-- old ................
+|   |-- old ................ Older documentation - converted to AsciiDOC
 |   |-- sam ................
 |   +-- tute ...............
 |-- include ................ Include files
@@ -21,7 +21,7 @@
 |   |-- python3 ............ New Python3 wily module
 |   |-- quanstro ........... Eric Qnastrom's scripts - in revision
 |   |-- shell .............. Shell tools
-|   |-- tcl ................
+|   |-- tcl ................ Tcl integration
 |   +-- win ................ win/wgoto/wreplace/mktags
 +-- wily ................... editor sources
 ```

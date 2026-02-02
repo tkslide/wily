@@ -235,7 +235,7 @@ text later if it wishes.
 
 === [#module]#The Python interface#
 
-==== Wilymodule.c
+==== Wily_module.c
 
 This is a very simple interface between Python and the Wily message
 protocol. It establishes a connection, provides remote procedure calls
@@ -265,12 +265,12 @@ Wily's functionality.
 === Example Program Fragment
 
 ....
-# Create a window called "hello",and fill it with 
+# Create a window called "hello",and fill it with
 # the text "Hello, world"
 
 import wily
 con = wily.Connection()
-win = con.win("hello")
+win = con.win("hello", 0)
 con.replace(win, 0,0, "Hello, world\n")
 ....
 
@@ -340,17 +340,11 @@ seemed an _unnecessary_ step towards monolithism and code bloat.
 For comparison, below are the sizes of three stripped, dynamically
 linked executables on the author's sun4d Solaris system:
 
-167264
+167264 wily
 
-wily
+234272 vi
 
-234272
-
-vi
-
-1873336
-
-xemacs
+1873336 xemacs
 
 ==== Link code dynamically
 
@@ -403,7 +397,7 @@ Wily is freely available.
 
 The prime source for information about Wily is the WWW page at
 http://www.cs.su.oz.au/~gary/wily/[`http://www.cs.su.oz.au/~gary/wily/`]
-The wily distribution contains wilymodule.c, and can be obtained at
+The wily distribution contains wily_module.c, and can be obtained at
 ftp://ftp.cs.su.oz.au/gary/wily.tgz[`ftp://ftp.cs.su.oz.au/gary/wily.tgz`]
 
 === [#ack]#Acknowledgements#
@@ -433,7 +427,7 @@ Connection objects have no attributes and suport the following methods:
 list()::
   Returns a list of names and Win objects representing the windows
   currently open.
-win(name)::
+win(name, backup)::
   Return a new window called name
 event()::
   Return the next Event. Note that this method will block until an event

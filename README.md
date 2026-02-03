@@ -20,10 +20,12 @@ See [Original README](README.orig) for copyright, permissions etc.
 - Compilable with C23 gcc
 - Added scrolling with the mouse wheel
 - Removed the version notice in the tagline (because I know it's Wily and I need room there)
-- `win` is working again
+- (A modified version of) `win` is working again.
 - Python3 and Tcl modules are functional again (Tcl's `win list` delivers IDs *and* names - some old scripts might need some attention)
+- Perl 5 module from CPAN, with a few characters modified
 - It's still a bloody mess (especially the Makefiles -- not proud of their current state, but they mostly do what I expect from them)
 - I removed the "old luggage" -- I don't think defunct old tools for web browsing and mailbox management are worth my time now (I might reintegrate them at some later point).
+- Code tree was reorganised and cleaned up (WIP)
 
 ## Work in Progress
 - ~~Re-enabling `win` and other tools.~~

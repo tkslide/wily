@@ -5,7 +5,7 @@ VPATH=@srcdir@
 WINBIN = win/win win/wgoto win/wreplace
 SUBDIRS=libXg libframe libmsg wily win
 
-all:	wily/wily win/win
+all:	wily/wily $(WINBIN)
 
 wily/wily: libXg/libXg.a libframe/libframe.a libmsg/libmsg.a
 	cd wily; $(MAKE) $(MFLAGS)

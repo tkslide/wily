@@ -37,4 +37,4 @@ AC_TYPE_SIGNAL
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(strerror memmove remove)
 
-AC_OUTPUT(Makefile wily/Makefile libXg/Makefile libframe/Makefile libmsg/Makefile)
+AC_OUTPUT(Makefile wily/Makefile libXg/Makefile libframe/Makefile libmsg/Makefile win/Makefile)

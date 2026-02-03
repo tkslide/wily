@@ -2,22 +2,30 @@ SHELL=/bin/sh
 srcdir=@srcdir@
 VPATH=@srcdir@
 
-SUBDIRS=libXg libframe libmsg wily tools/tcl tools/win
+WINBIN = win/win win/wgoto win/wreplace
+SUBDIRS=libXg libframe libmsg wily win
 
-all:	wily/wily
+all:	wily/wily win/win
 
 wily/wily: libXg/libXg.a libframe/libframe.a libmsg/libmsg.a
 	cd wily; $(MAKE) $(MFLAGS)
+
 libXg/libXg.a:
 	cd libXg; $(MAKE) $(MFLAGS)
+
 libframe/libframe.a:
 	cd libframe; $(MAKE) $(MFLAGS) all
+
 libmsg/libmsg.a:
 	cd libmsg; $(MAKE) $(MFLAGS) all
 
+$(WINBIN):
+	cd win; $(MAKE) $(MFLAGS) all
+
 install:	all
-	cd wily; $(MAKE) $(MFLAGS) install
-	cd tools/win; $(MAKE) $(MFLAGS) install
+	(cd wily; $(MAKE) $(MFLAGS) install)
+	(cd win; $(MAKE) $(MFLAGS) install)
+
 clean:
 	for i in $(SUBDIRS); do \
 		(cd $$i; $(MAKE) $(MFLAGS) $@); \

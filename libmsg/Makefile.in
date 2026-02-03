@@ -1,6 +1,5 @@
 SHELL=/bin/sh
 srcdir=@srcdir@
-VPATH=@srcdir@
 CC=@CC@
 RANLIB=@RANLIB@
 INCLUDES=$(srcdir)/../include

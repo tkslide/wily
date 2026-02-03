@@ -32,11 +32,6 @@ See [Original README](README.orig) for copyright, permissions etc.
 - Documentation cleanup - maybe not getting rid of anything, but the number of collected files in every format known to the humanity is overwhelming.
   It's good to have standards, there are so many of them to choose from.
 
-
-[1] Or broken, but at least it compiles on my relatively modern Linux... WIP, anyway.
-Praise the original author, blame me, m'kay?
-[2] ... and the even cooler kids get [Acme2K](https://github.com/karahobny/acme2k)
-
 ## Disclaimer
 0. It works on my machine(s). That's the point of the whole project.
 1. it's not a "product" - I play with the code to make it usable _for me_. If anyone enjoys it -- good for them.
@@ -44,4 +39,9 @@ Praise the original author, blame me, m'kay?
 3. I work with various Unixes ("Unices"), but I only have access to a graphical console on Linux systems. If I broke anything and it doesn't compile or crashes on Solaris, HP-UX, \*BSD, WSL or Mac... NMP (see #1)
    I don't break anything on purpose, but I neither have time nor resources to make sure it runs everywhere - sorry, but not sorry.
 4. I still accept constructive input, but (#1, again) I might prioritise based on my own current needs.
+
+---
+[1] Or broken, but at least it compiles on my relatively modern Linux... WIP, anyway.
+Praise the original author, blame me, m'kay?
+[2] ... and the even cooler kids get [Acme2K](https://github.com/karahobny/acme2k)
 

@@ -11,6 +11,13 @@ typedef struct {
     Handle *h; // The Wily RPC handle
 } WilyConnection;
 
+int convert_to_id(PyObject *obj, Id *id) {
+    long val = PyLong_AsLong(obj);
+    if (PyErr_Occurred()) return -1;
+    *id = (Id)val;
+    return 0;
+}
+
 static int
 WilyConnection_init(WilyConnection *self, PyObject *args, PyObject *kwds) {
     int fd;
@@ -119,7 +126,7 @@ wily_bounce(WilyConnection *self, PyObject *args) {
 	Msg	m;
 	char	*err;
 
-	if (!PyArg_ParseTuple(args, "(iills)", 
+	if (!PyArg_ParseTuple(args, "(iills)",
 		&m.w, &m.t, &m.r.p0, &m.r.p1, &m.s))
 		return NULL;
 	if(rpc_bounce(self->h, &m)){
@@ -222,6 +229,27 @@ wily_gettools(WilyConnection *self, PyObject *args) {
 	return Py_BuildValue("s", tools);
 }
 
+static char con_length__doc__[] = "length(w:integer) : string Return the length of w";
+
+static PyObject*
+wily_length(WilyConnection *self, PyObject *args) {
+    char    *err;
+    char    *name;
+    Id      id;
+    Range   r;
+    long    from, to;
+    int     flag;
+    if (!PyArg_ParseTuple(args, "i", &id, &from, &to, &name, &flag))
+        return NULL;
+    r.p0 = from;
+    r.p1 = to;
+    if ((err = rpc_goto(self->h, &id, &r, ":$", false))) {
+        PyErr_SetString(PyExc_ConnectionError, err);
+        return NULL;
+    }
+    return PyLong_FromLong((long)r.p0);
+}
+
 static char con_read__doc__[] = "read(w:integer, from:integer, to:integer) returns a (UTF) string";
 
 static PyObject*
@@ -276,7 +304,7 @@ wily_replace(WilyConnection *self, PyObject *args) {
 		PyErr_SetString(ErrorObject, err);
 		return NULL;
 	}
-	
+
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -338,6 +366,7 @@ static PyMethodDef WilyConnection_methods[] = {
     {"setname",            (PyCFunction)wily_setname,            METH_VARARGS,  con_setname__doc__},
     {"settools",           (PyCFunction)wily_settools,           METH_VARARGS,  con_settools__doc__},
     {"win",                (PyCFunction)wily_win,                METH_VARARGS,  con_win__doc__},
+    {"length",             (PyCFunction)wily_length,             METH_VARARGS,  con_length__doc__},
     {NULL,                 NULL,                                 0,             NULL}
 };
 

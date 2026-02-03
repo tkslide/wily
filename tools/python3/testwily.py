@@ -41,8 +41,13 @@ print('replace "box" with "crate"')
 c.replace(w, f, t, 'crate')
 sleep(1)
 
+print('get length of the current window')
+print(c.length(w))
+sleep(1)
+
 print('get current content')
 print(c.read(w,0,t))
+sleep(1)
 
 print('search for the whole window')
 w2,f,t  =  c.goto(w, 0, 0, ':,', 0)
@@ -53,10 +58,10 @@ print('replace the whole window with another phrase')
 c.replace(w, f, t, 'the quick brown fox jumped over the lazy dog')
 sleep(1)
 
-# print('read the range [10,15) from the window')
-# #s = c.read(w, 10, 15)
-# # print('read ', s)
-# 
+print('read the range [10,15) from the window')
+s = c.read(w, 10, 15)
+print('read ', s)
+
 sleep(1)
 
 print('attach to the window, grab EXEC messages only')

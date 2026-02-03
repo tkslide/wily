@@ -48,6 +48,9 @@ CLASSES
      |  goto(...)
      |      goto(w:integer, from:long, to:long, s:string, flag:integer)has the same effect as sweeping 's' with B3  in window 'w',and starting any search at range(from,to), except that we onlywarp and select text if 'flag' is set.Returns a tuple (w:integer, from:long, to:long),which represents the window and selection that wasopened.
      |
+     |  length(...)
+     |      length(w:integer) : string Return the length of w
+     |
      |  list(self, /)
      |      List currently open windows list() Returns list of (name, id) tuples representing currently open windows
      |

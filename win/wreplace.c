@@ -18,7 +18,7 @@ char *readfd(int);
 #define STRINGIZE2(x) #x
 #define STRINGIZE(x) STRINGIZE2(x)
 #ifdef __GNUC__
-	#define here " at " __FILE__ ":" STRINGIZE(__LINE__) 
+	#define here " at " __FILE__ ":" STRINGIZE(__LINE__)
 #else
 	#define here " at " __FILE__ ":" STRINGIZE(__LINE__)
 #endif
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 	address = argv[optind];
-	
+
 	/* open connection */
 	wilyfd = client_connect();
 	if (wilyfd < 0) {
@@ -89,9 +89,9 @@ main(int argc, char **argv)
 			exit(1);
 		}
 	}
-	
+
 	/* get address */
-	msg = rpc_goto(handle, &id, &r, strdup(address), 1);
+	msg = rpc_goto(handle, &id, &r, strdup(address), 0);
 	if (msg != 0) {
 		error("rpc_goto() failed" here ": %s", msg);
 		exit(1);
@@ -100,14 +100,14 @@ main(int argc, char **argv)
 		error("unable to find %s", address);
 		exit(1);
 	}
-	
+
 	/* do replacement */
 	msg = rpc_replace(handle, id, r, readfd(0));
 	if (msg != 0) {
 		error("rpc_replace() failed " here ": %s", msg);
 		exit(1);
 	}
-	
+
 	exit(0);
 }
 
@@ -142,22 +142,22 @@ getfilename(char *address)
 	char *colon;
 	char *filename;
 	size_t len;
-	
+
 	colon = strchr(address, ':');
 	if (colon == 0)
 		len = strlen(address);
 	else
 		len = colon - address;
-	
+
 	filename = malloc(len + 1);
 	if (filename == 0) {
 		error("malloc() failed" here);
 		exit(1);
 	}
-	
+
 	memcpy(filename, address, len);
 	filename[len] = 0;
-	
+
 	return filename;
 }
 
@@ -173,13 +173,13 @@ readfd(int fd)
 	size_t bufsize, buflen;
 	const size_t bufquantum = BUFSIZ;
 	ssize_t nread;
-	
+
 	buflen = 0;
 	bufsize = 0;
 	buf = 0;
 
 	do {
-	
+
 		if (buflen + 1 >= bufsize) {
 			bufsize += bufquantum;
 			buf = realloc(buf, bufsize);
@@ -188,18 +188,18 @@ readfd(int fd)
 				exit(1);
 			}
 		}
-		
+
 		nread = read(fd, buf + buflen, bufsize - buflen - 1);
 		if (nread < 0) {
 			error("read() failed" here);
 			exit(1);
 		}
-		
+
 		buflen += nread;
 
 	} while (nread != 0);
-	
+
 	buf[buflen] = 0;
-	
+
 	return buf;
 }

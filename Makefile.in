@@ -36,7 +36,7 @@ nuke:
 	done
 	-rm -f wily.* config.cache config.h config.log config.status \
 		Makefile libXg/Makefile libmsg/Makefile libframe/Makefile \
-		wily/wily tools/win/win tools/win/wgoto tools/win/wreplace
+		wily/wily win/win win/wgoto win/wreplace
 
 
 distclean: nuke

@@ -19,9 +19,10 @@
 |-- misc ................... Miscellanous - in revision
 |-- tools .................. Companion tools - in revision
 |   |-- python3 ............ New Python3 wily module
+|   |-- tcl ................ Tcl integration
+|   |-- perl ............... Perl integration
 |   |-- quanstro ........... Eric Qnastrom's scripts - in revision
 |   |-- shell .............. Shell tools
-|   |-- tcl ................ Tcl integration
-|   +-- win ................ win/wgoto/wreplace/mktags
 +-- wily ................... editor sources
++-- win .................... win/wgoto/wreplace/mktags
 ```

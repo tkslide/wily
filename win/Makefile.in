@@ -1,9 +1,11 @@
 W       = ./..
 CC	= @CC@
 CFLAGS	= @CFLAGS@ -I$(W)/include -I$(W)
-DEFS    = @DEFS@ -DGNU -DHAVE_LIBNSL=1 -DHAVE_LIBSOCKET=1 -DHAVE_DEV_PTMX=1 -DHAVE_SYS_PTEM_H=1
+DEFS    = @DEFS@ -DGNU -DHAVE_LIBNSL=1 -DHAVE_LIBSOCKET=1 -DHAVE_DEV_PTMX=1 -DHAVE_SYS_PTEM_H=0
 LDFLAGS = @LDFLAGS@
 LIBS    = @LIBS@  -lnsl  $(W)/libmsg/libmsg.a  $(W)/libXg/libXg.a
+INSTALL			= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
 prefix = /usr/local
 exec_prefix = ${prefix}
 bindir = $(exec_prefix)/bin
@@ -21,7 +23,9 @@ MANS			= win.1 wgoto.1 wreplace.1
 .c				:
 	$(CC) $(CFLAGS) $(DEFS) $(LDFLAGS) -o $* $*.c $(LIBS)
 
-install			: all installdirs
+all: $(BINS)
+
+install			: all
 	for BIN in $(BINS) ; do \
 		$(INSTALL) $$BIN $(bindir)/$$BIN ; \
 	done
@@ -36,8 +40,3 @@ distclean		: clean
 	rm -f Makefile config.cache config.status config.log
 
 nuke: clean
-
-install:
-	@cp win $(bindir)
-	@cp wgoto $(bindir)
-	@cp wreplace $(bindir)

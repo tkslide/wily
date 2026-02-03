@@ -1,3 +1,6 @@
+A modified version of Alan Watson's 'win' for Wily editor.
+
+== Original content ==
 This is a collection of tools for wily. It should be unpacked in the
 base wily directory (i.e., in the same directory as libmsg). It
 includes a pseudo-terminal based terminal emulator, commands to search

@@ -12,5 +12,7 @@ config.cache
 config.h
 config.status
 configure.ac
+config.h.in
+configure
 autom4te.cache/
 tools/win/Tags

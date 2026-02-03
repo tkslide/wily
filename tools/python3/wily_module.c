@@ -247,7 +247,7 @@ wily_length(WilyConnection *self, PyObject *args) {
         PyErr_SetString(PyExc_ConnectionError, err);
         return NULL;
     }
-    return PyLong_FromLong((long)r.p0);
+    return PyLong_FromLong((long)r.p1);
 }
 
 static char con_read__doc__[] = "read(w:integer, from:integer, to:integer) returns a (UTF) string";

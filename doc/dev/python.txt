@@ -15,67 +15,73 @@ con = wily.Connection()
 methods of a Connection object
 
 list()
-    Returns the names and IDs of all open windows. The values are returned in
-    one big string, with names and IDs separated by a tab, and each (name,id)
-    pair on its own line.
+  Returns the names and IDs of all open windows. The values are returned in
+  one big string, with names and IDs separated by a tab, and each (name,id)
+  pair on its own line.
 
-    listing = con.list()
-    lines = string.split(listing, '\n')
-    winid = {}
-    for line in lines[:-1]:
-            [name,id] = string.split(line, '\t')
-            winid[name] = string.atoi(id)
+  listing = con.list()
+  lines = string.split(listing, '\n')
+  winid = {}
+  for line in lines[:-1]:
+  [name,id] = string.split(line, '\t')
+  winid[name] = string.atoi(id)
 
-    ... will give you a dictionary mapping names to numeric ids.
-    win(name:string, isBackedUp:integer)
-        Returns an integer window identifier, to be used for later operations
-        on the window
-        event()
-            returns an event tuple (w, t, r0, r1, s), whose fields are:
-            w
-                window identifier
-                t
-                    event type
-                    r0, r1
-                    affected range
-                    s
-                    string
-                    The meaning (if any) of the values of r0, r1 and s depend
-                    on the event type 't'
-                    eventwouldblock()
-                    If eventwouldblock() returns true, calling event() might
-                    have to wait. If eventwouldblock() returns false, calling
-                    event() would return immediately because an event is
-                    already queued up and waiting.
-                    bounce(tuple)
-                    Called with an event tuple as returned by event(). Returns
-                    None. Used for returning an event we want Wily to handle
-                    instead of us.
-                    attach(w:integer, mask:integer)
-                    'w' is a window identifier as obtained by new() or list().
-                    'mask' is a bitmask of event types. Sets the mask of events
-                    to be sent to us.
-                    setname(w:integer, s:string)
-                    Set w's name to 's'
-                    settools(w:integer, s:string)
-                    Set w's tools to 's'
-                    read(w:integer, from:integer, to:integer)
-                    returns a (UTF) string
-                    replace(w:integer, from:integer, to:integer, s:string)
-                    replace the text in 'w' from 'from' to 'to' with 's'
-                    run(w:integer, s:string)
-                    has the same effect as sweeping 's' with B2 in window 'w'
-                    goto(w:integer, from:long, to:long, s:string, flag:integer)
-                    has the same effect as sweeping 's' with B3 in window 'w',
-                    and starting any search at range(from,to), except that we
-                    only warp and select text if 'flag' is set.
-                    Returns a tuple (w:integer, from:long, to:long), which
-                    represents the window and selection that was opened.
+... will give you a dictionary mapping names to numeric ids.
 
-                    Constants
+win(name:string, isBackedUp:integer)
+  Returns an integer window identifier, to be used for later operations on the
+  window event()
+  returns an event tuple (w, t, r0, r1, s), whose fields are:
+  w
+    window identifier
+  t
+    event type
+  r0, r1
+    affected range
+  s
+    string
 
-                    GOTO, EXEC, DESTROY and REPLACE are event bitmask values,
-                    useful for comparing to the event type returned by event(),
-                    and for setting the bitmask in attach().
-                    -----------------------------------------------------------
-                    gary@cs.su.oz.au
+The meaning (if any) of the values of r0, r1 and s depend on the event type 't'
+
+eventwouldblock()
+  If eventwouldblock() returns true, calling event() might have to wait. If
+  eventwouldblock() returns false, calling event() would return immediately
+  because an event is already queued up and waiting.
+
+bounce(tuple)
+  Called with an event tuple as returned by event(). Returns None. Used for
+  returning an event we want Wily to handle instead of us.
+
+attach(w:integer, mask:integer)
+  'w' is a window identifier as obtained by new() or list().  'mask' is a
+  bitmask of event types. Sets the mask of events to be sent to us.
+
+setname(w:integer, s:string)
+  Set w's name to 's'
+
+settools(w:integer, s:string)
+  Set w's tools to 's'
+
+read(w:integer, from:integer, to:integer)
+  returns a (UTF) string
+
+replace(w:integer, from:integer, to:integer, s:string)
+  replace the text in 'w' from 'from' to 'to' with 's'
+
+run(w:integer, s:string)
+  has the same effect as sweeping 's' with B2 in window 'w'
+
+goto(w:integer, from:long, to:long, s:string, flag:integer)
+  has the same effect as sweeping 's' with B3 in window 'w', and starting any
+  search at range(from,to), except that we only warp and select text if 'flag'
+  is set.
+Returns a tuple (w:integer, from:long, to:long), which represents the window
+and selection that was opened.
+
+Constants
+
+  GOTO, EXEC, DESTROY and REPLACE are event bitmask values,
+  useful for comparing to the event type returned by event(),
+  and for setting the bitmask in attach().
+-----------------------------------------------------------
+gary@cs.su.oz.au

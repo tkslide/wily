@@ -1,609 +1,267 @@
-Wily User Manual
-
-Command-line Arguments
-
-wily [-p9fn font] [-fn font] [-p9fixed fixedfont] [-a tabsize] [-c columns]
-[file name...]
-
--p9fn font
-    (or X resource p9font) set the default proportional font. This must be the
-    name of a Plan 9 font file.
-    -fn font
-        (or X resource font) set the default proportional font. This must be
-        the name of a X font. The default is "variable"
-        -p9fixed fixedfont
-            (or X resource p9fixed) set the monospace font. This must be the
-            name of a Plan 9 font file. The default monospace font is "fixed"
-            -a tabsize
-                set the maximum width of tabs (as multiple of the width of the
-                character '0') for the proportional font. Defaults to 4.
-                -c columns
-                    set the initial number of columns. Defaults to 2.
-                    -e command
-                    Run 'command' on startup.
-                    file name...
-                    Start wily with the named files and directories open.
-
-                    Environment variables
-
-                    SHELL
-                    External commands are sent to the shell for evaluation.
-                    Defaults to /bin/sh
-                    HISTORY
-                    If $HISTORY or $history are set, commands are written to
-                    this file before execution.
-                    WILYBAK
-                    Wily uses $WILYBAK or $HOME/.wilybak as the directory for
-                    backups.
-                    WMAINTAG, WCOLTAG, WFILETAG, WDIRTAG
-                    If any of these are set, their value is appended to the
-                    default text to be added to the tag of the main window, a
-                    column, a file window or a directory window, respectively.
-                    WILYTOOLS
-                    If $WILYTOOLS or $HOME/.wilytools exist, they are read and
-                    used as a tools patterns file. (See later section).
-                    INCLUDES
-                    If set, this is used as a search path for include files.
-                    WILYLABEL, w
-                    For external processes, Wily sets $WILYLABEL and $w to the
-                    label of the window in whose context a command is
-                    executing.
-                    PATH
-                    Wily itself ignores $PATH, but when it calls the shell to
-                    run external programs the value of $PATH is important.
-                    WILYFIFO, DISPLAY, TMPDIR
-                    Wily communicates with some other programs using a fifo at
-                    a well-known location.
-
-                    The name of the fifo will be $WILYFIFO if this variable is
-                    set, otherwise it will be /tmp/wilyUSER$DISPLAY, where USER
-                    is calculated from the password file. If $TMPDIR is
-                    defined, it is used instead of /tmp.
-
-                    Wily also sets $WILYFIFO so any children it creates will
-                    know how to talk to it.
-
-                    Appearance
-
-                    Column, window, tag, body, resize box
-
-                    screen shot Wily appears as one or more vertical columns,
-                    divided into windows of scrolling text. Each column or
-                    window is headed by a one-line tag. The leftmost text of
-                    the tag (up until the first whitespace) is the name of the
-                    window. Usually this is the name of some file or directory.
-                    Wily also places other bits of text in the tag, which might
-                    be useful later as commands. There is a one-line tag above
-                    all the columns, which is called the wily tag.
-
-                    The text in the body of the window may represent a
-                    directory, a file, the interface to some program like a
-                    news reader, or the output from a program.
-
-                    The small square-ish box to the left of the tag is called
-                    the resize box. The resize box is used for moving and
-                    reshaping windows and columns.
-
-                    If the resize box is filled in, this indicates that the
-                    window is dirty. A dirty window contains text which has
-                    been modified since it was last read from or written to
-                    disk.
-
-                    Proportionally spaced, Unicode text
-
-                    Text is displayed in a propotionally spaced font by
-                    default. There is a built in function to toggle with a
-                    monospace font when required.
-
-                    Text is read and written as UTF8-encoded Unicode, providing
-                    some support for editing multi-lingual and scientific text,
-                    but remaining backwardly compatible with plain 7-bit ASCII
-                    text. See 9term for an example of another program with
-                    Unicode support, with some screen shots.
-
-                    Notation
-
-                    B1, B2 & B3 are left, middle, right mouse buttons,
-                    respectively. Used as a verb, they mean "click with that
-                    button". E.g. "B2 in the command word" means "click with
-                    the middle mouse button in the command word".
-
-                    B1B2 means to select some text with B1 held down, then
-                    click and release on B2 while still holding B1 down.
-
-                    Sweep with B1 means to hold down B1, drag it across some
-                    text to select it, and then release B1.
-
-                    The last selected text is the text which was most recently
-                    selected, usually by being swept with B1.
-
-                    The last selected window is the window containing the last
-                    selected text. This is indicated by that window having a
-                    slightly thicker border. If the last selected text was in a
-                    column tag or the wily tag, there is no last selected
-                    window.
-
-                    Context
-
-                    All text in wily has a context. The context is the name of
-                    a directory associated with that text. This context is used
-                    when executing commands and opening files.
-
-                    If the text is in a window, its context is the name of that
-                    window, up to and including the last /. So if three windows
-                    have the names /usr/gary/+Errors, /usr/gary/guide and /usr/
-                    gary/, the context for all the text in all of these windows
-                    is the same: /usr/gary/. Note that the context need not be
-                    a directory which actually exists.
-
-                    If the text is in a tag which isn't part of a window (i.e.
-                    a column tag or the wily tag), the context is the name of
-                    the directory where wily was started.
-
-                    Scrollbars and scrolling
-
-                    Scrollbars are proportional, i.e. the size and position of
-                    the scrollbar's thumb indicates the size and position of
-                    the visible portion of the text.
-
-                    Each of the three mouse buttons does something different
-                    when clicked in the scrollbar.
-
-                    B1 and B3 are used for relative movements. B3 moves the
-                    text next to the mouse pointer up to the top of the window.
-                    B1 moves the text at the top of the window down so it is
-                    next to the pointer. Both of these rules have the effect
-                    that clicking near the top of the scrollbar causes small
-                    movements, (either up or down) and clicking near the bottom
-                    causes large movements.
-
-                    B2 is used for absolute positioning. B2 moves the visible
-                    part of the text to a point in the text proportional to how
-                    far down the scrollbar the pointer is. That is, clicking at
-                    the bottom of the scrollbar with B2 jumps to the end of the
-                    text, clicking at the top of the scrollbar with B2 jumps to
-                    the beginning of the text.
-
-                    All of these movements repeat if the mouse button is held
-                    down in the scroll bar.
-
-                    The PageUp and PageDown keys scroll up or down by about
-                    half a page. The Home and End keys scroll to the top or
-                    bottom of the file.
-
-                    Selecting and editing text (B1)
-
-                    Type normally anywhere on the screen to enter text. The
-                    keyboard focus follows the pointer in a "point to type"
-                    fashion. That is, the characters you type will appear in
-                    the tag or body which currently contains the pointer.
-                    Position the cursor within text either with cursor keys, or
-                    clicking once with B1. Select text by sweeping it with B1.
-                    Sweeping text and then typing replaces the selected text
-                    with the typed text.
-
-                    Control Keys
-
-                    ctrl-u
-                    delete line
-                    ctrl-w
-                    delete word
-                    Escape
-                    if the selection is null, select all the most recently
-                    typed text, otherwise delete the selection
-
-                    Double-click
-
-                    Double-clicking with B1 can select a word, a line, or the
-                    text delimited by quotation marks, braces, brackets or
-                    parentheses, depending on where you double-click.
-
-                    Executing commands (B2)
-
-                    Selecting the command
-
-                    Sweep text with B2 to execute it as a command.
-
-                    If you start sweeping some text with B2, then decide you
-                    don't want to execute it, click B3 before you release B2
-                    (i.e. a B3B2 chord) to abort.
-
-                    The command window is the window containing the text which
-                    was swept with B2. The context of the command is the
-                    context of the text swept with B2.
-
-                    If the text starts with the name of one of the builtin
-                    commands, that builtin is executed.
-
-                    Otherwise, the command is executed by forking a subprocess,
-                    establishing an environment and execing $SHELL -c command.
-
-                    Environment for external commands
-
-                        The current directory is set to the context of the
-                    command.
-                        $WILYLABEL and $w are set to the name of the command
-                    window and added to the environment.
-                        Standard input is set to /dev/null
-                        Standard output and standard error are set such that
-                    output to them ends up being sent to a window in Wily
-                    called context/+Errors
-                        The first word of the command will be added to the wily
-                    tag to indicate which programs are currently running.
-                        $WILYFIFO will be set to the name of the fifo this
-                    instance of Wily is listening to for messages. See the main
-                    wily page for programmers manuals on how to use this
-                    messaging interface.
-
-                    One exception is that if the name of the command starts
-                    with "|", "<" or ">", standard input and output of the
-                    command are set up such that the last selection is piped
-                    through the command, fed into the command or replaced by
-                    the output of the command, respectively.
-
-                    For example if a paragraph is currently the last selection,
-                    executing "|fmt" will format the paragraph, executing ">lp"
-                    will print it, and executing "<cat file" will replace it
-                    with "file"
-
-                    Builtin Functions
-
-                    By convention all of the builtin functions start with a
-                    capital letter. Some of them operate differently if called
-                    with an argument.
-                    Put, Get, Putall
-                    Put and Get write the window to disk, or fetch from disk,
-                    respectively. If called with an argument, they will use the
-                    argument as the filename, instead of the name of the
-                    window.
-
-                    Putall writes all dirty files to disk.
-                    New, Del
-                    Create a new window, or delete a window, respectively. If
-                    New is called with an argument, it will use the argument as
-                    the name of a file to create, otherwise the new window is
-                    called context/New, where the context is taken from the
-                    last selection.
-                    Look
-                    Searches in the command window for literal text. The text
-                    it searches for is either the argument to Look, or the
-                    current selection in the body of the command window.
-                    Undo, Redo
-                    Move backward or forwards through the (infinite) Undo log.
-                    If called with an argument, these commands repeat until
-                    they reach an end of the log, or the text is in the same
-                    state as it was the last time the file was read from or
-                    written to disk.
-                    Newcol, Delcol
-                    Create or delete a column
-                    Cut, Paste, Snarf
-                    Cut the currently selected text to the X selection buffer,
-                    replace the currently selected text with the X selection
-                    buffer, or copy the currently selected text to the X
-                    selection buffer, respectively.
-                    Quit
-                    Exit wily.
-                    Kill
-                    Kill some process which was started from wily. If called
-                    with an argument, Kill that process. Without an argument,
-                    Kill writes a list of possible Kill commands to window
-                    $wilydir/+Errors
-                    Font
-                    Toggle between fixed and proportional fonts. Depending on
-                    where Font is clicked, changes the font for a window, a
-                    column, or for all the windows on the screen.
-                    Dotfiles
-                    Toggles whether or not dot files are displayed in
-                    directories. Directories will not be re-read automatically,
-                    though.
-                    Anchor
-                    Adds an address to the tag of the last selected window. If
-                    called with an argument, the address is a line address,
-                    otherwise the address is a character address. The address
-                    is of the form ":currentaddress,."
-
-                    To select large chunks of text, B1 click at the beginning
-                    position, execute Anchor, B1 click at the end position,
-                    then click with B3 in the address in the tag. The anchor
-                    may also be used as a bookmark, or just to find the
-                    character or line position in a window.
-                    Split
-                    Split the most recently selected window into two. Editing
-                    actions in one window will be visible in the other.
-                    Indent
-                    Toggles autoindent for a window or all windows, depending
-                    on the command window.
-                    Clear
-                    Deletes all the text in the command window.
-
-                    The system tries to ensure that the names of some builtin
-                    commands are added to or removed from window tags as
-                    appropriate. For instance, when a window becomes "dirty",
-                    the word "Put" is added to its tag, and removed again when
-                    the file becomes clean. Similarly, the words "Undo" and
-                    "Redo" should appear in the tag of a window when and only
-                    when they can be executed.
-
-                    Open/Search (B3)
-
-                    Sweep text with B3 to make Wily try to goto (open or search
-                    for) the swept text.
-
-                    The text may be interpreted as:
-                    filename:address
-                    Open filename and search in it for address
-                    :address
-                    Search for address in the window containing the swept text,
-                    or in the last selected window, if the swept text was not
-                    in a window.
-                    filename
-                    Open file or directory filename if it exists.
-                    includefilename
-                    Open includefilename if it can be "massaged" (see below)
-                    into the name of an include file (e.g. stdio.h)
-                    literal
-                    If the swept text is contained in a window, do a literal
-                    search in the body of the window for literal.
-
-                    When trying to open a file or directory, the swept file
-                    name will be interpreted relative to its context. For
-                    example, the text foo.c:14 in a window with context /usr/
-                    gary/src/ will be interpreted to mean the address /usr/gary
-                    /src/foo.c:14
-
-                    Addresses
-
-                    Wily uses the address and regular expression code from Sam.
-                    Please refer to the Sam manual for a better explanation.
-                    #n
-                    The empty string after character n; #0 is the beginning of
-                    the file.
-                    n
-                    Line n; 1 is the beginning of the file.
-                    /regexp/ ?regexp?
-                    The substring that matches the regular expression, found by
-                    looking toward the end (/) or beginning (?) of the file,
-                    and if necessary continuing the search from the other end
-                    to the starting point of the search. The matched substring
-                    may straddle the starting point. When entering a pattern
-                    containing a literal question mark for a backward search,
-                    the question mark should be specified as a member of a
-                    class.
-
-                    Regexps are as defined in regexp(6) in the Plan 9 manual.
-                    $
-                    The null string at the end of the file.
-                    .
-                    Dot. The current selection in a window.
-                    address1,address2
-                    The range from the start of address1 (defaulting to the
-                    start of the file) to the end of address2 (defaulting to
-                    the end of the file). E.g. :., selects from the current
-                    selection to the end of file.
-
-                    Include Files
-
-                    When searching for a filename, if the filename doesn't
-                    exist in the context of the search text, Wily also tries to
-                    expand the file name using a few simple heuristics.
-
-                    If we are searching for name and name appears between
-                    double-quotes or angle brackets, Wily also searches for
-                    name in the directories in the search path $INCLUDES (or /
-                    usr/include, if $INCLUDES isn't set).
-
-                    For example, sweeping stdio.h between angle brackets will
-                    open /usr/include/stdio.h on the author's system.
-
-                    Mouse short cuts
-
-                    Cut (B1B2), Paste (B1B3)
-
-                    To cut some text into the clipboard, select the text with
-                    B1, and while holding it down, click B2. The selected text
-                    will be cut from the window and copied to the clipboard.
-
-                    Similarly, select some text with B1, and while holding it
-                    down also click B2, and the selected text will be replaced
-                    by the contents of the clipboard. The clipboard will be
-                    unaltered.
-
-                    Note that so long as you hold down B1, you can alternately
-                    Cut and Paste the selected text with B2 and B3. A Cut
-                    immediately followed by a Paste in this way leaves the file
-                    unmodified, and has the effect of copying the current
-                    selection to the clipboard.
-
-                    Execute with argument (B2B1)
-
-                    A command can be called with an argument using another
-                    mouse chord. Sweep the command with B2, and while holding
-                    it down, click B1. The last selection will be appended to
-                    the command. The context of the command and the command
-                    window will be set to the context of the last selection
-                    (unless the command is a builtin).
-
-                    For example, say I have a script called "sg" (short for
-                    source grep) that greps through all the source files in the
-                    current directory for a symbol given as an argument. I can
-                    then sweep with B1 to select "printf" in a source file,
-                    then B2B1 on the word sg (anywhere). The command "sg
-                    printf" will then run in the same directory as the source
-                    file.
-
-                    Selection expansion
-
-                    A null selection (single click) with B2 or B3 will be
-                    expanded to some of the surrounding text.
-
-                    A click inside an existing selection will be expanded to
-                    that selection.
-
-                    This means you can select (with B1) some complicated
-                    command once, and B2 inside this selection many times to
-                    execute the command repeatedly.
-
-                    This rule is also helpful when searching through multiple
-                    occurrences of a piece of text, as clicking with B3 in the
-                    most recently found instance searches for the next
-                    instance.
-
-                    A click that is not inside an existing selection will be
-                    expanded depending on which mouse button was used.
-
-                    A single B2 click automatically selects a sensible "word"
-                    as the command. Commands can be built-in (Capital first
-                    letters, by convention) or passed to the shell for
-                    invocation.
-
-                    Clicks with B2 are expanded to select commands, i.e.
-                    strings of alphanumeric characters, |, > or <. Clicks with
-                    B3 are expanded to select addresses, i.e. strings of
-                    alphanumeric characters, :, ",".
-
-                    Miscellaneous
-
-                    Window management
-
-                    Wily windows are placed automatically using heuristics.
-                    Hopefully most of the time the window will be placed
-                    somewhere useful. However, windows and columns can be moved
-                    and reshaped. The resize box (the little box on the far
-                    left of the tag) of a pane or a column may be manipulated
-                    to move or reshape a window.
-
-                    Dragging the resize box (with any mouse button) moves the
-                    column or window to the desired location.
-
-                    Clicking in a pane's button with different mouse buttons
-                    has these different effects:
-                    B1
-                    the window grows a bit, first taking up any blank space in
-                    the column
-                    B2
-                    Every window except the desired one is shrunk so that only
-                    their tags are visible, leaving more space for the desired
-                    window.
-                    B3
-                    The window expands to take up the whole column, obscuring
-                    all the other windows in that column. Clicking with any
-                    mouse button in the window's resize box will undo this
-                    effect.
-
-                    Cursor Warping
-
-                    After a successful search, the text that was found is
-                    highlighted, and the cursor is warped there, so that to
-                    search for the next instance of the search text, no cursor
-                    movement is required, it is only necessary to click the
-                    rightmost mouse button again. Window re-arranging
-                    operations warp the cursor to the resize box of the window
-                    that moved, so the move can be easily refined.
-
-                    Back-up files
-
-                    Whenever a dirty window is to be deleted, a backup is made.
-                    This is an alternative to the familiar (and often-annoying)
-                    "are you sure you want to close this window?" dialog. A
-                    warning message is printed when this happens.
-
-                    Backup files are kept in directory $WILYBAK if it exists,
-                    or $HOME/.wilybak. In this directory the file TOC is a
-                    table of contents showing what real file each backup file
-                    maps to.
-
-                    .wilytools
-
-                    Wily attempts to read either $WILYTOOLS or $HOME
-                    /.wilytools. Each line in this file should be either empty,
-                    a comment (starts with '#') or a pattern, a tab, and some
-                    arbitrary text. The pattern is a regular expression. Every
-                    time Wily creates a new window, if the window's name
-                    matches one of the patterns, the text after the tab on that
-                    line will be appended to the tag for that window. Wily
-                    stops searching after the first match.
-
-                    Below is the author's .wilytools :
-
-                    Mace.*Errors$   Clear mace subject
-                    Errors$         Clear
-                    Mace/in/$       mace subject
-                    Mace/in         reply wrm wmov
-                    Mace.*/$        subject
-                    Mace/out        deliver
-                    Mace            reply   wrm
-                    /src/.*/$       def sg
-                    News            followup
-                    Makefile        make
-                    print/$         gv bpr
-                    \.py$           ptest
-                    bin/rc/         775
-
-                    The mace, reply, deliver and subject scripts and Mace
-                    directory are to do with reading mail. def and sg are
-                    useful scripts for searching through source files, so they
-                    are added to the tag of any directory with src in its
-                    pathname. make is a logical command to execute when viewing
-                    a Makefile.
-
-                    Fonts
-
-                    Wily uses two fonts: a variable-width default font, and an
-                    alternative fixed-width font. These may be set with
-                    command-line arguments or X resources.
-
-                    Wily first tries to open a Plan 9 font file, given as
-                    either a -p9fn command-line option or *p9font X resource.
-                    Failing that, it uses the -fn command-line option or *font
-                    X resource. Failing that, it uses the font "variable".
-
-                    Plan 9 font files are useful for supporting the full
-                    Unicode range without requiring massive fonts. The font
-                    file sets up a font by joining together different subfonts.
-                    See the 9term page for information about obtaining Unicode
-                    fonts and utilities to convert other character sets to
-                    Unicode.
-
-                    The format of of a font file is described below: (Taken
-                    from font(4) from the Plan 9 Manual)
-
-                    External fonts are described by a plain text file that can
-                    be read using rdfontfile. The format of the file is a
-                    header followed by any number of subfont range
-                    specifications. The header contains two numbers: the height
-                    and the ascent. The height is the inter-line spacing and
-                    the ascent is the distance from the top of the line to the
-                    baseline. These numbers are chosen to display consistently
-                    all the subfonts of the font. A subfont range specification
-                    contains two numbers and a font name. The numbers are the
-                    inclusive range of characters covered by the subfont, and
-                    name specifies the name of an X font suitable for
-                    getsubfont. The minimum number of a covered range is mapped
-                    to the first defined character of the corresponding
-                    subfont. Each field must be followed by some white space.
-                    Each numeric field may be C-format decimal, octal, or
-                    hexadecimal.
-
-                    Here is the start of the font file the author uses for a
-                    monospace font:
-
-                    17      14
-                    0x0000  0x00FF  lucm.latin1.9
-                    0x0100  0x017E  lucm.latineur.9
-                    0x0180  0x01F0  matty.latinext.9
-                    0x0250  0x02E9  lucm.ipa.9
-                    0x0300  0x0308  matty.gendiacritics.9
-                    0x0370  0x0372  matty.greekpunc.9
-                    0x0386  0x03F5  lucm.greek.9
-                    0x0400  0x0475  misc.cyrillic.9
-
-                    Entering non-ASCII characters
-
-                    Refer to the Plan 9 keyboard(6) manual page, which is
-                    mostly how it works in wily.
-
-                    References
-
-                    UTF8-encoded Unicode,
-                    -----------------------------------------------------------
-                    gary@cs.su.oz.au
+WILY(1)                     General Commands Manual                     WILY(1)
+
+NAME
+       wily, win, awd - interactive text windows
+
+SYNOPSIS
+       wily [ -f varfont ] [ -F fixfont ] [ -c ncol ]
+
+       win [ command ]
+
+       awd [ label ]
+
+DESCRIPTION
+       Wily  manages windows of text that may be edited interactively or by ex‐
+       ternal programs.  The interactive interface uses a different interface.
+
+       Any named files are read into wily windows before  wily  accepts  input.
+       Plain  files display as text; directories display as columnated lists of
+       the names of their components, as in ls -p directory|mc except that  the
+       names of subdirectories have a slash appended.
+
+       The  -f  (-F) option sets the default variable-pitch (fixed-pitch) font;
+       the  default  is   /lib/font/bit/lucidasans/euro.8.font   (.../lucm/uni‐
+       code.9.font).   Tab intervals are set to the width of 4(8) numeral zeros
+       in the variable-pitch font.
+
+   Windows
+       Wily windows are in two parts: a short tag above a multi-line body.  The
+       body typically contains an image of a file, as in sam(1), or the  output
+       of  a  program,  as  in  an  8½(1) window.  The tag contains a number of
+       blank-separated words, followed by a vertical bar character, followed by
+       anything.  The first word is the name of the window, typically the  name
+       of  the  associated  file or directory, and the other words are commands
+       available in that window.  Any text may be added after the bar; examples
+       are strings to search for or commands to execute in that window.
+
+       If a window holds a directory, the name (first word of the tag) will end
+       with a slash.
+
+   Scrolling
+       Each window has a scroll bar to the left of the body.   The  scroll  bar
+       behaves much as in sam(1) or 8½(1) except that scrolling occurs when the
+       button  is  pressed,  rather than released, and continues as long as the
+       mouse button is held down in the scroll bar.   For  example,  to  scroll
+       slowly  through  a  file,  hold button 3 down near the top of the scroll
+       bar.  Moving the mouse down  the  scroll  bar  speeds  up  the  rate  of
+       scrolling.
+
+   Layout
+       Wily  windows  are  arranged  in  columns.   By  default, it creates two
+       columns when starting; this  can  be  overridden  with  the  -c  option.
+       Placement  is  automatic but may be adjusted using the layout box in the
+       upper left corner of each window and column.  Pressing and  holding  any
+       mouse button in the box drags the associated window or column.  For win‐
+       dows,  just clicking in the layout box grows the window in place: button
+       1 grows it a little, button 2 grows it as much as it can, still  leaving
+       all  other tags in that column visible, and button 3 takes over the col‐
+       umn completely, temporarily hiding other windows in the  column.   (They
+       will return en masse if any of them needs attention.)  The layout box in
+       a  window  is normally white; when it is black in the center, it records
+       that the file is `dirty': Wily believes it is modified from its original
+       contents.
+
+       Tags exist at the top of each column and across the whole display.  Wily
+       pre-loads them with useful commands.  Also, the tag across the top main‐
+       tains a list of executing long-running commands.
+
+   Typing
+       The behavior of typed text is similar to that in 8½(1) except  that  the
+       characters are delivered to the tag or body under the mouse; there is no
+       `click to type'.  The usual backspacing conventions apply.  As in sam(1)
+       but  not 8½, the ESC key selects the text typed since the last mouse ac‐
+       tion, a feature particularly useful when executing commands.  A side ef‐
+       fect is that typing ESC with text already selected is identical to a Cut
+       command (q.v.).
+
+       All text, including the names of windows, may be edited uniformly.
+
+   Directory context
+       Each window's tag names a directory: explicitly if the  window  holds  a
+       directory;  implicitly  if  it  holds a regular file (e.g. the directory
+       /adm if the window holds /adm/users).  This directory provides a context
+       for interpreting file names in that window.   For  example,  the  string
+       users  in a window labeled /adm/ or /adm/keys will be interpreted as the
+       file name /adm/users.  The directory is defined purely textually, so  it
+       can  be  a  non-existent directory or a real directory associated with a
+       non-existent file (e.g.  /adm/not-a-file).  File names beginning with  a
+       slash are assumed to be absolute file names.
+
+   Errors
+       Windows  whose  names  begin with - or + conventionally hold diagnostics
+       and other data not directly associated with  files.   A  window  labeled
+       +Errors  receives  all diagnostics produced by wily itself.  Diagnostics
+       from commands run by wily appear in  a  window  named  directory/+Errors
+       where  directory is identified by the context of the command.  These er‐
+       ror windows are created when needed.
+
+   Mouse button 1
+       Mouse button 1 selects text just as in sam(1) or  8½(1),  including  the
+       usual double-clicking conventions.
+
+   Mouse button 2
+       By an action similar to selecting text with button 1, button 2 indicates
+       text to execute as a command.  If the indicated text has multiple white-
+       space-separated  words, the first is the command name and the second and
+       subsequent are its arguments.  If button 2 is `clicked'—indicates a null
+       string—wily expands the indicated text to find a command to run: if  the
+       click is within button-1-selected text, wily takes that selection as the
+       command;  otherwise it takes the largest string of valid file name char‐
+       acters containing the click.  Valid file name characters are alphanumer‐
+       ics and _ .  - + /.  This behavior is similar  to  double-clicking  with
+       button 1 but, because a null command is meaningless, only a single click
+       is required.
+
+       Some  commands,  all  by  convention starting with a capital letter, are
+       built-ins that are executed directly by wily:
+
+       Cut    Delete most recently selected text and place in snarf buffer.
+
+       Del    Delete window.  If window is dirty, saves a backup of the file.
+
+       Delcol Delete column and all its windows, after  checking  that  windows
+              are not dirty.
+
+       Quit   Exit wily after checking that windows are not dirty.
+
+       Font   With  no  arguments,  change the font of the associated window or
+              column from fixed-spaced to proportional-spaced  or  vice  versa.
+              Given  a font name argument, change the font of the window to the
+              named font.  Other existing windows are unaffected.
+
+       Get    Load file into window, replacing previous contents (after  check‐
+              ing for dirtiness as in Del).  With no argument, use the existing
+              file name of the window.  Given an argument, use that file but do
+              not change the window's file name.
+
+       Kill   Send a kill note to wily-initiated commands named as arguments.
+
+       Look   Search  in  body  for occurrence of literal text indicated by the
+              argument or, if none is given, by the selected text in the body.
+
+       New    Make new window.  With arguments, load the named files into  win‐
+              dows.
+
+       Newcol Make new column.
+
+       Paste  Replace  most  recently  selected  text  with  contents  of snarf
+              buffer.
+
+       Put    Write window to the named file.  With no argument, write  to  the
+              file named in the tag of the window.
+
+       Putall Write  all  dirty  windows  whose names indicate existing regular
+              files.
+
+       Redo   Complement of Undo.
+
+       Send   Append selected text or snarf buffer to end of body; used  mainly
+              with win.
+
+       Snarf  Place selected text in snarf buffer.
+
+       Sort   Arrange  the  windows in the column from top to bottom in lexico‐
+              graphical order based on their names.
+
+       Split  Create a copy of the window  containing  most  recently  selected
+              text.
+
+       Undo   Undo last textual change or set of changes.
+
+       A  common  place  to store text for commands is in the tag; in fact wily
+       maintains a set of commands appropriate to the state of  the  window  to
+       the left of the bar in the tag.
+
+       If  the text indicated with button 2 is not a recognized built-in, it is
+       executed as a shell command.  For example, indicating date with button 2
+       runs date(1).  The standard and error outputs of commands  are  sent  to
+       the  error  window  associated with the directory from which the command
+       was run, which will be created if necessary.  For example, in  a  window
+       /adm/users  executing  pwd  will  produce the output /adm in a (possibly
+       newly-created) window  labeled  /adm/+Errors;  in  a  window  containing
+       /sys/src/cmd/sam/sam.c    executing    make    will   run   make(1)   in
+       /sys/src/cmd/sam,    producing    output    in    a    window    labeled
+       /sys/src/cmd/sam/+Errors.
+
+   Mouse button 3
+       Pointing  at  text with button 3 instructs wily to locate or acquire the
+       file, string, etc. described by the  indicated  text  and  its  context.
+       This description follows the actions taken when button 3 is released af‐
+       ter sweeping out some text.  In the description, text refers to the text
+       of the original sweep or, if it was null, the result of applying similar
+       expansion rules that apply to button 2 actions.
+
+       If the text names an existing window, wily moves the mouse cursor to the
+       selected text in the body of that window.  If the text names an existing
+       file  with  no  associated window, wily loads the file into a new window
+       and moves the mouse there.
+
+       If the text begins with a colon, it is taken to be an  address,  in  the
+       style of sam(1), within the body of the window containing the text.  The
+       address  is  evaluated,  the  resulting  text highlighted, and the mouse
+       moved to it.  Thus, in wily, one must type :/regexp  or  :127  not  just
+       /regexp or 127.  (There is an easier way to locate literal text; see be‐
+       low.)
+
+       If  the  text  is  a  file name followed by a colon and an address, wily
+       loads the file and evaluates the address.  For example, clicking  button
+       3  anywhere  in the text file.c:27 will open file.c, select line 27, and
+       put the mouse at the beginning of  the  line.   The  rules  about  Error
+       files,  directories, and so on all combine to make this an efficient way
+       to investigate errors from compilers, etc.
+
+       If the text is not an address or file, it is taken to be  literal  text,
+       which  is  then searched for in the body of the window in which button 3
+       was clicked.  If a match is found, it is selected and the mouse is moved
+       there.  Thus, to search for occurrences of a word in a file, just  click
+       button 3 on the word.  Because of the rule of using the selection as the
+       button  3  action,  subsequent  clicks  will find subsequent occurrences
+       without moving the mouse.
+
+       In all these actions, the mouse motion is not done if the text is a null
+       string within a non-null selected string in the tag, so that (for  exam‐
+       ple)  complex regular expressions may be selected and applied repeatedly
+       to the body by just clicking button 3 over them.
+
+   Chords of mouse buttons
+       Several operations are bound to multiple-button actions.  After  select‐
+       ing  text,  with button 1 still down, pressing button 2 executes Cut and
+       button 3 executes Paste.  After clicking one button,  the  other  undoes
+       the first; thus (while holding down button 1) 2 followed by 3 is a Snarf
+       that  leaves  the file undirtied; 3 followed by 2 is a no-op.  These ac‐
+       tions also apply to text selected by double-clicking because the double-
+       click expansion is made when the second click starts, not when it ends.
+
+       Commands may be given extra arguments by a mouse chord  with  buttons  2
+       and 1.  While holding down button 2 on text to be executed as a command,
+       clicking button 1 appends the text last pointed to by button 1 as a dis‐
+       tinct  final  argument.  For example, to search for literal text one may
+       execute Look text with button 2 or instead point at text with  button  1
+       in  any  window,  release button 1, then execute Look, clicking button 1
+       while 2 is held down.
+
+       When an external command (e.g.  echo(1)) is executed this way, the extra
+       argument is passed as expected and an environment variable $wilyaddr  is
+       created that holds, in the form interpreted by button 3, the fully-qual‐
+       ified address of the extra argument.
+
+   Support programs
+       Win creates a new wily window and runs a command (default $SHELL) in it,
+       turning the window into something analogous to an 8½(1) window.  Execut‐
+       ing text in a win window with button 2 is similar to using Send.
+
+       Awd  loads  the  tag line of its window with the directory in which it's
+       running, suffixed -label (default rc); it is intended to be executed  by
+       a cd function for use in win windows.  An example definition is
+            fn cd { builtin cd $1 && awd $sysname }
+
+FILES
+       $home/.wilybak
+              default directory for backup files.
+
+SEE ALSO
+       wily(4)
+       Rob Pike, Acme: A User Interface for Programmers.
+
+BUGS
+                                                                        WILY(1)

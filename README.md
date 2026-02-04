@@ -17,25 +17,22 @@ See [Original README](README.orig) for copyright, permissions etc.
 
 
 ## Changes
+- `W` - use (the running instance of) Wily as $EDITOR. The script waits until the window is closed ("runs in foreground"), so it can be used with `git commit` and mail agents.
+- `Save`/`Restore` - save and restore the session (documents and selections). A function similar to Acme's `Dump` and `Load` (actually I might rename them to match the original...)
 - Compilable with C23 gcc
 - Added scrolling with the mouse wheel
 - Removed the version notice in the tagline (because I know it's Wily and I need room there)
 - (A modified version of) `win` is working again.
-- Python3 and Tcl modules are functional again (Tcl's `win list` delivers IDs *and* names - some old scripts might need some attention)
+- Python3 and Tcl modules are functional again (Tcl's `win list` returns list of (id: str, id: int) tuples - some old scripts might need attention)
 - Perl 5 module from CPAN, with a few characters modified
 - It's still a bloody mess (especially the Makefiles -- not proud of their current state, but they mostly do what I expect from them)
 - I removed the "old luggage" -- I don't think defunct old tools for web browsing and mailbox management are worth my time now (I might reintegrate them at some later point).
 - Code tree was reorganised and cleaned up (WIP)
-- `W` - use (the running instance of) Wily as $EDITOR. The script waits until the window is closed ("runs in foreground"), so it can be used with `git commit` and mail agents.
-- `Save`/`Restore` - save and restore the session (documents and selections). A function similar to Acme's `Dump` and `Load` (actually I might rename them to match the original...)
 
 ## Work in Progress
-- ~~Re-enabling `win` and other tools.~~
-- ~~Python3 integration(?)~~
-- "poor man's `plumber`" - xdg-open integration
 - Documentation cleanup - maybe not getting rid of anything, but the number of collected files in every format known to the humanity is overwhelming.
   It's good to have standards, there are so many of them to choose from.
-- Python: I probably need to change the window IDs in list() to integer.
+- "poor man's `plumber`" - xdg-open integration
 
 ## Disclaimer
 0. It works on my machine(s). That's the point of the whole project.

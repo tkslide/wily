@@ -54,27 +54,23 @@ static PyObject *wily_list(WilyConnection *self, PyObject *Py_UNUSED(ignored)) {
   char *line = strtok_r(buf, "\n", &line_saveptr);
 
   while (line != NULL) {
-    int field_count = 0;
-    char *temp_line = strdup(line);
-    char *f_save;
-    char *f = strtok_r(temp_line, "\t", &f_save);
-    while (f) {
-      field_count++;
-      f = strtok_r(NULL, "\t", &f_save);
-    }
-    free(temp_line);
-
-    PyObject *inner_tuple = PyTuple_New(field_count);
     char *field_saveptr;
-    char *field = strtok_r(line, "\t", &field_saveptr);
-    for (int i = 0; i < field_count; i++) {
-      PyObject *item = PyUnicode_FromString(field);
-      PyTuple_SetItem(inner_tuple, i, item);
-      field = strtok_r(NULL, "\t", &field_saveptr);
-    }
+    char *str_val = strtok_r(line, "\t", &field_saveptr);
+    char *long_val_str = strtok_r(NULL, "\t", &field_saveptr);
 
-    PyList_Append(py_list, inner_tuple);
-    Py_DECREF(inner_tuple);
+    if (str_val && long_val_str) {
+      // Create tuple: (string, long)
+      PyObject *item_str = PyUnicode_FromString(str_val);
+      PyObject *item_long = PyLong_FromLong(atol(long_val_str));
+
+      PyObject *inner_tuple = PyTuple_Pack(2, item_str, item_long);
+
+      PyList_Append(py_list, inner_tuple);
+
+      Py_DECREF(item_str);
+      Py_DECREF(item_long);
+      Py_DECREF(inner_tuple);
+    }
 
     line = strtok_r(NULL, "\n", &line_saveptr);
   }

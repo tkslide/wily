@@ -1,0 +1,52 @@
+note
+
+This document is pretty scrappy, and will likely remain so for some time.
+You're best bet is to use the documentation in the source files themselves.
+
+Hacking Wily
+
+Main data structures
+
+Text
+
+The text buffer data structure. All file and text manipulation happens through
+a text buffer. Every text buffer has a pointer to a list of Views which look
+after the screen. Texts belonging to a window have a pointer to the
+corresponding Data, with t->isbody indicating whether the text is for the tag
+or body.
+
+The text also maintains a small cache used in searching through the buffer.
+
+Files which #include "text.h":
+
+text.c
+    This (discounting text.h) is the only file that knows how a text buffer is
+    organised in memory (a simple buffer gap, but keep that to yourself :-). It
+    contains the basic routines to read and write a text buffer to/from memory
+    or a file.
+    undo.c
+        Responsible for maintaining the undo log.
+        sam.h, sambuf.c
+            Wrappers to make a Text behave like a Sam file, so we can use the
+            Sam regexp code. They provide a small buffer and some macros for
+            quickly traversing the Runes of the buffer.
+            click.c
+                Code to expand double-clicks etc. Uses the interface provided
+                by sambuf.c
+                search.c
+                    Various routines to search through a Text
+                    text2.c
+                    Mostly convenience wrappers around the functionality of
+                    text.c, plus routines for formatting directories.
+
+                    Data
+
+                    View
+
+                    Tile
+
+                    Main needs
+
+                    Flicker-free scrolling, Tile heuristics, Sam commands
+                    -----------------------------------------------------------
+                    gary@cs.su.oz.au

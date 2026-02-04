@@ -1,0 +1,325 @@
+Wily C Programmers Manual
+
+Introduction
+
+Although a lot can be done with simple scripts and Wily, some applications will
+need finer control. Wily can act as a "user interface server". Clients can
+create and manipulate windows, and/or monitor events which happen in windows,
+by sending and receiving messages.
+
+There are two "levels" to the interface: an "RPC" level, where the library
+looks after low-level details of queueing, packing and unpacking messages, and
+a lower-level interface dealing more directly with message packets.
+
+Warning this API hasn't been used very much. There could well be bugs lurking
+in unused sections of code, and the API could well change.
+
+Establishing a Connection
+
+Call client_connect(), which returns a file descriptor open for reading and
+writing to Wily, or a negative number if there's been some error.
+client_connect() uses $WILYFIFO if it is set.
+
+RPC-style Interface
+
+Opening, Closing and Checking the RPC interface
+
+Handle* rpc_init (int fd);
+
+Create a new RPC handle to use file descriptor fd, which was probably returned
+from client_connect
+
+rpc_init cannot fail.
+
+bool rpc_isconnected(Handle*h);
+
+Return whether or not h is still connected. If the RPC library starts receiving
+gibberish messages, it will cut the connection.
+
+void rpc_freehandle(Handle*h);
+
+Release any resources used by h, and free h itself.
+
+Requests
+
+If there's any sort of failure, all of these functions return a pointer to an
+error message, which is stored in a static buffer and only guaranteed to remain
+valid until the next rpc_* function is called. After a failure, it's possible
+that the connection to wily has been lost. This should be checked using
+rpc_isconnected
+
+If successful, these functions return (char*)0.
+
+List existing windows
+char* rpc_list (Handle*, char **bufptr);
+
+If successful, allocates a string, and stores a pointer to it in bufptr. It is
+the programmer's responsibility to free(*bufptr). The string contains one line
+for each window currently open in Wily. Each line contains the name of the
+window, some whitespace, and a unique number which identifies the window. The
+window identifiers are not reused within an invocation of Wily.
+
+Below is some example output from rpc_list:
+
+/n/staff/u13/pgrad/gary/src/wily/Doc/C.html     45
+/n/staff/u13/pgrad/gary/src/wily/Doc/index.html 41
+/n/staff/u13/pgrad/gary/src/wily/Doc/   40
+/n/staff/u13/pgrad/gary/guide   0
+
+Open or create a window
+char* rpc_new (Handle*, char *s, Id*id, ushort backup);
+
+Create or open window with name s. If Wily already has a window named 's', it
+uses that window, otherwise it creates a new window.
+
+The identifier for the opened/created window will be stored in id.
+
+If this request creates (not just opens) the window, Wily will make sure
+backups are kept for the window (and indicate when the window is dirty) if and
+only if backup is set.
+
+Request events from a window
+char* rpc_attach (Handle*, Id w, ushort mask);
+
+Asks Wily to send us events which happen in window w and match event bitmask
+mask.
+
+Each window can be sending events to at most one remote process. The window
+sends only events which match its event bitmask. An event bitmask is formed by
+ORing some combination of (WEexec, WEgoto, WEdestroy, WEreplace) (explained
+further below).
+
+rpc_attach will fail if w doesn't exist, or is already sending its events
+somewhere else.
+
+To stop receiving events from a window, use an rpc_attach with a mask of 0.
+
+Change a window's name
+char* rpc_setname (Handle*, Id w, char *s);
+
+Set the name of window w to s.
+
+Change a window's "tools"
+char* rpc_settools (Handle*, Id w, char *s);
+
+Set the tools section of w to s
+
+Read data from a window
+char* rpc_read (Handle*, Id w, Range r, char*buf);
+
+Read range r from w into buf, which must have enough space (UTFmax * RLEN(r)).
+
+The range r means the Rune offsets in w >= r.p0 and < r.p1. Don't forget that
+each Rune will be potentially encoded in UTFmax bytes.
+
+rpc_read fails if r is not fully contained in window w. rpc_goto may be useful
+to obtain legal ranges.
+
+Insert, delete or replace text
+char* rpc_replace (Handle*, Id w, Range r, char*s);
+
+Replace range r in w with UTF string s
+
+Note that insertion and deletion are special cases of replacement.
+
+Ask Wily to execute a command
+char* rpc_exec (Handle*, Id w , char *s);
+
+Cause Wily to act as though s were selected in w with button 2.
+
+Note that builtin functions (e.g. Del) can also be executed with rpc_exec.
+
+Ask Wily to "goto" a file or location
+char* rpc_goto (Handle*, Id *w , Range* r, char*s, ushort flag);
+
+Cause Wily to act as though s were selected in w with button 3.
+
+If this makes Wily do a search within '*w', the start position for the search
+is usually taken from '*r'. The search can instead start from the current
+selection of the file if r->p0 > r->p1. If there are multiple views of the same
+file, one is chosen arbitrarily.
+
+If the search is successful, '*w' and '*r' are set to the window and range
+found by the search. The range found will be selected and highlighted if and
+only if 'flag' is set.
+
+Hint: rpc_goto can be used to find useful ranges for rpc_read and rpc_replace.
+Don't forget that the search string can be any address that Wily understands,
+e.g. :4 or :, or :.,
+
+Events
+
+int rpc_event (Handle*h, Msg *m);
+
+Block until an event is received by h and fill in m. Returns 0 for success, -1
+for failure. After a successful call to rpc_event, you will need to free(m->s).
+
+char *rpc_bounce(Handle *h, Msg *m)
+
+Returns m to Wily. Useful for events which we receive but we'd rather Wily took
+the default action on.
+
+bool rpc_event_iswaiting(Handle*h);
+
+Returns true if rpc_event could be called without needing to block. Only useful
+if your program is reading from other input sources as well. (e.g. see win.c)
+
+Message-Passing Interface
+
+struct Msg {
+        Mtype   t;      /* message type */
+        Id      m;      /* message */
+        Id      w;      /* window */
+        Range   r;
+        uchar   flag;
+        char    *s;
+};
+
+All the fields except the message type are optional. The string s is always
+null-terminated, is in UTF format, must be a complete UTF sequence, and is of
+zero length if not being used.
+
+These are the message types declared in msg.h, with brief descriptions, and
+important parameters:
+
+Request/Reply/Error
+
+WRerror(s)
+
+Message type returned by wily if there's an error with some request. s contains
+an error message. On the other hand, if the request completes successfully wily
+returns a message with message type one greater than the message type of the
+request.
+
+WMlist
+
+Asks wily to send a list of windows currently displayed.
+
+WRlist(s)
+
+Wily's reply to WMlist. Includes a string containing one line per active
+window. Each line contains a name and an id (as a textual number) separated by
+whitespace.
+
+WMnew(s,flag)
+
+Asks wily to create a window with a given label (which may be an existing
+file). If and only if flag is set, backups will be kept for the new window.
+
+WRnew(w)
+
+The id of the newly created window.
+
+WMattach(w,flag)
+
+Asks wily to send to the client events associated with this window, and
+matching the event mask set in flag
+
+WRattach()
+
+WMdetach(w)
+
+Asks wily to stop sending to the client events associated with this window.
+
+WRdetach()
+
+WMsetname(w,s)
+
+Change the name of this window.
+
+WRsetname()
+
+WMsettools(w,s)
+
+Change the tools for this window. Tools are simply words appearing in the tag
+of a window, after the window name and before the 'pipe' symbol. They are (will
+be) automatically maintained, i.e. they will be replaced if accidentally
+deleted.
+
+WRsettools()
+
+WMread(w,r)
+
+Read the text from w in range r.
+
+WRread(s)
+
+The requested text, as a UTF string.
+
+WMreplace(w,r,s)
+
+Replace the text from w in range r with UTF string s
+
+WRreplace()
+
+WMexec(w,s)
+
+Act as if s had been clicked with b2 in w
+
+WRexec()
+
+WMgoto(w,r,flag,s)
+
+Act as if s had been clicked with B3 in w at r. If flag is set then "dot" is
+set by wily, otherwise we return the window and range that would have been
+jumped to, but don't actually change "dot".
+
+WRgoto(w,r)
+
+The window and range we went to.
+
+WMfencepost()
+
+Not used for any message. Messages with Mtype less than WMfencepost are to do
+with our requests. Messages with Mtype greater than WMfencepost are events.
+
+Events
+
+These are the messages sent by Wily to clients who request to be notified of
+events in a particular window using WMattach
+
+The event types are used to form a mask to be given as a parameter to the
+WMattach request. For example, to request only exec and goto events, set m.f =
+WEexec|WEgoto before sending message m
+
+WEexec(w,s)
+
+s was selected with the middle (execute) button somewhere in w
+
+WEgoto(w,r,s)
+
+s was selected with the right (goto) button at r in w
+
+WEdestroy(w)
+
+w has been destroyed.
+
+WEreplace(w,r,s)
+
+The text at r in w was replaced by s.
+
+Packing and Unpacking Messages
+
+int msg_size (Msg *m);
+
+Returns the size of buffer that will be needed to "flatten" m
+
+void msg_flatten (Msg*m, char*buf);
+
+"Flatten" m into buf, which must have enough storage space allocated.
+
+ulong msg_bufsize (char*buf);
+
+Returns the total size of the flattened message starting at buf. Assumes that
+at least HSIZE bytes are stored in buf. A useful macro is #define FULLMSG
+(ptr,n) ( (n) >= HSIZE && (n) >= msg_bufsize(ptr) )
+
+int msg_init (Msg*m, char*buf);
+
+The reverse of msg_flatten. Fills in the fields of 'm' using the flat
+representation starting at buf Msg_init assumes that buf holds the complete
+message. m->s will point to an area within buf, but buf itself is not modified.
+
+void msg_print (Msg *m);
+
+Print a human-readable form of m to stderr

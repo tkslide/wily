@@ -1,0 +1,52 @@
+Acme Vs. Wily
+
+The following is a side-by-side comparison of Acme under Plan 9 vs. Wily under
+Unix. See http://www.cs.su.oz.au/~gary/wily/ for more docs.
+
+Wily extensions and differences include:
+
+  * sam-like command redirections: <, >, | - operate on the current selection
+  * you can export rc functions and variables to wily
+  * no confirmations - automatic backup of dirty files
+  * no warnings when using New to create a new file
+  * black (dirty) resize box is more visible in wily
+  * long-running processes can open a socket to wily
+  * HISTORY mechanism
+  * Indent, Dotfiles, Clear and Anchor builtins
+  * Exit in acme is called Quit in wily
+  * Zerox in acme is called Split in wily
+  * acme executes a B2B1 command in the context of the command whereas wily
+    does it in the context of the argument
+  * acme selects B2 output
+  * window tags scroll horizontally
+  * contracting labels using environment variables. For example, if a window
+    represents /u13/pgrad/gary/src/, on the screen it will show up as $h/src/
+    if you set h=/usr/pgrad/gary
+  * if you hit Return immediately after selecting some tag text with the Escape
+    key, it acts as if you'd clicked it with button 2, so typing 'echo fish',
+    Escape, Return executes that command.
+  * each line in $WILYTOOLS or $HOME/.wilytools can contain either a comment
+    (starts with whitespace or '#') or a regexp, then a tab, then some tools
+    (i.e. some text) which will be appended into the tag of any window whose
+    label matches the regexp. The first regexp match wins.
+  * editing the label of a window does "the right thing" if you then B2 on Get
+  * you can set the wily file, directory, column and main tags, via $WFILETAG,
+    $WDIRTAG, $WCOLTAG and $WMAINTAG
+
+Wily does not have the following Acme capabilities:
+
+  * the Font builtin should be able to take an argument - this can be fixed
+  * Dump/Load not implemented yet (could be done by an external program)
+  * acme makes the right column skinnier - good for guide files
+  * there is no equivalent to /mnt/acme
+  * ID, Incl, Local, Send, Sort not implemented
+
+A striking similarity :-)
+
+  * the View will scroll (with lots of ugly flicker) while selecting, to allow
+    you to select an area larger than the View.
+
+-------------------------------------------------------------------------------
+Thanks to <Gerry.Tomlinson@newcastle.ac.uk> and <gary@cs.su.oz.au> for their
+comments.
+Steve Kotsopoulos <steve@border.com> - Nov 11, 1996

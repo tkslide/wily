@@ -34,7 +34,8 @@ nuke:
 	for i in $(SUBDIRS); do \
 		(cd $$i; $(MAKE) $(MFLAGS) $@); \
 	done
-	-rm -f wily.* \
+	-rm -rf wily.* \
+		autom4te.cache/ \
 		config.cache config.h config.log config.status config.h.in configure \
 		Makefile libXg/Makefile libmsg/Makefile libframe/Makefile \
 		wily/wily win/win win/wgoto win/wreplace

@@ -1,0 +1,20 @@
+#! /usr/bin/env python3
+
+import wily
+from os import chmod
+
+c = wily.Connection()
+
+
+l = c.list()
+
+with open("Restore", "w") as f:
+    f.write("#! /usr/bin/env python3\n")
+    f.write("# Automatically generated with Save\n# Do not edit\n\n")
+    f.write("import wily\n")
+    f.write("c = wily.Connection()\n\n")
+    for win in sorted(l, key=lambda tup: tup[-1]):
+            print(win)
+            f.write(f'w = c.win("{win[0]}", 1)\n')
+            f.write(f'c.goto(w, 1,1, "{win[0]}:,", 0)\n')
+chmod("Restore", 0o755)

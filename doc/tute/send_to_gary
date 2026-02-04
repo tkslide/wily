@@ -1,3 +1,0 @@
-#!/bin/sh
-cat | mail gary@cs.su.oz.au
-echo message has been mailed to gary

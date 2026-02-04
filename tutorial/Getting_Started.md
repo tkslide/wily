@@ -1,5 +1,7 @@
+# WILY
+## Quick User Guide
 
-	START HERE
+### Start Here
 
 Hello, welcome to wily.  Once you've finished this
 tutorial you will know nearly all of wily's features, and
@@ -7,16 +9,16 @@ hopefully be addicted.  Wily is quite different from
 any editor you're already familiar with, but it isn't
 difficult to learn the wily way.
 
-TERMINOLOGY
+### Terminology
 B1, B2, B3 mean left, middle and right mouse buttons.
 Each window is divided into a _tag_ (the single line of text
 which has the filename in it and is at the top of the window)
 and a _body_ (the big area below the tag where all the "meat"
 of the file is).
 
-SCROLLING UP AND DOWN
+### Scrolling Up and Down
 
-	The Scroll-bar
+#### The Scroll-bar
 
 The scrollbar is the vertical bar to the left.  Clicking in it with
 different mouse buttons scrolls the text window.
@@ -40,7 +42,9 @@ how big our visible region is in relation to the whole file.
 If you hold a mouse button down in
 the scroll bar, the window will keep scrolling.
 
-	Movement keys
+Use scroll wheel of your mouse to "page through".
+
+#### Movement keys
 
 The PageUp and PageDown keys move the text window up or
 down by 1/2 a window.  The Home and End keys move
@@ -50,7 +54,9 @@ or line.
 
 Try these out now.
 
-B3 MEANS "GOTO"
+### Mouse
+
+#### B3 Means "goto"
 
 B3 (the rightmost mouse button) is also known as the "goto" button.
 Selecting some
@@ -67,6 +73,7 @@ Try clicking with the rightmost mouse button in some of
 these examples:  (NB wily will warp the cursor to the place
 you "goto"--nine times out of ten this is what you want)
 
+```
 hello.c
 hello.c:3
 hello.c:/^main
@@ -75,6 +82,7 @@ FNORD
 Gnu
 FNORD
 $HOME
+```
 
 As you can see, you can "goto" a file, a directory, a
 specific line of a file, a regular expression
@@ -83,7 +91,7 @@ of these, or the next occurrence of a piece of text.  You
 can use the "goto" mouse button on _any_ piece of text
 _anywhere_ in wily.
 
-B2 MEANS "exec"
+#### B2 Means "exec"
 
 This is also known as the "exec" button.  Selecting some
 text (or clicking in some text) with the middle mouse
@@ -94,13 +102,15 @@ another wily window (which will be created if necessary).
 Try clicking with the middle mouse button in some of these
 examples:
 
+```
 who
 pwd
 id
 date
 ./script
+```
 
-	Builtin Functions
+#### Builtin Functions
 
 Wily provides some builtin functions which it searches for
 first when asked to "exec" some text.  By convention, these
@@ -113,7 +123,7 @@ To delete a window, click with the "exec" (middle) mouse
 button (but not right now) on the word "Del" somewhere in
 that window.
 
-B1 MEANS "select"
+#### B1 Means "select"
 
 This is also known as the "select" button.  This button is
 used to select text, to be acted on later.  Selected text is
@@ -132,7 +142,9 @@ then click with the "exec" (middle) mouse button in the
 selection (reversed text) to execute the command.  Here is
 the command:
 
-"grep -n main *"
+```
+grep -n main *
+```
 
 Now modify the command above by double-clicking on "main"
 to select it, typing "select", double-clicking just inside
@@ -140,7 +152,7 @@ the quote marks to select the whole command again, then
 clicking inside the selection with the "exec" (middle)
 button.
 
-BUILTIN FUNCTIONS
+### Using Builtin Functions
 
 These are pieces of text that wily recognises and treats
 specially.  By convention, they all start with capital
@@ -149,50 +161,55 @@ letters.  When you deleted windows before by B2ing
 that builtin function.
 
 They are often placed somewhere on the screen by
-Wily, but their positions aren't magical:  you could B2 
+Wily, but their positions aren't magical:  you could B2
 the word  'Quit' _anywhere_ on the screen, to quit wily.
 
 The builtin functions are:
 
-Undo and Redo
-	Wily keeps an infinite undo history.  Make a lot of changes to
-	this file (type stuff and delete stuff), and then B2 on Undo
-	repeatedly until the black square disappears from the little
-	box in the top left of this window.  The black square indicates
-	that what you see on the screen is _not_ the same as what is on
-	disk.
+#### Undo and Redo
 
-Put and Get
-	Use these to write a file to disk, or fetch the old version
-	from disk, respectively.  If the file cannot be written, a
-	diagnostic message will tell you about it.  Putall writes all
-	dirty files to disk.
+Wily keeps an infinite undo history.  Make a lot of changes to
+this file (type stuff and delete stuff), and then B2 on Undo
+repeatedly until the black square disappears from the little
+box in the top left of this window.  The black square indicates
+that what you see on the screen is _not_ the same as what is on
+disk.
 
-Newcol and Delcol
-	Used to create and delete columns.
+#### Put and Get
 
-Cut Paste Snarf
-	All of these act on the most recent selection.
+Use these to write a file to disk, or fetch the old version
+from disk, respectively.  If the file cannot be written, a
+diagnostic message will tell you about it.  Putall writes all
+dirty files to disk.
 
-Del
-	Delete a window.  If the window represents a file
-	with some changes that haven't been written to
-	disk, a backup copy will be made, and a diagnostic
-	message printed.
+#### Newcol and Delcol
 
-Quit
-	Exits wily.  Also backs up any modified files before
-	quitting.
+Used to create and delete columns.
 
-New
-	Create a new file.
+#### Cut Paste Snarf
 
-Kill
-	Kill a process which was started by wily.  Must be
-	called with the name of the process (as seen at the top
-	left of the wily tag) as an argument.
+All of these act on the most recent selection.
 
-USING UNIX TOOLS
+#### Del
+
+Delete (close) a window.  If the window represents a file
+with some changes that haven't been written to
+disk, a backup copy will be made, and a diagnostic
+message printed.
+
+#### Quit
+Exits wily.  Also backs up any modified files before
+quitting.
+
+#### New
+Create a new file.
+
+#### Kill
+Kill a process which was started by wily.  Must be
+called with the name of the process (as seen at the top
+left of the wily tag) as an argument.
+
+### Using Unix Tools
 
 As well as treating builtin functions specially, the "exec"
 mouse button also treats specially text which starts with
@@ -202,15 +219,19 @@ If the command you select with B2 starts with one of these, the command
 is run using the most recent selection as its input or output or both.
 For example, select the entire list below with the left button:
 
+```
 banana
 apple
 pear
 carrot
+```
 
 then click with the middle (exec) button in the command
 below:
 
+```
 |sort
+```
 
 You can use Undo to undo the change and do it again if you
 like.
@@ -223,20 +244,24 @@ All mimsy were the borogroves
 
 and "exec" this command:
 
+```
 >spell
+```
 
 Finally, select (with B1) _and_ exec (with B2) this text:
 
+```
 <date
+```
 
-MOUSE BUTTON COMBINATIONS
+### Mouse Button Combinations
 
 This is cool (in my opinion).
 
 A few common functions can be done using combinations of
 mouse buttons.
 
-		Cut/Paste
+#### Cut/Paste
 
 Try this:  select some text using B1, but keep holding the button down,
 and while still holding down B1, click with B2.  The text will be
@@ -248,10 +273,10 @@ original position.  You can then move to the place where you want to
 copy the text, and "Paste" the new copy.  (Again, using B1B3).
 
 Once you're used to it, this is a very comfortable and
-quick way to move text around.  (You could think of it as a 
+quick way to move text around.  (You could think of it as a
 two-step drag-and-drop).
 
-		Execute with argument
+#### Execute with argument
 
 The other mouse-combination short-cut is a way of giving
 an argument to a command.  If while holding down the middle
@@ -264,12 +289,14 @@ on the screen, then click in the command with the middle
 button, and _while holding it down_ click with the left mouse
 button.  Try it with these commands:
 
+```
 echo
 ./findword
+```
 
 (You can B3 on "findword" to have a look at it.)
 
-MOVING WINDOWS AROUND
+### Moving Windows Around
 
 Windows and columns can be dragged around using the "resize
 box" (the small square at the top left of each window),
@@ -283,22 +310,15 @@ just their tags are showing, and clicking with the right
 mouse button in a window's resize box makes it take up its
 entire column.
 
-FURTHER INFORMATION
+### Further Information
 
 Congratulations!  You've finished the wily tutorial.
 
-Please edit the text below inside the []s, doubleclick
-inside the square brackets to select it all, and click with
-the middle button on >./send_to_gary
-
-[  I finished the wily tutorial.
-I thought it was too fast/too slow/just right.
-I will definitely/maybe/never use wily again.
-I think the interface is interesting/horrid/cool.
-And furthermore ...]
-
 For more information, B2 the line below:
 
-netscape http://www.cs.su.oz.au/~gary/wily
+```
+xdg-open doc/FAQ.html
+```
 
 To finish up, click in the word Quit with B2.
+

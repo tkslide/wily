@@ -103,7 +103,6 @@ Try clicking with the middle mouse button in some of these
 examples:
 
 ```
-who
 pwd
 id
 date
@@ -284,7 +283,7 @@ button in some command to be executed, the left button is
 pressed, then the most recent previous selection will be used
 as an argument to that command.
 
-Try it with the commands below--select some text somewhere
+Try it with the commands below--select some word somewhere
 on the screen, then click in the command with the middle
 button, and _while holding it down_ click with the left mouse
 button.  Try it with these commands:
@@ -314,10 +313,14 @@ entire column.
 
 Congratulations!  You've finished the wily tutorial.
 
-For more information, B2 the line below:
+For more information, B2 the lines below:
 
 ```
-xdg-open doc/FAQ.html
+xdg-open ../doc/idioms.html
+
+xdg-open ../doc/onepage.html
+
+xdg-open ../doc/user.html 
 ```
 
 To finish up, click in the word Quit with B2.

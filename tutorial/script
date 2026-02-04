@@ -9,4 +9,4 @@ echo file "start".
 echo Click with the "goto" button in any of the bits of text like
 echo start:42 to go to one of the lines where the word "mouse" is used.
 echo
-grep -n mouse start /dev/null
+grep -n mouse Getting_Started.md /dev/null

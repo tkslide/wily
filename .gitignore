@@ -16,3 +16,4 @@ config.h.in
 configure
 autom4te.cache/
 tools/win/Tags
+tags

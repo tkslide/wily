@@ -125,30 +125,32 @@ readfile(char*filename)
  * be blank, a comment (starts with '#'), or a pattern
  * toolset pair (separated by tabs)
  */
-void
-tag_init(char *filename)
-{
-	char    *buf, *ptr, *tab;
+void tag_init(char *filename) {
+  char *buf, *ptr, *tab;
+  char *saveptr = NULL;
 
-	if(!(buf=readfile(filename)))
-		return;
+  if (!(buf = readfile(filename))) {
+    return;
+  }
 
-	for(ptr = strtok(buf, "\n"); ptr; ptr = strtok(0, "\n"))
-	{
-		/* comment or blank line */
-		if (ptr[0] == '#' || isspace(ptr[0]))
-			continue;
-		if((tab = strchr(ptr, '\t')))
-		{
-			*tab++ = 0;
-			/* strip leading whitespace */
-			tab += strspn(tab, whitespace);
-			addpair(ptr, tab);
-		}
-		else
-		{
-			addpair(ptr, "");
-		}
-	}
-	/* don't free(buf) - keep the memory in the array of strings */
+  for (ptr = strtok_r(buf, "\n", &saveptr); ptr;
+       ptr = strtok_r(NULL, "\n", &saveptr)) {
+
+    if (ptr[0] == '\0')
+      continue;
+
+    if (ptr[0] == '#' || isspace((unsigned char)ptr[0])) {
+      continue;
+    }
+
+    if ((tab = strchr(ptr, '\t'))) {
+      *tab++ = '\0';
+
+      tab += strspn(tab, whitespace);
+
+      addpair(ptr, tab);
+    } else {
+      addpair(ptr, "");
+    }
+  }
 }

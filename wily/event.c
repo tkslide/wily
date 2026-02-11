@@ -25,7 +25,7 @@ struct Key
 	int     fd;					 /* file descriptor*/
 	ulong   key;				 /* libXg event key */
 
-	/*
+	/* 
 	 * Buffer for incomplete messages.
 	 * Only in use if k->t == Kmsg.
 	 */
@@ -149,7 +149,7 @@ event_wellknown(int fd)
 }
 
 
-/*
+/* 
  * Handle 'n' bytes of data in 's' which arrived from
  * libXg event key 'key'.
  */
@@ -191,9 +191,8 @@ kill_all(char*s)
 {
 	Key *k = 0;
 	const char *sep = " \t\n";
-        char *saveptr = NULL;
 
-	for (s = strtok_r(s, sep, &saveptr); s; s = strtok_r(NULL, sep, &saveptr))
+	for (s = strtok(s, sep); s; s = strtok(NULL, sep))
 	{
 		if ((k = key_findcmd(s)))
 		{

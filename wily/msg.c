@@ -37,7 +37,7 @@ mbuf_clear(Mbuf*m)
 }
 
 
-/*
+/* 
  * Handle the message contained in 'buf' (which might have
  * part of an old message) and 's', which contains 'n' new bytes.
  * Send any replies back along 'fd'.
@@ -80,7 +80,7 @@ partialmsg(Mbuf *m, int fd, int n, char*s)
 }
 
 
-/*
+/* 
  * Stop any data from sending events to 'fd',
  * which is probably closed.
  */

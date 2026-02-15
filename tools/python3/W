@@ -5,6 +5,7 @@
 #
 
 from sys import argv
+from os.path import isfile
 import wily
 
 filename = argv[-1]
@@ -12,11 +13,13 @@ filename = argv[-1]
 c = wily.Connection()
 w = c.win(f"{filename}",1)
 
-with open(filename, "r") as f:
-        txt = f.read()
-        len = c.length(w)
-        c.replace(w,0,len,txt)
-        w2,f,t = c.goto(w, 0,-1, f'{filename} :,', 0)
+if isfile(filename):
+    with open(filename, "r") as f:
+            txt = f.read()
+            len = c.length(w)
+            c.replace(w,0,len,txt)
+
+w2,f,t = c.goto(w, 0,-1, f'{filename} :,', 0)
 c.attach(w2, wily.EXEC | wily.DESTROY)
 
 while True:

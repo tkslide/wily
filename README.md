@@ -17,6 +17,10 @@ See [Original README](README.orig) for copyright, permissions etc.
 
 
 ## Changes
+- Some ideas/code "borrowed" from edeemer/wily repository
+  - tabsize from Xresources
+  - wheel scrolling improvement
+  - selections in UTF
 - `W` - use (the running instance of) Wily as $EDITOR. The script waits until the window is closed ("runs in foreground"), so it can be used with `git commit` and mail agents.
 - `Save`/`Restore` - save and restore the session (documents and selections). A function similar to Acme's `Dump` and `Load` (actually I might rename them to match the original...)
 - Compilable with C23 gcc

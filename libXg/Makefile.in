@@ -12,4 +12,7 @@ OBJS=arc.o arith.o balloc.o bitblt.o bitbltclip.o border.o bscreenrect.o\
 	rdfontfile.o rectclip.o rune.o segment.o string.o strwidth.o texture.o\
 	wrbitmap.o wrbitmapfile.o xtbinit.o
 include $(INCLUDES)/Makelib
+
+gwin.o: keysymtab.h
+
 $(OBJS):	$(INCLUDES)/u.h $(INCLUDES)/libc.h $(INCLUDES)/libg.h

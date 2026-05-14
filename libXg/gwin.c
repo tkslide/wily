@@ -536,7 +536,7 @@ XtPointer val, unsigned long *len, int *fmt)
 
 	if(gw->gwin.selection)
 		XtFree(gw->gwin.selection);
-	if(*seltype != XA_STRING)
+        if(*seltype != XInternAtom(XtDisplay(w), "UTF8_STRING", 0))
 		n = 0;
 	else
 		n = (*len) * (*fmt/8);
@@ -563,7 +563,7 @@ unsigned long *anslen, int *ansfmt)
 		s = gw->gwin.selection;
 		if(!s)
 			s = "";
-		*rtype = XA_STRING;
+                *rtype = XInternAtom(XtDisplay(w), "UTF8_STRING", 0);
 		*ans = (XtPointer) XtNewString(s);
 		*anslen = strlen(*ans);
 		*ansfmt = 8;
@@ -606,7 +606,9 @@ SelectSwap(Widget w, String s)
 		XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
 			CurrentTime);
 		#else
-		XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
+                XtGetSelectionValue(w, XInternAtom(XtDisplay(w), "PRIMARY", 0),
+                XInternAtom(XtDisplay(w), "UTF8_STRING", 0),
+                        SelCallback, 0,
 			XtLastTimestampProcessed(XtDisplay(w)));
 		#endif
 		while(gw->gwin.selection == 0)

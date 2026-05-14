@@ -90,8 +90,6 @@ args(int argc,char **argv, char **envp)
 	int c;
 	char *cmd = 0;
 
-	tabsize = 4;				 /* default */
-
 	/* init libXg */
 	xtbinit((Errfunc)error, "Wily", &argc, argv, 0);
 	tagheight = font->height + 2*INSET;
@@ -114,6 +112,8 @@ args(int argc,char **argv, char **envp)
 				break;
 		}
 	}
+        if (tabsize <= 0)
+                tabsize = 4;
 	scroll_init();
 	einit(Ekeyboard | Emouse);
 	cursorswitch(cursor);

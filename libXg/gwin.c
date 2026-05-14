@@ -71,7 +71,10 @@ static XtResource resources[] =
 	},
 	{
 		XtNcomposeMod, XtCComposeMod, XtRInt, sizeof(int),
-		Offset(compose), XtRImmediate, (XtPointer) 0
+                Offset(compose), XtRImmediate, (XtPointer) 0},
+        {
+                XtNtabsize, XtCTabsize, XtRInt, sizeof(int),
+                Offset(tabsize), XtRImmediate, (XtPointer) 4
 	}
 };
 

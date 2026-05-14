@@ -29,7 +29,12 @@ domouse(View    *v, Mouse *m)
 	else
 	{
 		ulong   oldbuttons = m->buttons;
-		Range   r = vselect(v, m);
+		Range	r;
+
+		if(!(oldbuttons & SCROLLUP || oldbuttons & SCROLLDOWN))
+			r = vselect(v, m);
+		else
+			r.p0 = r.p1 = 0;
 
 		action(v, m, r, oldbuttons);
 	}
@@ -138,63 +143,50 @@ b2(View *v, Range r, bool ischord)
  * should be down.
  */
 static void
-action(View *v, Mouse *m, Range r, ulong oldbuttons)
-{
+action(View *v, Mouse *m, Range r, ulong oldbuttons) {
 	/* mouse button state has changed, possibly do something */
 	assert(m->buttons != oldbuttons);
 
-	if (oldbuttons&LEFT)
-	{
-		enum
-		{
-			Cancut = 1, Canpaste = 2
-		} state = Cancut | Canpaste;
+	if (oldbuttons&LEFT) {
+		enum {Cancut = 1, Canpaste = 2} state = Cancut | Canpaste;
 
-		while(m->buttons)
-		{
-			if(m->buttons&MIDDLE)
-			{
-				if (state&Cancut)
-				{
+		while(m->buttons) {
+			if(m->buttons&MIDDLE) {
+				if (state&Cancut) {
 					view_cut(v, v->sel);
 					state = Canpaste;
 				}
-			}
-			else if ( m->buttons&RIGHT)
-			{
-				if (state&Canpaste)
-				{
+			} else if ( m->buttons&RIGHT) {
+				if (state&Canpaste) {
 					view_paste(v);
 					state = Cancut;
 				}
 			}
 			*m = emouse();
 		}
-	}
-	else if (oldbuttons & MIDDLE)
-	{
-		if(m->buttons)
-		{
-			if(m->buttons&LEFT)	 /* chord */
+	} else if (oldbuttons & MIDDLE) {
+		if(m->buttons) {
+			if(m->buttons&LEFT)	/* chord */
 				b2(v,r,true);
-			while (m->buttons)	 /* wait for button up */
+			while (m->buttons)	/* wait for button up */
 				*m = emouse();
-		}
-		else
-		{
+		} else {
 			b2(v,r,false);
 		}
-	}
-	else
-	{
-		assert((oldbuttons&RIGHT));
-		if(m->buttons)			 /* cancelled a b3 */
+	} else if (oldbuttons & RIGHT) {
+		if(m->buttons)	/* cancelled a b3 */
 			while (m->buttons)
 				*m = emouse();
 		else
 			b3(v, r);
+	} else if (oldbuttons & SCROLLUP) {
+		view_linesdown(v, 2, false);
+	} else {
+		assert((oldbuttons&SCROLLDOWN));
+		view_linesdown(v, 2, true);
 	}
 }
+
 
 
 /* PRE:  'e' a mouse event in 'v', but not in v's frame, so probably in

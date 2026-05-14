@@ -20,6 +20,7 @@ typedef struct
 	String        p9font;
 	String        p9fixed;
 	int           compose;
+        int           tabsize;
 } GwinPart;
 
 /* Full instance record */

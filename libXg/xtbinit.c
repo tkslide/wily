@@ -38,6 +38,9 @@ static int log_2(int);
 Bitmap  screen;
 Font    *font, *fixed;
 
+/* exported from libframe */
+extern int tabsize;
+
 /* implementation globals */
 Display     *_dpy;
 Widget      _toplevel;
@@ -199,6 +202,8 @@ xtbinit(Errfunc f, char *class, int *pargc, char **argv, char **fallbacks)
 	n++;
 	XtSetArg(args[n], XtNcomposeMod, &compose);
 	n++;
+        XtSetArg(args[n], XtNtabsize, &tabsize);
+        n++;
 	XtGetValues(widg, args, n);
 	XSetIOErrorHandler(ioerr);
 	//XSetErrorHandler(ioerr);

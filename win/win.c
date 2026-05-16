@@ -327,7 +327,7 @@ forkshell(char **argv)
 			}
 			close(slave);
 
-			putenv("TERM=win");
+			(void)setenv("TERM", "win", 1);
 
 			execshell(argv);
 

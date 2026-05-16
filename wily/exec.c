@@ -327,35 +327,9 @@ history(char *cmd)
 static void
 childenv(char *label,char*path)
 {
-	/*
-	Path	buf;
-
-	sprintf(buf, "WILYLABEL=%s", label);
-	(void)putenv(strdup(buf));
-	sprintf(buf, "WILYPATH=%s", path);
-	(void)putenv(strdup(buf));
-	sprintf(buf, "w=%s", path);
-	(void)putenv(strdup(buf));
-	}
-	*/
-
-	char *buf;
-
-	// asprintf allocates memory for buf; putenv takes ownership of this pointer.
-	if (asprintf(&buf, "WILYLABEL=%s", label) != -1)
-	{
-		(void)putenv(buf);
-	}
-
-	if (asprintf(&buf, "WILYPATH=%s", path) != -1)
-	{
-		(void)putenv(buf);
-	}
-
-	if (asprintf(&buf, "w=%s", path) != -1)
-	{
-		(void)putenv(buf);
-	}
+        (void)setenv("WILYLABEL", label, 1);
+        (void)setenv("WILYPATH", path, 1);
+        (void)setenv("w", path, 1);
 }
 
 

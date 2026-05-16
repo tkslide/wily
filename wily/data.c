@@ -87,7 +87,7 @@ data_put(Data *d, char *label)
 		label = d->label;
 	label2path(path, label);
 
-	statfailed = stat(path, &buf);
+	statfailed = -1 == stat(path, &buf);
 
 	if((fd = open(path,O_RDWR|O_CREAT|O_TRUNC, 0666))<0)
 	{
@@ -102,7 +102,7 @@ data_put(Data *d, char *label)
 		return -1;
 	}
 
-	if (!strcmp(d->label,label) || !statcmp(&buf, &d->stat))
+	if (!strcmp(d->label,label) || (!statfailed && !statcmp(&buf, &d->stat)))
 	{
 		if(!d->names)
 		{

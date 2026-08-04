@@ -4,12 +4,14 @@
 
 #include "wily.h"
 #include "view.h"
+#include "text.h"
 
 static void     view_cursor(View *v, Rune r);
 static void     addrune(View*v, Rune r);
 static void     tag_cr(View *v);
 static void     backspace(View*v);
 static void     deleteline(View*v);
+static void     deletetoeol(View*v);
 static void     deleteword(View*v);
 static void     esc(View*v);
 
@@ -40,6 +42,9 @@ dokeyboard(View *v, Rune r)
 		case Backspace:
 			backspace(v);
 			break;
+    case Ctrlk:
+      deletetoeol(v);
+      break;
 		case Ctrlu:
 			deleteline(v);
 			break;
@@ -117,6 +122,25 @@ deleteline(View*v)
 	view_cut(v, del);
 }
 
+/* delete selection and forward to end of line */
+static void
+deletetoeol(View*v)
+{
+	Range del = v->sel;
+  Range match;
+
+  Rstring newline_pattern = utf2rstring("\n");
+
+  match.p0=del.p0;
+  match.p1=del.p0;
+
+  text_findliteral(v->t, &match, newline_pattern);
+  while(match.p1 < del.p1){
+    text_findliteral(v->t, &match, newline_pattern);
+  }
+  del.p1 = match.p1-1;
+	view_cut(v, del);
+}
 
 /* delete back to start of word */
 static void

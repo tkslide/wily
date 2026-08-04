@@ -76,7 +76,7 @@ text_lastline(Text *t)
 }
 
 
-/* 
+/*
  * Find the offset of the first character of the line 'delta' away from 'pos'.
  *'delta' may be positive or negative.
  *
@@ -126,4 +126,18 @@ text_startOfLine(Text *t, ulong p)
 		c=Tbgetc(t);
 	} while ( c != -1 && c != NEWLINE);
 	return (c != -1) ? t->pos+1 : t->pos;
+}
+
+/* Return the position of the last character of the line containing 'p' */
+ulong
+text_endOfLine(Text *t, ulong p)
+{
+	int c;
+
+	Tbgetcset(t,p);
+	do
+	{
+		c=Tgetc(t);
+	} while ( c != -1 && c != NEWLINE);
+	return (c != -1) ? t->pos-1 : t->pos;
 }

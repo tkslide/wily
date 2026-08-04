@@ -10,7 +10,7 @@ static void     view_cursor(View *v, Rune r);
 static void     addrune(View*v, Rune r);
 static void     tag_cr(View *v);
 static void     backspace(View*v);
-static void     deleteline(View*v);
+static void     deletetobol(View*v);
 static void     deletetoeol(View*v);
 static void     deleteword(View*v);
 static void     esc(View*v);
@@ -30,6 +30,8 @@ dokeyboard(View *v, Rune r)
 		case End:
 		case LeftArrow:
 		case RightArrow:
+    case Ctrla:
+    case Ctrle:
 			view_cursor(v, r);
 			break;
 
@@ -42,15 +44,17 @@ dokeyboard(View *v, Rune r)
 		case Backspace:
 			backspace(v);
 			break;
+
     case Ctrlk:
       deletetoeol(v);
       break;
 		case Ctrlu:
-			deleteline(v);
+			deletetobol(v);
 			break;
 		case Ctrlw:
 			deleteword(v);
 			break;
+
 		case Esc:
 			esc(v);
 			break;
@@ -114,7 +118,7 @@ backspace(View*v)
 
 /* delete selection and back to start of line */
 static void
-deleteline(View*v)
+deletetobol(View*v)
 {
 	Range del = v->sel;
 
@@ -122,25 +126,16 @@ deleteline(View*v)
 	view_cut(v, del);
 }
 
-/* delete selection and forward to end of line */
+
 static void
 deletetoeol(View*v)
 {
 	Range del = v->sel;
-  Range match;
 
-  Rstring newline_pattern = utf2rstring("\n");
-
-  match.p0=del.p0;
-  match.p1=del.p0;
-
-  text_findliteral(v->t, &match, newline_pattern);
-  while(match.p1 < del.p1){
-    text_findliteral(v->t, &match, newline_pattern);
-  }
-  del.p1 = match.p1-1;
+	del.p1 = text_endOfLine(v->t, del.p0);
 	view_cut(v, del);
 }
+
 
 /* delete back to start of word */
 static void
@@ -233,6 +228,12 @@ view_cursor(View *v, Rune r)
 		case End:
 			p = text_length(v->t);
 			break;
+    case Ctrla:
+      p = text_startOfLine(v->t, p);
+      break;
+    case Ctrle:
+      p = text_endOfLine(v->t, p);
+      break;
 	}
 	view_select(v, range(p,p));
 	view_show(v, v->sel);

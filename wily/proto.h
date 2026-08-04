@@ -71,6 +71,7 @@ bool        text_findline       (Text *, Range *, ulong);
 Range   text_lastline       (Text *);
 ulong   text_nl         (Text *, ulong, int);
 ulong   text_startOfLine    (Text *, ulong);
+ulong   text_endOfLine    (Text *, ulong);
 
 /* mouse.c */
 void        domouse         (View*, Mouse*);

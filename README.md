@@ -17,6 +17,10 @@ See [Original README](README.orig) for copyright, permissions etc.
 
 
 ## Changes
+- Editing shortcuts added
+  - Ctrl-K - delete to EOL
+  - Ctrl-A - move cursor to BOL
+  - Ctrk-E - move cursor to EOL
 - Some ideas/code "borrowed" from edeemer/wily repository
   - tabsize from Xresources
   - wheel scrolling improvement

@@ -41,9 +41,10 @@ enum
 	Home =      0x86    ,
 	End =       0x87,
 	NEWLINE =   '\n',
-	Ctrlh =         010,
-	Ctrlu =         025,
-	Ctrlw =         027,
+	Ctrlh =     010,
+	Ctrlu =     025,
+	Ctrlw =     027,
+  Ctrlk =     013,
 	Esc =       27,
 
 	/* time delays (ms) */

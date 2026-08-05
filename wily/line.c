@@ -141,3 +141,31 @@ text_endOfLine(Text *t, ulong p)
 	} while ( c != -1 && c != NEWLINE);
 	return (c != -1) ? t->pos-1 : t->pos;
 }
+
+/* Return the position of the previous space character */
+ulong
+text_prevSpace(Text *t, ulong p)
+{
+	int c;
+
+	Tbgetcset(t,p);
+	do
+	{
+		c=Tbgetc(t);
+	} while ( c != -1 && c != SPACE && c != '\t' && t->pos > 0);
+	return (c != -1) ? t->pos+1 : t->pos;
+}
+
+/* Return the position of next space character */
+ulong
+text_nextSpace(Text *t, ulong p)
+{
+	int c;
+
+	Tbgetcset(t,p);
+	do
+	{
+		c=Tgetc(t);
+	} while ( c != -1 && c != SPACE && c != '\t');
+	return (c != -1) ? t->pos-1 : t->pos;
+}

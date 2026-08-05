@@ -14,7 +14,11 @@ static void     deletetobol(View*v);
 static void     deletetoeol(View*v);
 static void     deleteword(View*v);
 static void     esc(View*v);
+ulong           text_nextSpace(Text*, ulong);
+ulong           text_prevSpace(Text*, ulong);
+
 Range    undo_undo(Text *t, bool all);
+
 
 void
 dokeyboard(View *v, Rune r)
@@ -33,6 +37,8 @@ dokeyboard(View *v, Rune r)
 		case RightArrow:
     case Ctrla:
     case Ctrle:
+    case Ctrlf:
+    case Ctrlb:
 			view_cursor(v, r);
 			break;
 
@@ -242,6 +248,17 @@ view_cursor(View *v, Rune r)
       break;
     case Ctrle:
       p = text_endOfLine(v->t, p);
+      break;
+    case Ctrlf:
+      //p = (p + 4) % text_length(v->t);
+      p = (text_nextSpace(v->t, p) + 1 ) % text_length(v->t);
+      break;
+    case Ctrlb:
+      ulong oldp = p;
+      p = text_prevSpace(v->t, p) - 1;
+      if(p<=0){
+        p = oldp;
+      }
       break;
 	}
 	view_select(v, range(p,p));

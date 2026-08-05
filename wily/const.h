@@ -31,6 +31,7 @@ enum
 	LEFT =1, MIDDLE=2, RIGHT=4, SCROLLUP=8, SCROLLDOWN=16,
 
 	/* keys */
+  SPACE     = 040,
 	Backspace = 0x7f,
 	PageDown =  0x80,
 	PageUp =    0x81,
@@ -50,6 +51,8 @@ enum
   Ctrly =     031,
   Ctrlz =     032,
 	Esc =       27,
+  Ctrlf =     006,
+  Ctrlb =     002,
 
 	/* time delays (ms) */
 	DOUBLECLICK = 500,

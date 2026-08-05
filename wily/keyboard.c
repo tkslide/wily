@@ -55,6 +55,10 @@ dokeyboard(View *v, Rune r)
 			deleteword(v);
 			break;
 
+    case Ctrly:
+      view_paste(v);
+      break;
+
 		case Esc:
 			esc(v);
 			break;

@@ -18,6 +18,8 @@ See [Original README](README.orig) for copyright, permissions etc.
 
 ## Changes
 - Editing shortcuts added
+  - Ctrl-Y - paste
+- Editing shortcuts added
   - Ctrl-K - delete to EOL
   - Ctrl-A - move cursor to BOL
   - Ctrk-E - move cursor to EOL
@@ -38,6 +40,7 @@ See [Original README](README.orig) for copyright, permissions etc.
 - Code tree was reorganised and cleaned up (WIP)
 
 ## Work in Progress
+- Minimal extension of keyboard-based editing (a subset of readline(3) functionality).
 - Documentation cleanup - maybe not getting rid of anything, but the number of collected files in every format known to the humanity is overwhelming.
   It's good to have standards, there are so many of them to choose from.
 - "poor man's `plumber`" - xdg-open integration

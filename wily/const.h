@@ -48,6 +48,7 @@ enum
   Ctrla =     001,
   Ctrle =     005,
   Ctrly =     031,
+  Ctrlz =     032,
 	Esc =       27,
 
 	/* time delays (ms) */

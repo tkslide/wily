@@ -14,6 +14,7 @@ static void     deletetobol(View*v);
 static void     deletetoeol(View*v);
 static void     deleteword(View*v);
 static void     esc(View*v);
+Range    undo_undo(Text *t, bool all);
 
 void
 dokeyboard(View *v, Rune r)
@@ -57,6 +58,10 @@ dokeyboard(View *v, Rune r)
 
     case Ctrly:
       view_paste(v);
+      break;
+
+    case Ctrlz:
+      undo_undo(v->t, true);
       break;
 
 		case Esc:

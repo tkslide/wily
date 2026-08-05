@@ -17,6 +17,8 @@ See [Original README](README.orig) for copyright, permissions etc.
 
 
 ## Changes
+- Editing shortcuts added (basically everything I wanted is now included)
+  - Ctrl-Z - undo
 - Editing shortcuts added
   - Ctrl-Y - paste
 - Editing shortcuts added

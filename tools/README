@@ -2,9 +2,9 @@ A bunch of programs that use wily for their user interface,
 and tools to create such programs.
 
 Current:
-- python3	python3 interface for wily messages
-- perl          Perl interfacde for wily messages
-- tcl           Tcl/Tk interface for wily messages
-- win		simple terminal
-- quanstro	shell programming tools from erik quanstrom <quanstro@Infomkt.ibm.com>
+- python3   python3 interface for wily messages
+- perl      Perl interfacde for wily messages
+- tcl       Tcl/Tk interface for wily messages
+- win       simple terminal
+- quanstro  shell programming tools from erik quanstrom <quanstro@Infomkt.ibm.com>
 

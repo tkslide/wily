@@ -221,10 +221,12 @@ view_cursor(View *v, Rune r)
 	switch(r)
 	{
 		case LeftArrow:
+		case Ctrlb:
 			if(p)
 				p--;
 			break;
 		case RightArrow:
+		case Ctrlf:
 			if (p < text_length(v->t))
 				p++;
 			break;
@@ -249,6 +251,7 @@ view_cursor(View *v, Rune r)
     case Ctrle:
       p = text_endOfLine(v->t, p);
       break;
+			/*
     case Ctrlf:
       //p = (p + 4) % text_length(v->t);
       p = (text_nextSpace(v->t, p) + 1 ) % text_length(v->t);
@@ -260,6 +263,7 @@ view_cursor(View *v, Rune r)
         p = oldp;
       }
       break;
+			*/
 	}
 	view_select(v, range(p,p));
 	view_show(v, v->sel);

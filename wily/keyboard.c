@@ -6,88 +6,84 @@
 #include "view.h"
 #include "text.h"
 
-static void     view_cursor(View *v, Rune r);
-static void     addrune(View*v, Rune r);
-static void     tag_cr(View *v);
-static void     backspace(View*v);
-static void     deletetobol(View*v);
-static void     deletetoeol(View*v);
-static void     deleteword(View*v);
-static void     esc(View*v);
-ulong           text_nextSpace(Text*, ulong);
-ulong           text_prevSpace(Text*, ulong);
+static void view_cursor(View *v, Rune r);
+static void addrune(View *v, Rune r);
+static void tag_cr(View *v);
+static void backspace(View *v);
+static void deletetobol(View *v);
+static void deletetoeol(View *v);
+static void deleteword(View *v);
+static void esc(View *v);
+ulong text_nextSpace(Text *, ulong);
+ulong text_prevSpace(Text *, ulong);
 
-Range    undo_undo(Text *t, bool all);
+Range undo_undo(Text *t, bool all);
 
+void dokeyboard(View *v, Rune r) {
+  switch (r) {
+  case 0:
+    addrune(v, Runeerror);
+    break;
 
-void
-dokeyboard(View *v, Rune r)
-{
-	switch(r)
-	{
-		case 0:
-			addrune(v,Runeerror);
-			break;
+  case DownArrow:
+  case UpArrow:
+  case Home:
+  case End:
+  case LeftArrow:
+  case RightArrow:
+  case Ctrla:
+  case Ctrle:
+  case Ctrlf:
+  case Ctrlb:
+  case Ctrln:
+  case Ctrlp:
+    view_cursor(v, r);
+    break;
 
-		case DownArrow:
-		case UpArrow:
-		case Home:
-		case End:
-		case LeftArrow:
-		case RightArrow:
-    case Ctrla:
-    case Ctrle:
-    case Ctrlf:
-    case Ctrlb:
-			view_cursor(v, r);
-			break;
+  case PageDown:
+  case PageUp:
+    view_pagedown(v, r == PageDown);
+    break;
 
-		case PageDown:
-		case PageUp:
-			view_pagedown(v,r==PageDown);
-			break;
+  case Ctrlh:
+  case Backspace:
+    backspace(v);
+    break;
 
-		case Ctrlh:
-		case Backspace:
-			backspace(v);
-			break;
+  case Ctrlk:
+    deletetoeol(v);
+    break;
+  case Ctrlu:
+    deletetobol(v);
+    break;
+  case Ctrlw:
+    deleteword(v);
+    break;
 
-    case Ctrlk:
-      deletetoeol(v);
+  case Ctrly:
+    view_paste(v);
+    break;
+
+  case Ctrlz:
+    undo_undo(v->t, true);
+    break;
+
+  case Esc:
+    esc(v);
+    break;
+
+  case '\n':
+    if (!v->scroll) {
+      tag_cr(v);
       break;
-		case Ctrlu:
-			deletetobol(v);
-			break;
-		case Ctrlw:
-			deleteword(v);
-			break;
-
-    case Ctrly:
-      view_paste(v);
-      break;
-
-    case Ctrlz:
-      undo_undo(v->t, true);
-      break;
-
-		case Esc:
-			esc(v);
-			break;
-
-		case '\n':
-			if(!v->scroll)
-			{
-				tag_cr(v);
-				break;
-			}
-		default:
-			addrune(v,r);
-	}
+    }
+  default:
+    addrune(v, r);
+  }
 }
 
-
 /******************************************************
-	static functions
+        static functions
 ******************************************************/
 
 /* Handle carriage-return in 'v'
@@ -96,114 +92,82 @@ dokeyboard(View *v, Rune r)
  * and either search (if selected text starts with ':')
  * or execute the selected text.
  */
-static void
-tag_cr(View*v)
-{
-	char*cmd;
+static void tag_cr(View *v) {
+  char *cmd;
 
-	if(!RLEN(v->sel))
-	{
-		view_select(v, maybereverserange(v->anchor, v->sel.p0));
-	}
-	cmd = text_duputf(v->t, v->sel);
-	if(cmd[0]==':')
-	{
-		b3(v, v->sel);
-	}
-	else
-	{
-		if (!data_sendexec(view_data(v),cmd, 0))
-			run(v, cmd, 0);
-	}
-	free(cmd);
+  if (!RLEN(v->sel)) {
+    view_select(v, maybereverserange(v->anchor, v->sel.p0));
+  }
+  cmd = text_duputf(v->t, v->sel);
+  if (cmd[0] == ':') {
+    b3(v, v->sel);
+  } else {
+    if (!data_sendexec(view_data(v), cmd, 0))
+      run(v, cmd, 0);
+  }
+  free(cmd);
 }
-
 
 /* delete selection and rune before */
-static void
-backspace(View*v)
-{
-	Range del = v->sel;
+static void backspace(View *v) {
+  Range del = v->sel;
 
-	if(del.p0)
-		del.p0--;
-	view_cut(v, del);
+  if (del.p0)
+    del.p0--;
+  view_cut(v, del);
 }
-
 
 /* delete selection and back to start of line */
-static void
-deletetobol(View*v)
-{
-	Range del = v->sel;
+static void deletetobol(View *v) {
+  Range del = v->sel;
 
-	del.p0 = text_startOfLine(v->t, del.p0);
-	view_cut(v, del);
+  del.p0 = text_startOfLine(v->t, del.p0);
+  view_cut(v, del);
 }
 
+static void deletetoeol(View *v) {
+  Range del = v->sel;
 
-static void
-deletetoeol(View*v)
-{
-	Range del = v->sel;
-
-	del.p1 = text_endOfLine(v->t, del.p0);
-	view_cut(v, del);
+  del.p1 = text_endOfLine(v->t, del.p0);
+  view_cut(v, del);
 }
-
 
 /* delete back to start of word */
-static void
-deleteword(View*v)
-{
-	Range del = v->sel;
+static void deleteword(View *v) {
+  Range del = v->sel;
 
-	del.p0 = text_startofword(v->t, del.p0);
-	view_cut(v, del);
+  del.p0 = text_startofword(v->t, del.p0);
+  view_cut(v, del);
 }
 
+static void esc(View *v) {
+  Range del = v->sel;
 
-static void
-esc(View*v)
-{
-	Range del = v->sel;
-
-	if ((RLEN(del)))
-	{
-		/* delete selected text */
-		view_cut(v, del);
-	}
-	else
-	{
-		/* Select from v->anchor to v->sel.p0 */
-		view_select(v, maybereverserange(v->anchor, v->sel.p0));
-		view_setlastselection(v);
-	}
+  if ((RLEN(del))) {
+    /* delete selected text */
+    view_cut(v, del);
+  } else {
+    /* Select from v->anchor to v->sel.p0 */
+    view_select(v, maybereverserange(v->anchor, v->sel.p0));
+    view_setlastselection(v);
+  }
 }
 
+static void addrune(View *v, Rune r) {
+  Rstring s;
 
-static void
-addrune(View*v, Rune r)
-{
-	Rstring s;
-
-	if ( r == '\n' && v->autoindent)
-	{
-		s = text_autoindent(v->t, v->sel.p0);
-	}
-	else
-	{
-		s.r0 = &r;
-		s.r1 = &r +1;
-	}
-	if(RLEN(v->sel))
-	{
-		snarf(v->t, v->sel);
-	}
-	text_replace(v->t, v->sel, s);
-	view_show(v, v->sel);
+  if (r == '\n' && v->autoindent) {
+    s = text_autoindent(v->t, v->sel.p0);
+  } else {
+    s.r0 = &r;
+    s.r1 = &r + 1;
+  }
+  if (RLEN(v->sel)) {
+    snarf(v->t, v->sel);
+  }
+  text_replace(v->t, v->sel, s);
+  view_show(v, v->sel);
 }
-
 
 /*
  * We've hit a cursor key.
@@ -211,60 +175,59 @@ addrune(View*v, Rune r)
  * Set the selection to something relative to previous sel.p0, and
  * make sure the new selection is visible.
  */
-static void
-view_cursor(View *v, Rune r)
-{
-	ulong   p;
-	Point   pt;
+static void view_cursor(View *v, Rune r) {
+  ulong p;
+  Point pt;
 
-	p = v->sel.p0;
-	switch(r)
-	{
-		case LeftArrow:
-		case Ctrlb:
-			if(p)
-				p--;
-			break;
-		case RightArrow:
-		case Ctrlf:
-			if (p < text_length(v->t))
-				p++;
-			break;
-		case DownArrow:
-		case UpArrow:
-			pt = frptofchar(&v->f, p - v->visible.p0);
-			if (r==DownArrow)
-				pt.y += v->f.font->height;
-			else
-				pt.y -= v->f.font->height;
-			p = frcharofpt(&v->f, pt) + v->visible.p0;
-			break;
-		case Home:
-			p = 0;
-			break;
-		case End:
-			p = text_length(v->t);
-			break;
-    case Ctrla:
-      p = text_startOfLine(v->t, p);
-      break;
-    case Ctrle:
-      p = text_endOfLine(v->t, p);
-      break;
-			/*
-    case Ctrlf:
-      //p = (p + 4) % text_length(v->t);
-      p = (text_nextSpace(v->t, p) + 1 ) % text_length(v->t);
-      break;
-    case Ctrlb:
-      ulong oldp = p;
-      p = text_prevSpace(v->t, p) - 1;
-      if(p<=0){
-        p = oldp;
-      }
-      break;
-			*/
-	}
-	view_select(v, range(p,p));
-	view_show(v, v->sel);
+  p = v->sel.p0;
+  switch (r) {
+  case LeftArrow:
+  case Ctrlb:
+    if (p)
+      p--;
+    break;
+  case RightArrow:
+  case Ctrlf:
+    if (p < text_length(v->t))
+      p++;
+    break;
+  case DownArrow:
+  case Ctrln:
+  case UpArrow:
+  case Ctrlp:
+    pt = frptofchar(&v->f, p - v->visible.p0);
+    if (r == DownArrow || r == Ctrln)
+      pt.y += v->f.font->height;
+    else
+      pt.y -= v->f.font->height;
+    p = frcharofpt(&v->f, pt) + v->visible.p0;
+    break;
+  case Home:
+    p = 0;
+    break;
+  case End:
+    p = text_length(v->t);
+    break;
+  case Ctrla:
+    p = text_startOfLine(v->t, p);
+    break;
+  case Ctrle:
+    p = text_endOfLine(v->t, p);
+    break;
+    /*
+case Ctrlf:
+//p = (p + 4) % text_length(v->t);
+p = (text_nextSpace(v->t, p) + 1 ) % text_length(v->t);
+break;
+case Ctrlb:
+ulong oldp = p;
+p = text_prevSpace(v->t, p) - 1;
+if(p<=0){
+p = oldp;
+}
+break;
+    */
+  }
+  view_select(v, range(p, p));
+  view_show(v, v->sel);
 }

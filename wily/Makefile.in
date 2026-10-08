@@ -47,4 +47,5 @@ nuke: clean
 dist:	nuke
 	cp -r `ls |grep -v RCS` ../dist/wily
 install:	$(TARGET)
+	strip $(TARGET)
 	cp $(TARGET) $(bindir)

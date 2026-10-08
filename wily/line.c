@@ -11,70 +11,57 @@
 #include "text.h"
 
 /* What line number is at Rune position p? */
-int
-text_linenumber(Text *t, ulong p)
-{
-	int c;
-	int newlines=1;
+int text_linenumber(Text *t, ulong p) {
+  int c;
+  int newlines = 1;
 
-	Tbgetcset(t, p);
-	while ( (c=Tbgetc(t)) != -1)
-		if(  c == NEWLINE)
-			newlines++;
-	return newlines;
+  Tbgetcset(t, p);
+  while ((c = Tbgetc(t)) != -1)
+    if (c == NEWLINE)
+      newlines++;
+  return newlines;
 }
-
 
 /*
  * If 't' has at least 'n' lines, fills 'r' with the range for line 'n',
  * and returns true.  Otherwise, fills 'r' with gibberish and returns
  * false.
  */
-bool
-text_findline(Text *t, Range *r, ulong n)
-{
-	bool    foundstart = false;
-	int c;
+bool text_findline(Text *t, Range *r, ulong n) {
+  bool foundstart = false;
+  int c;
 
-	if (n==0)
-		return false;
-	else if (n==1)
-	{
-		foundstart = true;
-		r->p0 = 0;
-	}
-	n--;
-	Tgetcset(t,0);
-	for( ; (c=Tgetc(t)) != -1; )
-	{
-		if( c == NEWLINE )
-		{
-			if (foundstart)
-				break;
-			else if (!--n)
-			{
-				r->p0 = t->pos;
-				foundstart = true;
-			}
-		}
-	}
-	r->p1 = t->pos;
-	return foundstart;
+  if (n == 0)
+    return false;
+  else if (n == 1) {
+    foundstart = true;
+    r->p0 = 0;
+  }
+  n--;
+  Tgetcset(t, 0);
+  for (; (c = Tgetc(t)) != -1;) {
+    if (c == NEWLINE) {
+      if (foundstart)
+        break;
+      else if (!--n) {
+        r->p0 = t->pos;
+        foundstart = true;
+      }
+    }
+  }
+  r->p1 = t->pos;
+  return foundstart;
 }
-
 
 /* Return the range for the last line of 't' */
-Range
-text_lastline(Text *t)
-{
-	int c;
+Range text_lastline(Text *t) {
+  int c;
 
-	Tbgetcset(t, t->length);
-	while ( (c=Tbgetc(t)) != -1  && c != NEWLINE)
-		;
-	return range(t->pos+1, t->length);
+  Tbgetcset(t, t->length);
+  while ((c = Tbgetc(t)) != -1 && c != NEWLINE)
+    ;
+  return range(t->pos + 1, t->length);
 }
-
 
 /*
  * Find the offset of the first character of the line 'delta' away from 'pos'.
@@ -84,88 +71,70 @@ text_lastline(Text *t)
  * text_nl(t, pos, -1):	start of line above
  * text_nl(t, pos, 1):	start of line below
  */
-ulong
-text_nl(Text *t, ulong pos, int delta)
-{
-	int c;
-	ulong   retval;
+ulong text_nl(Text *t, ulong pos, int delta) {
+  int c;
+  ulong retval;
 
-	assert(pos <= t->length);
+  assert(pos <= t->length);
 
-	if(delta > 0)
-	{
-		Tgetcset(t, pos);
-		while ( (c=Tgetc(t)) != -1 )
-			if(c==NEWLINE)
-				if(!--delta)
-					break;
-		retval = (c != -1) ? t->pos : t->length;
-	}
-	else
-	{
-		Tbgetcset(t,pos);
-		while ( (c=Tbgetc(t)) != -1 )
-			if(c==NEWLINE)
-				if(!delta++)
-					break;
-		retval = (c != -1) ? t->pos+1 : 0;
-	}
-	return retval;
+  if (delta > 0) {
+    Tgetcset(t, pos);
+    while ((c = Tgetc(t)) != -1)
+      if (c == NEWLINE)
+        if (!--delta)
+          break;
+    retval = (c != -1) ? t->pos : t->length;
+  } else {
+    Tbgetcset(t, pos);
+    while ((c = Tbgetc(t)) != -1)
+      if (c == NEWLINE)
+        if (!delta++)
+          break;
+    retval = (c != -1) ? t->pos + 1 : 0;
+  }
+  return retval;
 }
 
-
 /* Return the position of the first character of the line containing 'p' */
-ulong
-text_startOfLine(Text *t, ulong p)
-{
-	int c;
+ulong text_startOfLine(Text *t, ulong p) {
+  int c;
 
-	Tbgetcset(t,p);
-	do
-	{
-		c=Tbgetc(t);
-	} while ( c != -1 && c != NEWLINE);
-	return (c != -1) ? t->pos+1 : t->pos;
+  Tbgetcset(t, p);
+  do {
+    c = Tbgetc(t);
+  } while (c != -1 && c != NEWLINE);
+  return (c != -1) ? t->pos + 1 : t->pos;
 }
 
 /* Return the position of the last character of the line containing 'p' */
-ulong
-text_endOfLine(Text *t, ulong p)
-{
-	int c;
+ulong text_endOfLine(Text *t, ulong p) {
+  int c;
 
-	Tbgetcset(t,p);
-	do
-	{
-		c=Tgetc(t);
-	} while ( c != -1 && c != NEWLINE);
-	return (c != -1) ? t->pos-1 : t->pos;
+  Tbgetcset(t, p);
+  do {
+    c = Tgetc(t);
+  } while (c != -1 && c != NEWLINE);
+  return (c != -1) ? t->pos - 1 : t->pos;
 }
 
 /* Return the position of the previous space character */
-ulong
-text_prevSpace(Text *t, ulong p)
-{
-	int c;
+ulong text_prevSpace(Text *t, ulong p) {
+  int c;
 
-	Tbgetcset(t,p);
-	do
-	{
-		c=Tbgetc(t);
-	} while ( c != -1 && c != SPACE && c != '\t' && t->pos > 0);
-	return (c != -1) ? t->pos+1 : t->pos;
+  Tbgetcset(t, p);
+  do {
+    c = Tbgetc(t);
+  } while (c != -1 && c != SPACE && c != '\t' && t->pos > 0);
+  return (c != -1) ? t->pos + 1 : t->pos;
 }
 
 /* Return the position of next space character */
-ulong
-text_nextSpace(Text *t, ulong p)
-{
-	int c;
+ulong text_nextSpace(Text *t, ulong p) {
+  int c;
 
-	Tbgetcset(t,p);
-	do
-	{
-		c=Tgetc(t);
-	} while ( c != -1 && c != SPACE && c != '\t');
-	return (c != -1) ? t->pos-1 : t->pos;
+  Tbgetcset(t, p);
+  do {
+    c = Tgetc(t);
+  } while (c != -1 && c != SPACE && c != '\t');
+  return (c != -1) ? t->pos - 1 : t->pos;
 }

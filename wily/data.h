@@ -9,9 +9,9 @@ The 'Data' struct
 
 The 'label' is the name of the window, as it appears in the window.
 The label can start with:
-	/	meaning an absolute path name, e.g. /bin
-	$	meaning an environment variable, e.g. $HOME
-	~	meaning a home-dir, e.g. ~/, ~i/
+        /	meaning an absolute path name, e.g. /bin
+        $	meaning an environment variable, e.g. $HOME
+        ~	meaning a home-dir, e.g. ~/, ~i/
 anything else is interpreted relative to the directory wily started in.
 
 If the window is a directory, the label should
@@ -37,24 +37,23 @@ If this Data object doesn't represent a directory, 'names'
 
 We only update 'has_stat' and 'stat' when necessary.
 */
-struct Data
-{
-	Text        *t;
-	Text        *tag;
-	Data    *next;
-	Path        label, cachedlabel;
-	/* Path		path;	*/
-	bool        has_stat;
-	Stat        stat;
-	char        *backupto;
+struct Data {
+  Text *t;
+  Text *tag;
+  Data *next;
+  Path label, cachedlabel;
+  /* Path		path;	*/
+  bool has_stat;
+  Stat stat;
+  char *backupto;
 
-	/* for object connected to some external process */
-	int     fd;
-	ushort  emask;
+  /* for object connected to some external process */
+  int fd;
+  ushort emask;
 
-	Id      id;					 /* Unique identifier */
+  Id id; /* Unique identifier */
 
-	char        **names;		 /* cache of names of files in this directory, or 0 */
+  char **names; /* cache of names of files in this directory, or 0 */
 };
 
 /* A data object needs to be backed up if there is some backup file associated
@@ -62,12 +61,12 @@ struct Data
  */
 #define NEEDSBACKUP(d) (d->backupto && !undo_atmark(d->t))
 
-void        data_setbackup(Data *, char*);
-Data *  data_findid(Id );
+void data_setbackup(Data *, char *);
+Data *data_findid(Id);
 extern Data *dataroot;
-bool        data_senddestroy(Data *d);
-void        data_listremove(Data *d);
+bool data_senddestroy(Data *d);
+void data_listremove(Data *d);
 
 /* dir.c */
-void        dirnames_free(char**names);
-char**  dirnames (DIR *dirp, char *path);
+void dirnames_free(char **names);
+char **dirnames(DIR *dirp, char *path);

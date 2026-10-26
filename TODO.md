@@ -7,6 +7,9 @@
 ##Project tree
 ```
 . .......................... Main directory
+|-- contrib ................ Contributions to the original version
+|   |-- misc ............... Miscellanous - in revision
+|   +-- quanstro ........... Eric Qnastrom's scripts - in revision
 |-- doc .................... Documentation - in revision
 |   |-- announce ...........
 |   |-- old ................ Older documentation - converted to AsciiDOC
@@ -16,12 +19,10 @@
 |-- libframe ............... Libframe library
 |-- libmsg ................. Libmsg library
 |-- libXg .................. LibXg library
-|-- misc ................... Miscellanous - in revision
 |-- tools .................. Companion tools - in revision
 |   |-- python3 ............ New Python3 wily module
 |   |-- tcl ................ Tcl integration
 |   |-- perl ............... Perl integration
-|   |-- quanstro ........... Eric Qnastrom's scripts - in revision
 |   |-- shell .............. Shell tools
 +-- wily ................... editor sources
 +-- win .................... win/wgoto/wreplace/mktags

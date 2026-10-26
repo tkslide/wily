@@ -1,7 +1,7 @@
 this is a package of tools for communicating with wily using the Tcl
 library.  the file wily.c defines a thin veneer round wily's libmsg.
 
-this compiles with  wily-0.13.1[89] with tclversion 7.4.
+this compiles with current version of Wily and tcl/tk 8.5.x/8.6.x
 
 the files wtcl.c and wtk.c compile against wily.c to give a tclsh alike
 with wily support called wtcl, and a wish alike with wily support called
@@ -17,7 +17,7 @@ wily init
 wily isconnected
 
 	checks that we can still talk to wily.  returns boolean.
-	
+
 wily list
 
 	returns a list of window ids (integers).

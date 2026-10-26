@@ -394,6 +394,7 @@ void fatal(char *fmt, ...) {
   vfprintf(stderr, fmt, args);
   fprintf(stderr, "\n");
   cleanup_and_abort(0);
+  va_end(args);
 }
 
 /*

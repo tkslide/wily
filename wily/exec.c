@@ -53,23 +53,32 @@ void run(View *v, char *cmd, char *arg) {
   if (!*cmd)
     return;
 
-  /*
-   * For builtins, we want to separate cmd and arg,
-   * and if we're passed a pointer to 'arg', we must pass
-   * one on to builtin, even if the arg is just whitespace.
-   */
   if (arg) {
-    buf = salloc(strlen(cmd) + strlen(arg) + 2);
-    sprintf(buf, "%s %s", cmd, arg);
+    size_t len = strlen(cmd) + strlen(arg) + 2;
+    buf = salloc(len);
+    if (!buf)
+      return;
+    snprintf(buf, len, "%s %s", cmd, arg);
   } else {
     buf = strdup(cmd);
+    if (!buf)
+      return;
   }
+
   buf2 = strdup(buf); /* before we scribble over buf */
+  if (!buf2) {
+    free(buf);
+    return;
+  }
 
   cmd = strtok(buf, whitespace);
-  assert(*cmd && !isspace(*cmd));
+  if (!cmd) {
+    free(buf);
+    free(buf2);
+    return;
+  }
 
-  a2 = strtok(0, "");
+  a2 = strtok(NULL, "");
   if (!a2)
     a2 = arg;
 
@@ -277,11 +286,21 @@ static void ex_child(int fderr, int fdout, char *label, char *cmd, View *vin) {
 static void history(char *cmd) {
   FILE *fp;
 
-  if (!historyfile)
+  if (!historyfile || !cmd || !*cmd)
     return;
 
   fp = fopen(historyfile, "a");
-  fprintf(fp, "%s\n", cmd);
+  if (!fp) {
+    return;
+  }
+
+  size_t len = strlen(cmd);
+  if (len > 0 && cmd[len - 1] == '\n') {
+    fprintf(fp, "%s", cmd);
+  } else {
+    fprintf(fp, "%s\n", cmd);
+  }
+
   fclose(fp);
 }
 

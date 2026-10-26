@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include "libgint.h"
 #include <stdlib.h>
+#include <limits.h>
+#include <stdint.h>
 #include <unistd.h>
 
 #define COMPRESSMOUSE
@@ -397,32 +399,43 @@ unsigned long rgbpix(Bitmap *b, RGB col) {
   XColor c;
   Colormap cmap;
   Arg args[2];
-  int n, depth, dr, dg, db;
+  int n, depth;
+  long long dr, dg, db;
   RGB map[256], *m;
-  unsigned long d, max, pixel;
+  unsigned long long d, min_distance;
+  unsigned long pixel = 0;
 
   if (!_cmap_installed) {
     n = 0;
     XtSetArg(args[n], XtNcolormap, &cmap);
     n++;
     XtGetValues(_toplevel, args, n);
-    c.red = col.red >> 16;
-    c.green = col.green >> 16;
-    c.blue = col.blue >> 16;
+
+    c.red = (unsigned short)(col.red << 8);
+    c.green = (unsigned short)(col.green << 8);
+    c.blue = (unsigned short)(col.blue << 8);
     c.flags = DoRed | DoGreen | DoBlue;
+
     if (XAllocColor(_dpy, cmap, &c))
       return (unsigned long)(c.pixel);
   }
+
   depth = _ld2d[screen.ldepth];
   rdcolmap(&screen, map);
-  max = -1;
-  for (n = 0, m = map; n < (1 << depth); n++, m++) {
-    dr = m->red - col.red;
-    dg = m->green - col.green;
-    db = m->blue - col.blue;
-    d = dr * dr + dg * dg + db * db;
-    if (d < max || max == -1) {
-      max = d;
+
+  min_distance = -1ULL;
+
+  int max_colors = (depth > 0 && depth <= 8) ? (1 << depth) : 256;
+
+  for (n = 0, m = map; n < max_colors; n++, m++) {
+    dr = (long long)m->red - (long long)col.red;
+    dg = (long long)m->green - (long long)col.green;
+    db = (long long)m->blue - (long long)col.blue;
+
+    d = (dr * dr) + (dg * dg) + (db * db);
+
+    if (d < min_distance) {
+      min_distance = d;
       pixel = n;
     }
   }
@@ -518,45 +531,76 @@ Subfont *getsubfont(char *s) {
 static Subfont *XFontStructtoSubfont(XFontStruct *fp) {
   XCharStruct *cp;
   Subfont *f;
-  int min, max;
-  int i;
+  int min_row, max_row;
+  int min_col, max_col;
+  int r, c, i;
+  size_t alloc_size;
 
   if (!fp)
     berror("no font");
+
   f = (Subfont *)malloc(sizeof(Subfont));
   if (!f)
     berror("XFontStructtoSubfont malloc");
-  min = fp->min_byte1;
-  max = fp->max_byte1;
-  f->minrow = min;
-  f->mincol = fp->min_char_or_byte2;
-  f->width = fp->max_char_or_byte2 - fp->min_char_or_byte2 + 1;
-  f->n = f->width;
-  f->minchar = 0;
-  f->maxchar = fp->max_char_or_byte2;
-  if (min || max) {
-    f->maxchar |= (max << 8);
-    f->n *= (max - min + 1);
+
+  min_row = fp->min_byte1;
+  max_row = fp->max_byte1;
+  min_col = fp->min_char_or_byte2;
+  max_col = fp->max_char_or_byte2;
+
+  f->minrow = min_row;
+  f->mincol = min_col;
+  f->width = max_col - min_col + 1;
+
+  if (min_row || max_row) {
+    f->n = f->width * (max_row - min_row + 1);
+    f->minchar = (min_row << 8) | min_col;
+    f->maxchar = (max_row << 8) | max_col;
+  } else {
+    f->n = f->width;
+    f->minchar = min_col;
+    f->maxchar = max_col;
   }
+
   f->id = fp->fid;
   f->height = fp->max_bounds.ascent + fp->max_bounds.descent;
   f->ascent = fp->max_bounds.ascent;
-  f->info = (Fontchar *)malloc((f->n + 1) * sizeof(Fontchar));
-  if (!f->info)
-    berror("getsubfont malloc");
-  memset((void *)f->info, 0, (f->n + 1) * sizeof(Fontchar));
-  for (i = 0; i < f->n; i++) {
-    if (fp->per_char)
-      cp = fp->per_char + i;
-    else
-      cp = &fp->max_bounds;
-    f->info[i].left = cp->lbearing;
-    f->info[i].cwidth = cp->rbearing - cp->lbearing;
-    f->info[i].width = cp->width;
-    f->info[i].top = 0;
-    f->info[i].bottom = f->height;
+
+  if (f->n < 0 || f->n >= INT_MAX ||
+      (size_t)(f->n + 1) > SIZE_MAX / sizeof(Fontchar)) {
+    free(f);
+    berror("getsubfont malloc: metrics dimensions overflow limits");
   }
-  XFreeFontInfo(0, fp, 0);
+
+  alloc_size = (size_t)(f->n + 1) * sizeof(Fontchar);
+
+  f->info = (Fontchar *)malloc(alloc_size);
+  if (!f->info) {
+    free(f);
+    berror("getsubfont malloc");
+  }
+  memset((void *)f->info, 0, alloc_size);
+
+  i = 0;
+  for (r = min_row; r <= max_row; r++) {
+    for (c = min_col; c <= max_col; c++) {
+      if (fp->per_char) {
+        int x11_index = (r - fp->min_byte1) * (fp->max_char_or_byte2 -
+                                               fp->min_char_or_byte2 + 1) +
+                        (c - fp->min_char_or_byte2);
+        cp = fp->per_char + x11_index;
+      } else {
+        cp = &fp->max_bounds;
+      }
+
+      f->info[i].left = cp->lbearing;
+      f->info[i].cwidth = cp->rbearing - cp->lbearing;
+      f->info[i].width = cp->width;
+      f->info[i].top = 0;
+      f->info[i].bottom = f->height;
+      i++;
+    }
+  }
   return f;
 }
 

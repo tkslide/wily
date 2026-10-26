@@ -144,10 +144,16 @@ void frinsert(Frame *f, Rune *sp, Rune *ep, ulong p0) {
       }
     }
     if (npts == nalloc) {
-      pts = pts ? realloc(pts, (npts + DELTA) * sizeof(pts[0]))
-                : malloc((npts + DELTA) * sizeof(pts[0]));
-      nalloc += DELTA;
-      b = &f->box[n0];
+      size_t new_alloc = nalloc + DELTA;
+      void *tmp = realloc(pts, new_alloc * sizeof(pts[0]));
+
+      if (tmp) {
+        pts = tmp;
+        nalloc = new_alloc;
+        b = &f->box[n0];
+      } else {
+        return;
+      }
     }
     pts[npts].pt0 = pt0;
     pts[npts].pt1 = pt1;

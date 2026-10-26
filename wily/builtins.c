@@ -55,7 +55,7 @@ static void undo_ops(View *v, char *arg, Range (*undofn)(Text *, bool)) {
   if (!(v = view_body(v)))
     return;
   r = (*undofn)(v->t, arg != 0);
-  if ROK (r) {
+  if ROK(r) {
     view_show(v, r);
     view_select(v, r);
   }

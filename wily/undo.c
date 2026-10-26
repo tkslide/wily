@@ -245,7 +245,7 @@ static void update_state(Text *t) {
  * Returns the range of any text inserted, or gibberish if !change_text
  */
 static Range shift(Text *t, Undo **from, Undo **to, bool change_text) {
-  Range r;
+  Range r = {0};
   Undo *u;
   Undo *rev;
 

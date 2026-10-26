@@ -30,7 +30,7 @@ View *tileSet_containingView(TileSet *ts, Point p) {
   int j;
   Tile *t;
 
-  assert(t && ptinrect(p, ts->r));
+  assert(ts && ptinrect(p, ts->r));
 
   /* todo(optimize): we could save some comparisons
    * by making use of the fact that the tiles are in order and
@@ -353,6 +353,7 @@ static bool tile_invariant(Tile *t) {
     /* illegal t->type */
     assert(false);
   }
+  return true;
 }
 
 static bool tileSet_invariant(TileSet *t) {

@@ -154,7 +154,7 @@ Range vselect(View *v, Mouse *m) {
   Frame *f = &v->f;
   bool selecting; /* affects selection */
   ulong orig, p0, p1;
-  Range sel;
+  Range sel = {0};
 
   /* ignore scroll-buttons */
   if (m->buttons & SCROLLDOWN) {
@@ -213,11 +213,13 @@ static void frselectf2(Frame *f, Point p0, Point p1, Fcode c) {
   if (p0.y == f->r.max.y)
     return;
   if (n == 0) {
-    if (p0.x == p1.x)
-      if (p0.x == f->r.min.x)
+    if (p0.x == p1.x) {
+      if (p0.x == f->r.min.x) {
         p1.x++;
-      else
+      } else {
         p0.x--;
+      }
+    }
     bitblt(f->b, p0, f->b, Rpt(p0, p1), c);
     /* bitblt(f->b, p0, f->d, Rpt(p0, p1), c); */
   } else {

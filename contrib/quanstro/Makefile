@@ -5,7 +5,6 @@ LDLIBS = -lmsg -lXg
 # gmake CFLAGS = -g -Wall -ansi
 #CFLAGS = -g -Wall $(CPPFLAGS) $(LDLIBS)
 CFLAGS  = -g -O -I../.. -I./../include -I./../sam/include -DHAVE_LIBNSL=1 -DHAVE_LIBSOCKET=1 -DHAVE_DEV_PTMX=1 -DHAVE_SYS_PTEM_H=1 -lnsl  ../../libmsg/libmsg.a  ../../libXg/libXg.a
-CC=$(CC)
 PROGS = wcat windows wreplace wattach wread
 
 all: $(PROGS)

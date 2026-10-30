@@ -1,6 +1,4 @@
-void
-main(void)
-{
-	printf("hello, world\n");
-}
+void 
+main(void) {
+    printf("hello, world\n"); 
 }

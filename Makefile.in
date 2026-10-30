@@ -38,7 +38,7 @@ nuke:
 		autom4te.cache/ \
 		config.cache config.h config.log config.status config.h.in configure \
 		Makefile libXg/Makefile libmsg/Makefile libframe/Makefile \
-		wily/wily win/win win/wgoto win/wreplace
+		wily/wily win/win win/wgoto win/wreplace wily/Makefile
 
 
 distclean: nuke

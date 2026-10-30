@@ -534,30 +534,38 @@ static Subfont *XFontStructtoSubfont(XFontStruct *fp) {
   int min_row, max_row;
   int min_col, max_col;
   int r, c, i;
-  size_t alloc_size;
+  int cols;
 
   if (!fp)
     berror("no font");
-
-  f = (Subfont *)malloc(sizeof(Subfont));
-  if (!f)
-    berror("XFontStructtoSubfont malloc");
 
   min_row = fp->min_byte1;
   max_row = fp->max_byte1;
   min_col = fp->min_char_or_byte2;
   max_col = fp->max_char_or_byte2;
 
+  long long width = (long long)max_col - min_col + 1;
+  long long rows = (min_row || max_row) ? (long long)max_row - min_row + 1 : 1;
+  long long n = width * rows;
+
+  if (width < 0 || rows < 0 || n >= INT_MAX)
+    berror("XFontStructtoSubfont: metrics dimensions overflow limits");
+
+  cols = (int)width;
+
+  f = (Subfont *)malloc(sizeof(Subfont));
+  if (!f)
+    berror("XFontStructtoSubfont malloc");
+
   f->minrow = min_row;
   f->mincol = min_col;
-  f->width = max_col - min_col + 1;
+  f->width = cols;
+  f->n = (int)n;
 
   if (min_row || max_row) {
-    f->n = f->width * (max_row - min_row + 1);
     f->minchar = (min_row << 8) | min_col;
     f->maxchar = (max_row << 8) | max_col;
   } else {
-    f->n = f->width;
     f->minchar = min_col;
     f->maxchar = max_col;
   }
@@ -566,39 +574,24 @@ static Subfont *XFontStructtoSubfont(XFontStruct *fp) {
   f->height = fp->max_bounds.ascent + fp->max_bounds.descent;
   f->ascent = fp->max_bounds.ascent;
 
-  if (f->n < 0 || f->n >= INT_MAX ||
-      (size_t)(f->n + 1) > SIZE_MAX / sizeof(Fontchar)) {
-    free(f);
-    berror("getsubfont malloc: metrics dimensions overflow limits");
-  }
-
-  alloc_size = (size_t)(f->n + 1) * sizeof(Fontchar);
-
-  f->info = (Fontchar *)malloc(alloc_size);
+  f->info = (Fontchar *)calloc((size_t)n + 1, sizeof(Fontchar));
   if (!f->info) {
     free(f);
     berror("getsubfont malloc");
   }
-  memset((void *)f->info, 0, alloc_size);
 
   i = 0;
   for (r = min_row; r <= max_row; r++) {
-    for (c = min_col; c <= max_col; c++) {
-      if (fp->per_char) {
-        int x11_index = (r - fp->min_byte1) * (fp->max_char_or_byte2 -
-                                               fp->min_char_or_byte2 + 1) +
-                        (c - fp->min_char_or_byte2);
-        cp = fp->per_char + x11_index;
-      } else {
-        cp = &fp->max_bounds;
-      }
+    int row_base = (r - min_row) * cols;
+    for (c = min_col; c <= max_col; c++, i++) {
+      cp = fp->per_char ? fp->per_char + row_base + (c - min_col)
+                        : &fp->max_bounds;
 
       f->info[i].left = cp->lbearing;
       f->info[i].cwidth = cp->rbearing - cp->lbearing;
       f->info[i].width = cp->width;
       f->info[i].top = 0;
       f->info[i].bottom = f->height;
-      i++;
     }
   }
   return f;

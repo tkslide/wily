@@ -1,30 +1,32 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib 'lib';
-use Wily::Client;
+use utf8;
+use FindBin qw($Bin);
+use lib "$Bin/lib";
+
+use Wily::Client qw(:events);
 
 my $wily = Wily::Client->new()->connect();
 
 my @wins = $wily->list_windows();
 print "Existing windows:\n";
-print "  $_->[0]: $_->[1]\n" for @wins;
+for my $win (@wins) {
+    print "  $win->[0]: $win->[1]\n";
+}
 
 my $wid = $wily->new_win('+PerlConsole', backup => 0);
 $wily->settools($wid, ' Hello Quit ');
 $wily->replace($wid, 0, 0, "Middle-click (B2) 'Hello' or 'Quit' in the tag.\n");
-$wily->attach(
-    $wid,
-    Wily::Client::WEexec | Wily::Client::WEgoto | Wily::Client::WEdestroy
-);
+$wily->attach($wid, WEexec | WEgoto | WEdestroy);
 
 while (1) {
     my $ev = $wily->next_event();
-    if ($ev->{t} == Wily::Client::WEdestroy) {
+    if ($ev->{t} == WEdestroy) {
         print "Window closed, exiting.\n";
         last;
     }
-    elsif ($ev->{t} == Wily::Client::WEexec) {
+    elsif ($ev->{t} == WEexec) {
         (my $cmd = $ev->{s}) =~ s/^\s+|\s+$//g;
         if ($cmd eq 'Hello') {
             $wily->replace($wid, 0, 0, "Clicked Hello!\n");
@@ -38,7 +40,7 @@ while (1) {
             $wily->bounce($ev);
         }
     }
-    elsif ($ev->{t} == Wily::Client::WEgoto) {
+    elsif ($ev->{t} == WEgoto) {
         # Let Wily handle normal B3 searches/file opens
         $wily->bounce($ev);
     }

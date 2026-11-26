@@ -1,5 +1,6 @@
 CC       ?= gcc
 PYTHON   ?= python3
+PERL     ?= perl
 RACO     ?= raco
 LUA      ?= lua
 BASH     ?= bash
@@ -9,6 +10,7 @@ PREFIX   ?= /usr/local
 
 # Subdirectories (defaults to current directory; override e.g. RKT_DIR=racket LUA_DIR=lua)
 PY_DIR   ?= python
+PL_DIR   ?= perl
 RKT_DIR  ?= racket
 LUA_DIR  ?= lua
 BASH_DIR ?= bash
@@ -29,6 +31,9 @@ ifneq ($(wildcard /usr/local/lib/python$(PY_VER)/dist-packages),)
 else
   PYDIR  ?= $(shell $(PYTHON) -c 'import sysconfig; print(sysconfig.get_path("purelib"))' 2>/dev/null || echo $(PREFIX)/lib/python$(PY_VER)/site-packages)
 endif
+
+# --- Perl Configuration ---
+PLDIR    ?= $(shell $(PERL) -MConfig -e 'print $$Config{sitelib}' 2>/dev/null || echo $(PREFIX)/share/perl5)
 
 # --- Lua Configuration ---
 LUA_VER  := $(shell $(LUA) -e 'print(_VERSION:match("%d+%.%d+"))' 2>/dev/null || echo 5.4)
@@ -59,7 +64,7 @@ ifeq ($(strip $(GAWK_INC)),)
     GAWK_INC := -I/usr/local/include
   endif
 endif
-AWKEXTDIR := $(shell $(GAWK) 'BEGIN { split(ENVIRON["AWKLIBPATH"], p, ":"); print p }' 2>/dev/null)
+AWKEXTDIR := $(shell $(GAWK) 'BEGIN { split(ENVIRON["AWKLIBPATH"], p, ":"); print p[1] }' 2>/dev/null)
 ifeq ($(strip $(AWKEXTDIR)),)
   AWKEXTDIR := $(PREFIX)/lib/gawk
 endif
@@ -81,11 +86,15 @@ $(BASH_DIR)/wily_bash.so: $(BASH_DIR)/wily_bash.c
 $(AWK_DIR)/wily_sock.so: $(AWK_DIR)/wily_sock.c
 	$(CC) $(LDFLAGS_SO) $(CFLAGS) $(GAWK_INC) $< -o $@
 
-install: install-python install-racket install-lua install-bash install-awk
+install: install-python install-perl install-racket install-lua install-bash install-awk
 
 install-python: $(PY_DIR)/wily.py
 	install -d $(DESTDIR)$(PYDIR)
 	install -m 0644 $(PY_DIR)/wily.py $(DESTDIR)$(PYDIR)/wily.py
+
+install-perl: $(PL_DIR)/lib/Wily/Client.pm
+	install -d $(DESTDIR)$(PLDIR)/Wily
+	install -m 0644 $(PL_DIR)/lib/Wily/Client.pm $(DESTDIR)$(PLDIR)/Wily/Client.pm
 
 install-racket: $(RKT_DIR)/wily.rkt $(RKT_DIR)/info.rkt
 	$(RACO) pkg install --installation --auto --batch --copy --name wily $(RKT_DIR)
@@ -105,10 +114,14 @@ install-awk: $(AWK_DIR)/wily_sock.so $(AWK_DIR)/wily.awk
 	install -m 0755 $(AWK_DIR)/wily_sock.so $(DESTDIR)$(AWKEXTDIR)/wily_sock.so
 	install -m 0644 $(AWK_DIR)/wily.awk $(DESTDIR)$(AWKLIBDIR)/wily.awk
 
-uninstall: uninstall-python uninstall-racket uninstall-lua uninstall-bash uninstall-awk
+uninstall: uninstall-python uninstall-perl uninstall-racket uninstall-lua uninstall-bash uninstall-awk
 
 uninstall-python:
 	rm -f $(DESTDIR)$(PYDIR)/wily.py
+
+uninstall-perl:
+	rm -f $(DESTDIR)$(PLDIR)/Wily/Client.pm
+	-rmdir $(DESTDIR)$(PLDIR)/Wily 2>/dev/null || true
 
 uninstall-racket:
 	$(RACO) pkg remove --installation --batch wily
@@ -125,5 +138,5 @@ uninstall-awk:
 clean:
 	rm -f $(LUA_DIR)/wily_unix.so $(BASH_DIR)/wily_bash.so $(AWK_DIR)/wily_sock.so
 
-.PHONY: all lua bash awk install install-python install-racket install-lua install-bash install-awk \
-        uninstall uninstall-python uninstall-racket uninstall-lua uninstall-bash uninstall-awk clean
+.PHONY: all lua bash awk install install-python install-perl install-racket install-lua install-bash install-awk \
+        uninstall uninstall-python uninstall-perl uninstall-racket uninstall-lua uninstall-bash uninstall-awk clean

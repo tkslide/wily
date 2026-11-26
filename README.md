@@ -17,6 +17,13 @@ See [Original README](README.orig) for copyright, permissions etc.
 
 
 ## Changes
+- Added (more or less) native client libraries for:
+  - awk (GAWK with a plugin)
+  - bash (plugin)
+  - lua (plugin)
+  - perl
+  - python
+  - racket
 - Added, reluctantly Ctrl-F/Ctrl-B and Ctrl-N/Ctrl-P to move the cursor around, to keep it usable on my cheap 60% keyboard (no arrow keys)
 - Editing shortcuts added (basically everything I wanted is now included)
   - Ctrl-Z - undo

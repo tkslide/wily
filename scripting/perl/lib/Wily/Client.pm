@@ -1,8 +1,3 @@
-#!/usr/bin/env perl
-use strict;
-use warnings;
-use utf8;
-
 package Wily::Client;
 
 use strict;
@@ -14,6 +9,8 @@ use File::Temp qw(mktemp);
 use IO::Select;
 use IO::Socket::UNIX;
 use Socket qw(SOCK_STREAM);
+
+our $VERSION = '0.01';
 
 use constant {
     # Events (also used as bitmasks)
@@ -412,4 +409,5 @@ sub bounce {
         );
     }
 }
+
 1;

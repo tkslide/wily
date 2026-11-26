@@ -3,8 +3,6 @@ and tools to create such programs.
 
 Current:
 - python3   python3 interface for wily messages
-- python3-pure
-            Interface for wily messsages in pure Python3
 - perl      Perl interfacde for wily messages
 - tcl       Tcl/Tk interface for wily messages
 

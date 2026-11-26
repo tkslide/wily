@@ -1,12 +1,13 @@
 # Wily RPC Clients (`libmsg` Protocol)
 
-Client libraries for communicating with the [Wily](https://yorku.ca) text editor over its Unix domain socket IPC protocol (`libmsg` / `rpc`).
+Client libraries for communicating with the Wily text editor over its Unix domain socket IPC protocol (`libmsg` / `rpc`).
 
-Available in **five languages**, all sharing identical semantics, event queuing, and built-in command bouncing:
+Available in **many languages**, all sharing identical semantics, event queuing, and built-in command bouncing:
 
 | Language | Library File(s) | Native Extension | External Dependencies |
 | :--- | :--- | :--- | :--- |
 | **Python 3** | `wily.py` | None (pure Python) | Standard library (`socket`, `struct`, `select`) |
+| **Perl 5** | `Wily/Client.pm` | None (pure Perl) | Standard library (`IO::Socket::UNIX`, `Socket`, `Fcntl`) |
 | **Racket** | `wily.rkt` | None (pure Racket) | `racket/unix-socket`, `ffi/unsafe` |
 | **Lua (5.3+)** | `wily.lua` | `wily_unix.c` (`wily_unix.so`) | `liblua` headers (or headerless ABI) |
 | **Bash (4+)** | `wily.bash` | `wily_bash.c` (`wily_bash.so`) | None (headerless Bash loadable builtin) |
@@ -28,7 +29,7 @@ During `connect()`, the client creates a temporary Unix domain socket in `/tmp/w
 
 ## Building & Installing (Lua, Bash, GNU Awk)
 
-Python and Racket require no compilation. For Lua, Bash, and GNU Awk, use the top-level `Makefile`:
+Python, Perl, and Racket require no compilation. For Lua, Bash, and GNU Awk, use the top-level `Makefile`:
 
 ```sh
 # Build all three C extensions (wily_unix.so, wily_bash.so, wily_sock.so)
@@ -88,22 +89,22 @@ All packets begin with a **22-byte big-endian header** (`>HHIHHIIH`) followed by
 
 ### Operations
 
-| Operation | Python | Racket | Lua | Bash | GNU Awk |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Connect** | `with WilyClient() as w:` | `(call-with-wily (λ (w) ...))` | `local w <close> = wily.connect()` | `wily_connect` | `wily_connect()` |
-| **List windows** | `w.list_windows()` | `(wily-list-windows w)` | `w:list_windows()` | `wily_list_windows` (`WILY_WINDOWS`) | `wily_list_windows(wins)` |
-| **Open/create window** | `wid = w.new(name, backup)` | `(wily-new w name #:backup #f)` | `wid = w:new(name, false)` | `wily_new name 0` (`$REPLY`) | `wid = wily_new(name, 0)` |
-| **Subscribe events** | `w.attach(wid, mask)` | `(wily-attach w wid mask)` | `w:attach(wid, mask)` | `wily_attach "$wid" "$mask"` | `wily_attach(wid, mask)` |
-| **Set/get tag tools** | `w.settools(wid, s)` / `w.gettools(wid)` | `(wily-settools w wid s)` / `(wily-gettools w wid)` | `w:settools(wid, s)` / `w:gettools(wid)` | `wily_settools` / `wily_gettools` | `wily_settools(wid, s)` / `wily_gettools(wid)` |
-| **Set/get window name** | `w.setname(wid, s)` / `w.getname(wid)` | `(wily-setname w wid s)` / `(wily-getname w wid)` | `w:setname(wid, s)` / `w:getname(wid)` | `wily_setname` / `wily_getname` | `wily_setname(wid, s)` / `wily_getname(wid)` |
-| **Read rune range** | `w.read(wid, p0, p1)` | `(wily-read w wid p0 p1)` | `w:read(wid, p0, p1)` | `wily_read "$wid" "$p0" "$p1"` | `wily_read(wid, p0, p1)` |
-| **Replace rune range** | `w.replace(wid, p0, p1, s)` | `(wily-replace w wid p0 p1 s)` | `w:replace(wid, p0, p1, s)` | `wily_replace "$wid" "$p0" "$p1" "$s"` | `wily_replace(wid, p0, p1, s)` |
-| **Execute B2 command** | `w.exec_cmd(wid, cmd)` | `(wily-exec-cmd w wid cmd)` | `w:exec_cmd(wid, cmd)` | `wily_exec_cmd "$wid" "$cmd"` | `wily_exec_cmd(wid, cmd)` |
-| **Search / B3 jump** | `w.goto(wid, target, True)` | `(wily-goto w wid target)` | `w:go_to(wid, target, true)` | `wily_goto "$wid" "$target" 1` | `wily_goto(wid, target, 1, res)` |
-| **Non-blocking check** | `w.would_block()` | `(wily-would-block? w)` | `w:would_block()` | `wily_would_block` (exit `0`/`1`) | `wily_would_block()` |
-| **Next event** | `ev = w.next_event()` | `(wily-next-event w)` | `ev = w:next_event()` | `wily_next_event` (`WILY_EVENT`) | `wily_next_event(ev)` |
-| **Bounce event** | `w.bounce(ev)` | `(wily-bounce w ev)` | `w:bounce(ev)` | `wily_bounce` | `wily_bounce(ev)` |
-| **Close connection** | `w.close()` | `(wily-close! w)` | `w:close()` | `wily_close` | `wily_close()` |
+| Operation | Python | Perl | Racket | Lua | Bash | GNU Awk |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Connect** | `with WilyClient() as w:` | `$w = Wily::Client->new()->connect()` | `(call-with-wily (λ (w) ...))` | `local w <close> = wily.connect()` | `wily_connect` | `wily_connect()` |
+| **List windows** | `w.list_windows()` | `$w->list_windows()` | `(wily-list-windows w)` | `w:list_windows()` | `wily_list_windows` (`WILY_WINDOWS`) | `wily_list_windows(wins)` |
+| **Open/create window** | `wid = w.new(name, backup)` | `$wid = $w->new_win($name, backup => 0)` | `(wily-new w name #:backup #f)` | `wid = w:new(name, false)` | `wily_new name 0` (`$REPLY`) | `wid = wily_new(name, 0)` |
+| **Subscribe events** | `w.attach(wid, mask)` | `$w->attach($wid, $mask)` | `(wily-attach w wid mask)` | `w:attach(wid, mask)` | `wily_attach "$wid" "$mask"` | `wily_attach(wid, mask)` |
+| **Set/get tag tools** | `w.settools(wid, s)` / `w.gettools(wid)` | `$w->settools($wid, $s)` / `$w->gettools($wid)` | `(wily-settools w wid s)` / `(wily-gettools w wid)` | `w:settools(wid, s)` / `w:gettools(wid)` | `wily_settools` / `wily_gettools` | `wily_settools(wid, s)` / `wily_gettools(wid)` |
+| **Set/get window name** | `w.setname(wid, s)` / `w.getname(wid)` | `$w->setname($wid, $s)` / `$w->getname($wid)` | `(wily-setname w wid s)` / `(wily-getname w wid)` | `w:setname(wid, s)` / `w:getname(wid)` | `wily_setname` / `wily_getname` | `wily_setname(wid, s)` / `wily_getname(wid)` |
+| **Read rune range** | `w.read(wid, p0, p1)` | `$w->read_range($wid, $p0, $p1)` | `(wily-read w wid p0 p1)` | `w:read(wid, p0, p1)` | `wily_read "$wid" "$p0" "$p1"` | `wily_read(wid, p0, p1)` |
+| **Replace rune range** | `w.replace(wid, p0, p1, s)` | `$w->replace($wid, $p0, $p1, $s)` | `(wily-replace w wid p0 p1 s)` | `w:replace(wid, p0, p1, s)` | `wily_replace "$wid" "$p0" "$p1" "$s"` | `wily_replace(wid, p0, p1, s)` |
+| **Execute B2 command** | `w.exec_cmd(wid, cmd)` | `$w->exec_cmd($wid, $cmd)` | `(wily-exec-cmd w wid cmd)` | `w:exec_cmd(wid, cmd)` | `wily_exec_cmd "$wid" "$cmd"` | `wily_exec_cmd(wid, cmd)` |
+| **Search / B3 jump** | `w.goto(wid, target, True)` | `$w->goto($wid, $target, set_dot => 1)` | `(wily-goto w wid target)` | `w:go_to(wid, target, true)` | `wily_goto "$wid" "$target" 1` | `wily_goto(wid, target, 1, res)` |
+| **Non-blocking check** | `w.would_block()` | `$w->would_block()` | `(wily-would-block? w)` | `w:would_block()` | `wily_would_block` (exit `0`/`1`) | `wily_would_block()` |
+| **Next event** | `ev = w.next_event()` | `$ev = $w->next_event()` | `(wily-next-event w)` | `ev = w:next_event()` | `wily_next_event` (`WILY_EVENT`) | `wily_next_event(ev)` |
+| **Bounce event** | `w.bounce(ev)` | `$w->bounce($ev)` | `(wily-bounce w ev)` | `w:bounce(ev)` | `wily_bounce` | `wily_bounce(ev)` |
+| **Close connection** | `w.close()` | `$w->close()` | `(wily-close! w)` | `w:close()` | `wily_close` | `wily_close()` |
 
 ---
 
@@ -114,14 +115,14 @@ All packets begin with a **22-byte big-endian header** (`>HHIHHIIH`) followed by
 python3 wily.py
 ```
 
+### Perl
+```sh
+perl -Ilib example.pl
+```
+
 ### Racket
 ```sh
 racket wily.rkt
-```
-
-### Perl
-```sh
-perl example.pl
 ```
 
 ### Lua
@@ -141,4 +142,3 @@ make bash
 make awk
 AWKPATH=. AWKLIBPATH=. gawk -f example.awk
 ```
-

@@ -3,6 +3,7 @@ package Wily::Client;
 use strict;
 use warnings;
 use utf8;
+use Exporter qw(import);
 use Encode qw(encode_utf8 decode_utf8);
 use Fcntl qw(O_WRONLY);
 use File::Temp qw(mktemp);
@@ -51,11 +52,35 @@ use constant {
     HEADERSIZE  => 22,
 };
 
+my @EVENT_CONSTS = qw(WEexec WEgoto WEdestroy WEreplace);
+my @RPC_CONSTS   = qw(
+    WRerror
+    WMlist WRlist
+    WMnew WRnew
+    WMattach WRattach
+    WMsetname WRsetname
+    WMgetname WRgetname
+    WMsettools WRsettools
+    WMgettools WRgettools
+    WMread WRread
+    WMreplace WRreplace
+    WMexec WRexec
+    WMgoto WRgoto
+);
+my @OTHER_CONSTS = qw(WEfencepost WMfencepost);
+
+our @EXPORT_OK = (@EVENT_CONSTS, @RPC_CONSTS, @OTHER_CONSTS, 'get_wily_fifo');
+our %EXPORT_TAGS = (
+    events => \@EVENT_CONSTS,
+    rpc    => \@RPC_CONSTS,
+    all    => \@EXPORT_OK,
+);
+
 sub get_wily_fifo {
     return $ENV{WILYFIFO} if defined $ENV{WILYFIFO};
 
-    my $user = (getpwuid($<))[0] // die "Cannot determine username\n";
-    my $disp = $ENV{DISPLAY}     // die "\$DISPLAY not set and \$WILYFIFO not set\n";
+    my $user   = (getpwuid($<))[0] // die "Cannot determine username\n";
+    my $disp   = $ENV{DISPLAY}     // die "\$DISPLAY not set and \$WILYFIFO not set\n";
     my $tmpdir = $ENV{TMPDIR} || '/tmp';
 
     return "$tmpdir/wily$user$disp";
@@ -86,7 +111,7 @@ sub connect {
             or die "Cannot open Wily FIFO $self->{fifo_path}: $!\n";
 
         my $path_bytes = encode_utf8($sock_path);
-        my $written = syswrite($fifo_fh, $path_bytes);
+        my $written    = syswrite($fifo_fh, $path_bytes);
         close($fifo_fh);
 
         die "Short write to Wily FIFO\n"
@@ -411,3 +436,258 @@ sub bounce {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Wily::Client - Pure-Perl client for Wily's libmsg / RPC IPC protocol
+
+=head1 SYNOPSIS
+
+    use Wily::Client qw(:events);
+
+    my $wily = Wily::Client->new()->connect();
+
+    for my $win ($wily->list_windows()) {
+        my ($id, $name) = @$win;
+        print "Window $id: $name\n";
+    }
+
+    my $wid = $wily->new_win('+PerlConsole', backup => 0);
+    $wily->settools($wid, ' Hello Quit ');
+    $wily->replace($wid, 0, 0, "Middle-click (B2) 'Hello' or 'Quit' in the tag.\n");
+    $wily->attach($wid, WEexec | WEgoto | WEdestroy);
+
+    while (my $ev = $wily->next_event()) {
+        if ($ev->{t} == WEdestroy) {
+            last;
+        }
+        elsif ($ev->{t} == WEexec) {
+            (my $cmd = $ev->{s}) =~ s/^\s+|\s+$//g;
+            if ($cmd eq 'Hello') {
+                $wily->replace($wid, 0, 0, "Clicked Hello!\n");
+            }
+            elsif ($cmd eq 'Quit') {
+                $wily->exec_cmd($wid, 'Del');
+                last;
+            }
+            else {
+                # Return built-in commands (Cut, Paste, Snarf, Del) to Wily
+                $wily->bounce($ev);
+            }
+        }
+        elsif ($ev->{t} == WEgoto) {
+            # Return normal B3 searches/file opens to Wily
+            $wily->bounce($ev);
+        }
+    }
+
+    $wily->close();
+
+=head1 DESCRIPTION
+
+C<Wily::Client> implements a pure-Perl 5 client for communicating with the
+Wily text editor over its Unix domain socket IPC protocol (C<libmsg> / C<rpc>).
+It uses only core Perl modules and requires no external dependencies or C
+compilation.
+
+When an asynchronous event arrives from Wily while the client is waiting for
+an RPC response, C<Wily::Client> automatically queues the event in FIFO order
+so that L</next_event> delivers it without packet loss.
+
+=head1 EXPORTS
+
+Nothing is exported by default. You may import individual constants,
+L</get_wily_fifo>, or use the following export tags:
+
+=over 4
+
+=item C<:events>
+
+Exports the event type / bitmask constants:
+C<WEexec>, C<WEgoto>, C<WEdestroy>, and C<WEreplace>.
+
+=item C<:rpc>
+
+Exports all RPC request and response message type constants:
+C<WRerror>, C<WMlist>, C<WRlist>, C<WMnew>, C<WRnew>, C<WMattach>, C<WRattach>,
+C<WMsetname>, C<WRsetname>, C<WMgetname>, C<WRgetname>, C<WMsettools>,
+C<WRsettools>, C<WMgettools>, C<WRgettools>, C<WMread>, C<WRread>,
+C<WMreplace>, C<WRreplace>, C<WMexec>, C<WRexec>, C<WMgoto>, and C<WRgoto>.
+
+=item C<:all>
+
+Exports everything in C<:events>, C<:rpc>, C<WEfencepost>, C<WMfencepost>,
+and C<get_wily_fifo>.
+
+=back
+
+=head1 CONSTRUCTOR & CONNECTION
+
+=head2 new
+
+    my $wily = Wily::Client->new(%args);
+
+Constructs a new client instance without connecting. Accepts an optional
+C<fifo_path> parameter; if omitted, L</get_wily_fifo> is used.
+
+=head2 connect
+
+    $wily->connect();
+
+Creates a temporary Unix domain socket in C</tmp/wily.XXXXXX>, writes its path
+to Wily's named pipe (FIFO), and accepts Wily's incoming stream connection.
+Returns C<$self> for method chaining. Dies on I/O or socket errors.
+
+=head2 close
+
+    $wily->close();
+
+Closes the active Unix domain socket connection if open. Also called
+automatically upon object destruction (C<DESTROY>).
+
+=head2 fileno
+
+    my $fd = $wily->fileno();
+
+Returns the underlying socket file descriptor, useful for integrating with
+C<select()>, C<IO::Select>, or external event loops.
+
+=head2 get_wily_fifo
+
+    my $path = Wily::Client::get_wily_fifo();
+
+Resolves the path to Wily's FIFO using C<$ENV{WILYFIFO}> if set, or falling
+back to C<${TMPDIR:-/tmp}/wily${USER}${DISPLAY}>.
+
+=head1 RPC METHODS
+
+All RPC methods die with a C<WilyError: ...> message if Wily returns a
+C<WRerror> packet, or on protocol/socket errors.
+
+=head2 list_windows
+
+    my @windows = $wily->list_windows();
+
+Returns a list of arrayrefs, each containing C<[ $win_id, $name ]>.
+
+=head2 new_win
+
+    my $wid = $wily->new_win($name, backup => 0);
+
+Opens an existing file or creates a new window named C<$name> and returns its
+numeric window ID. Set C<< backup => 1 >> to enable Wily backup/undo tracking
+for the window.
+
+=head2 attach
+
+    $wily->attach($win_id, WEexec | WEgoto | WEdestroy);
+
+Subscribes the client to events on C<$win_id> matching the bitmask C<$mask>.
+
+=head2 setname
+
+    $wily->setname($win_id, $name);
+
+Sets the path/name displayed in the tag of C<$win_id>.
+
+=head2 getname
+
+    my $name = $wily->getname($win_id);
+
+Returns the current path/name of C<$win_id>.
+
+=head2 settools
+
+    $wily->settools($win_id, $tools);
+
+Sets the user tool string in the tag bar of C<$win_id>.
+
+=head2 gettools
+
+    my $tools = $wily->gettools($win_id);
+
+Returns the current user tool string in the tag bar of C<$win_id>.
+
+=head2 read_range
+
+    my $text = $wily->read_range($win_id, $p0, $p1);
+
+Reads and returns the UTF-8 text in rune range C<[$p0, $p1)> from C<$win_id>.
+
+=head2 replace
+
+    $wily->replace($win_id, $p0, $p1, $text);
+
+Replaces the rune range C<[$p0, $p1)> in C<$win_id> with C<$text>.
+
+=head2 exec_cmd
+
+    $wily->exec_cmd($win_id, $cmd);
+
+Executes C<$cmd> as if middle-clicked (B2) in C<$win_id>.
+
+=head2 goto
+
+    my ($target_wid, $p0, $p1) = $wily->goto($win_id, $target, set_dot => 1);
+
+Searches or jumps to C<$target> as if right-clicked (B3) in C<$win_id>.
+Returns a 3-element list C<($target_wid, $p0, $p1)>. Pass C<< set_dot => 0 >>
+to query the target location without moving the selection.
+
+=head1 EVENT HANDLING
+
+=head2 next_event
+
+    my $ev = $wily->next_event();
+
+Returns the next queued event hashref, or blocks until Wily sends one.
+Each event hashref contains:
+
+=over 4
+
+=item * C<t> - Event type constant (C<WEexec>, C<WEgoto>, C<WEdestroy>, or C<WEreplace>)
+
+=item * C<m> - Message ID
+
+=item * C<w> - Window ID where the event occurred
+
+=item * C<p0> - Start rune offset
+
+=item * C<p1> - End rune offset
+
+=item * C<flag> - Event flags
+
+=item * C<s> - Event payload string (command text, search target, or replacement text)
+
+=back
+
+=head2 would_block
+
+    if (!$wily->would_block()) {
+        my $ev = $wily->next_event();
+    }
+
+Returns true (C<1>) if calling L</next_event> would block waiting for data
+from Wily, or false (C<0>) if an event is already queued or readable on the
+socket.
+
+=head2 bounce
+
+    $wily->bounce($ev);
+
+Returns an unhandled C<WEexec> or C<WEgoto> event back to Wily so that
+built-in commands (such as C<Cut>, C<Paste>, C<Snarf>, C<Del>) or standard
+B3 searches/file opens are handled normally by Wily.
+
+=head1 SEE ALSO
+
+L<wily(1)>, L<IO::Socket::UNIX>
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut

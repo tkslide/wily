@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wily-rpc"
+version = "0.1.0"
+description = "Pure-Python 3 client for Wily's libmsg / rpc protocol"
+requires-python = ">=3.9"
+
+[tool.setuptools]
+py-modules = ["wily"]

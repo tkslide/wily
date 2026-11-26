@@ -120,9 +120,10 @@ static void Realize(Widget w, XtValueMask *valueMask,
 
   XtCreateWindow(w, InputOutput, (Visual *)0, *valueMask, attrs);
   XtSetKeyboardFocus(w->core.parent, w);
-  if (modmap = XGetModifierMapping(XtDisplay(w)))
+  modmap = XGetModifierMapping(XtDisplay(w));
+  if (modmap) {
     keypermod = modmap->max_keypermod;
-
+  }
   Resize(w);
 }
 
@@ -476,51 +477,68 @@ static void SelCallback(Widget w, XtPointer cldata, Atom *sel, Atom *seltype,
 static Boolean SendSel(Widget w, Atom *sel, Atom *target, Atom *rtype,
                        XtPointer *ans, unsigned long *anslen, int *ansfmt) {
   GwinWidget gw = (GwinWidget)w;
-  static Atom targets = 0;
-  XrmValue src, dst;
+  static Atom targets_atom = 0;
+  static Atom utf8_atom = 0;
+  Display *dpy = XtDisplay(w);
   char *s;
 
-  if (*target == XA_STRING) {
-    s = gw->gwin.selection;
-    if (!s)
-      s = "";
-    *rtype = XInternAtom(XtDisplay(w), "UTF8_STRING", 0);
-    *ans = (XtPointer)XtNewString(s);
-    *anslen = strlen(*ans);
-    *ansfmt = 8;
-    return TRUE;
+  if (utf8_atom == 0) {
+    utf8_atom = XInternAtom(dpy, "UTF8_STRING", False);
   }
 #ifndef R3
-  if (targets == 0) {
+  if (targets_atom == 0) {
+    XrmValue src, dst;
     src.addr = "TARGETS";
     src.size = strlen(src.addr) + 1;
     dst.size = sizeof(Atom);
-    dst.addr = (XtPointer)&targets;
+    dst.addr = (XtPointer)&targets_atom;
     XtConvertAndStore(w, XtRString, &src, XtRAtom, &dst);
   }
-  if (*target == targets) {
-    *rtype = XA_ATOM;
-    *ans = (XtPointer)XtNew(Atom);
-    *(Atom *)*ans = XA_STRING;
-    *anslen = 1;
+#endif
+
+  if (*target == XA_STRING || *target == utf8_atom) {
+    s = gw->gwin.selection;
+    if (!s)
+      s = "";
+
+    *ans = (XtPointer)XtNewString(s);
+    *anslen = strlen((char *)*ans);
+    *ansfmt = 8;
+    *rtype = *target; /* The type returned MUST match the requested target */
+    return TRUE;
+  }
+
+#ifndef R3
+  if (*target == targets_atom) {
+    /* Allocate space for 2 Atoms: XA_STRING and UTF8_STRING */
+    Atom *supported = (Atom *)XtMalloc(sizeof(Atom) * 2);
+    supported[0] = XA_STRING;
+    supported[1] = utf8_atom;
+
+    *ans = (XtPointer)supported;
+    *anslen = 2;
     *ansfmt = 32;
+    *rtype = XA_ATOM;
     return TRUE;
   }
 #endif
+
   return FALSE;
 }
 
 static String SelectSwap(Widget w, String s) {
   GwinWidget gw;
   String ans;
-
   gw = (GwinWidget)w;
+
+  Atom XA_CLIPBOARD = XInternAtom(XtDisplay(w), "CLIPBOARD", False);
 
   if (!gw->gwin.selection) {
 #ifdef R3
-    XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0, CurrentTime);
+    XtGetSelectionValue(w, XA_CLIPBOARD, XA_STRING, SelCallback, 0,
+                        CurrentTime);
 #else
-    XtGetSelectionValue(w, XInternAtom(XtDisplay(w), "PRIMARY", 0),
+    XtGetSelectionValue(w, XInternAtom(XtDisplay(w), "CLIPBOARD", 0),
                         XInternAtom(XtDisplay(w), "UTF8_STRING", 0),
                         SelCallback, 0, XtLastTimestampProcessed(XtDisplay(w)));
 #endif
@@ -531,10 +549,10 @@ static String SelectSwap(Widget w, String s) {
   gw->gwin.selection = XtMalloc(strlen(s) + 1);
   strcpy(gw->gwin.selection, s);
 #ifdef R3
-  XtOwnSelection(w, XA_PRIMARY, CurrentTime, SendSel, LoseSel, NULL);
+  XtOwnSelection(w, XA_CLIPBOARD, CurrentTime, SendSel, LoseSel, NULL);
 #else
-  XtOwnSelection(w, XA_PRIMARY, XtLastTimestampProcessed(XtDisplay(w)), SendSel,
-                 LoseSel, NULL);
+  XtOwnSelection(w, XA_CLIPBOARD, XtLastTimestampProcessed(XtDisplay(w)),
+                 SendSel, LoseSel, NULL);
 #endif
   return ans;
 }
@@ -546,19 +564,21 @@ String GwinSelectionSwap(Widget w, String s) {
 }
 
 static void own_selection(Widget w) {
+  Atom XA_CLIPBOARD = XInternAtom(XtDisplay(w), "CLIPBOARD", False);
 #ifdef R3
-  XtOwnSelection(w, XA_PRIMARY, CurrentTime, SendSel, LoseSel, NULL);
+  XtOwnSelection(w, XA_CLIPBOARD, CurrentTime, SendSel, LoseSel, NULL);
 #else
-  XtOwnSelection(w, XA_PRIMARY, XtLastTimestampProcessed(XtDisplay(w)), SendSel,
-                 LoseSel, NULL);
+  XtOwnSelection(w, XA_CLIPBOARD, XtLastTimestampProcessed(XtDisplay(w)),
+                 SendSel, LoseSel, NULL);
 #endif
 }
 
 static void get_selection(Widget w) {
+  Atom XA_CLIPBOARD = XInternAtom(XtDisplay(w), "CLIPBOARD", False);
 #ifdef R3
-  XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0, CurrentTime);
+  XtGetSelectionValue(w, XA_CLIPBOARD, XA_STRING, SelCallback, 0, CurrentTime);
 #else
-  XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, SelCallback, 0,
+  XtGetSelectionValue(w, XA_CLIPBOARD, XA_STRING, SelCallback, 0,
                       XtLastTimestampProcessed(XtDisplay(w)));
 #endif
 }

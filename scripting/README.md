@@ -119,6 +119,11 @@ python3 wily.py
 racket wily.rkt
 ```
 
+### Perl
+```sh
+perl example.pl
+```
+
 ### Lua
 ```sh
 make lua
